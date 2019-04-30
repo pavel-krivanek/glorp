@@ -12,17 +12,17 @@ Class {
 	#instVars : [
 		'joins'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 VariableJoin class >> new [
-	^(super new )initialize
+	^super new initialize.
 ]
 
 { #category : #accessing }
 VariableJoin >> addJoinFor: aClass as: aJoin [
-	joins at: aClass put: aJoin
+	joins at: aClass put: aJoin.
 ]
 
 { #category : #accessing }
@@ -33,12 +33,12 @@ VariableJoin >> allSourceFields [
 
 { #category : #accessing }
 VariableJoin >> allTargetFields [
-	^joins inject: OrderedCollection new into: [:sum :each | sum addAll: each allTargetFields. sum]
+	^joins inject: OrderedCollection new into: [:sum :each | sum addAll: each allTargetFields. sum].
 ]
 
 { #category : #accessing }
 VariableJoin >> anyJoin [
-	^joins detect: [:each | true]
+	^joins detect: [:each | true].
 ]
 
 { #category : #converting }
@@ -80,12 +80,12 @@ VariableJoin >> asGlorpExpressionOn: aBaseExpression [
 	| copy |
 	copy := self copy.
 	copy joins: (copy joins collect: [:each | each asGlorpExpressionOn: aBaseExpression]).
-	^copy
+	^copy.
 ]
 
 { #category : #accessing }
 VariableJoin >> generalExpressionPart [
-	^nil
+	^nil.
 ]
 
 { #category : #'initialize-release' }

@@ -38,5 +38,5 @@ SQLite3Proxy >> glorpTriggerProxyAction: target [
 	action isNil ifTrue: [^self].
 	owner := action key.
 	block := action value.
-	^block value: owner value: target
+	^block value: owner value: target.
 ]

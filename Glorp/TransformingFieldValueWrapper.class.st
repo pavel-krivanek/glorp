@@ -21,32 +21,32 @@ Class {
 
 { #category : #accessing }
 TransformingFieldValueWrapper >> allInnerWrappers [
-	^innerWrapper allInnerWrappers, (Array with: innerWrapper)
+	^innerWrapper allInnerWrappers, (Array with: innerWrapper).
 ]
 
 { #category : #accessing }
 TransformingFieldValueWrapper >> basicContents [
 	"Return the un-transformed contents"
-	^innerWrapper contents
+	^innerWrapper contents.
 ]
 
 { #category : #unifying }
 TransformingFieldValueWrapper >> containsWrapper: aFieldValueWrapper [
 	^self == aFieldValueWrapper or: [innerWrapper == aFieldValueWrapper
 		or: [aFieldValueWrapper innerWrapper == self
-			or: [aFieldValueWrapper innerWrapper == self innerWrapper]]]
+			or: [aFieldValueWrapper innerWrapper == self innerWrapper]]].
 ]
 
 { #category : #accessing }
 TransformingFieldValueWrapper >> contents [
 
-	^forwardTransformation value: innerWrapper contents
+	^forwardTransformation value: innerWrapper contents.
 ]
 
 { #category : #accessing }
 TransformingFieldValueWrapper >> contents: anObject [
 
-	innerWrapper contents: (inverseTransformation value: anObject)
+	innerWrapper contents: (inverseTransformation value: anObject).
 ]
 
 { #category : #accessing }
@@ -62,7 +62,7 @@ TransformingFieldValueWrapper >> forwardTransformation: aBlock [
 { #category : #accessing }
 TransformingFieldValueWrapper >> hasValue [
 
-	^innerWrapper hasValue
+	^innerWrapper hasValue.
 ]
 
 { #category : #accessing }
@@ -87,10 +87,10 @@ TransformingFieldValueWrapper >> inverseTransformation: aBlock [
 
 { #category : #accessing }
 TransformingFieldValueWrapper >> privateSetContents: anObject [
-	innerWrapper privateSetContents: (inverseTransformation value: anObject)
+	innerWrapper privateSetContents: (inverseTransformation value: anObject).
 ]
 
 { #category : #unifying }
 TransformingFieldValueWrapper >> replaceWith: aFieldValueWrapper [
-	innerWrapper replaceWith: aFieldValueWrapper
+	innerWrapper replaceWith: aFieldValueWrapper.
 ]

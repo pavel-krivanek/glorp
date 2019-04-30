@@ -15,22 +15,18 @@ Class {
 	#name : #Login,
 	#superclass : #Object,
 	#instVars : [
-		'encodingStrategy',
 		'database',
 		'username',
 		'password',
 		'connectString',
 		'name',
 		'schema',
-		'databaseName',
-		'host',
-		'port',
 		'secure'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Login class >> new [
 	^super new initialize.
 ]

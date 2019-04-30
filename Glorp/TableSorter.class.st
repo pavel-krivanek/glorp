@@ -26,13 +26,13 @@ TableSorter class >> for: tables [
 	sorter := self new.
 	tables do: [:each |
 		sorter addTable: each].
-	^sorter
+	^sorter.
 ]
 
 { #category : #'instance creation' }
 TableSorter class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #accessing }
@@ -43,26 +43,26 @@ TableSorter >> addTable: aTable [
 { #category : #accessing }
 TableSorter >> hasBeenVisited: aTable [
 
-	^visitedTables includes: aTable
+	^visitedTables includes: aTable.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 TableSorter >> initialize [
 	tables := OrderedCollection new: 100.
-	visitedTables := IdentitySet new: 100
+	visitedTables := IdentitySet new: 100.
 ]
 
 { #category : #accessing }
 TableSorter >> markVisited: aTable [
 
-	visitedTables add: aTable
+	visitedTables add: aTable.
 ]
 
 { #category : #sorting }
 TableSorter >> sort [
 	orderedTables := OrderedCollection new: tables size.
 	tables do: [:each | self visit: each].
-	^orderedTables select: [:each | tables includes: each]
+	^orderedTables select: [:each | tables includes: each].
 ]
 
 { #category : #sorting }
@@ -78,5 +78,5 @@ TableSorter >> visit: aTable [
 { #category : #sorting }
 TableSorter >> visitDependentTablesFor: aTable [ 
 	aTable foreignKeyConstraints do: [:eachConstraint | 
-          self visit: eachConstraint targetTable ]
+          self visit: eachConstraint targetTable.]
 ]

@@ -21,7 +21,7 @@ RowMapKey >> = aRowMapKey [
 
 	aRowMapKey class == self class ifFalse: [^false].
 	^(key1 == aRowMapKey key1 and: [key2 == aRowMapKey key2]) or: [
-		key2 == aRowMapKey key1 and: [key1 == aRowMapKey key2]]
+		key2 == aRowMapKey key1 and: [key1 == aRowMapKey key2]].
 ]
 
 { #category : #adjusting }
@@ -31,7 +31,7 @@ RowMapKey >> adjustIn: aCorrespondenceMap [
 	adjusted := self copy.
 	adjusted key1: (aCorrespondenceMap at: key1 ifAbsent: [key1]).
 	adjusted key2: (aCorrespondenceMap at: key2 ifAbsent: [key2]).
-	^adjusted
+	^adjusted.
 ]
 
 { #category : #comparing }
@@ -74,5 +74,5 @@ RowMapKey >> reverseAdjustIn: aRowMapForMementos [
 	adjusted := self copy.
 	adjusted key1: (aRowMapForMementos reversedCorrespondenceMap at: key1 ifAbsent: [key1]).
 	adjusted key2: (aRowMapForMementos reversedCorrespondenceMap at: key2 ifAbsent: [key2]).
-	^adjusted
+	^adjusted.
 ]

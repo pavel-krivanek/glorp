@@ -8,7 +8,7 @@ Class {
 	#category : 'Glorp-Queries'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 SQLite3PragmaQuery class >> newQuery [
 	^SQLite3PragmaQuery new
 	"^super newQuery"
@@ -34,5 +34,5 @@ SQLite3PragmaQuery >> sqlWith: aDictionary [
 		forQuery: self
 		parameters: aDictionary
 		useBinding: session useBinding
-		session: session
+		session: session.
 ]

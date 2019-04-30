@@ -11,7 +11,7 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 PrimaryKeyConstraint class >> forTable: aDatabaseTable fields: collDatabaseFields [
 	^self new
 		forTable: aDatabaseTable  fields: collDatabaseFields;
@@ -64,9 +64,9 @@ PrimaryKeyConstraint >> isTheSameAs: aPrimaryKeyConstraint [
 { #category : #testing }
 PrimaryKeyConstraint >> matchesPrimaryKeyConstraint: aConstraint [
 	name = aConstraint name ifFalse: [^false].
-	self primaryKeyFields size ~= aConstraint primaryKeyFields size ifTrue: [^false].
-	self primaryKeyFields with: aConstraint primaryKeyFields do: [ :field1 :field2 | 
-		(field1 matchesField: field2) ifFalse: [^false]].
+	self primaryKeyFields size = aConstraint primaryKeyFields size ifFalse: [^false].
+	self primaryKeyFields with: aConstraint primaryKeyFields do:
+		[ :field1 :field2 | (field1 matchesField: field2) ifFalse: [^false]].
 	^true
 ]
 

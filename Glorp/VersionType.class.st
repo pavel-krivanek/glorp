@@ -18,12 +18,12 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 VersionType class >> underlyingType: aDatabaseType [
 	^self new underlyingType: aDatabaseType.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 VersionType class >> underlyingType: aDatabaseType generator: aGenerator [
 	^self new underlyingType: aDatabaseType generator: aGenerator.
 ]

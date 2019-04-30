@@ -83,7 +83,7 @@ ReadQuery >> asSimpleQueryFor: aClass [
 ReadQuery >> executeSubQueries: subQueries withParameters: anArray [
 	^self shouldUseSingleQuery
 		ifTrue: [self executeSubQueriesCombined: subQueries withParameters: anArray]
-		ifFalse: [self executeSubQueriesIndividually: subQueries withParameters: anArray]
+		ifFalse: [self executeSubQueriesIndividually: subQueries withParameters: anArray].
 ]
 
 { #category : #executing }
@@ -119,7 +119,7 @@ ReadQuery >> nullFieldFor: eachField [
 	^FunctionExpression
 		for: #cast:
 		withArguments: (Array with: (ConstantExpression for: eachField type))
-		basedOn: (ConstantExpression for: nil)
+		basedOn: (ConstantExpression for: nil).
 ]
 
 { #category : #executing }
@@ -140,5 +140,5 @@ ReadQuery >> readFromDatabaseWithParameters: anArray [
 
 { #category : #accessing }
 ReadQuery >> shouldUseSingleQuery [
-	^self descriptor typeResolver shouldUseSingleQuery
+	^self descriptor typeResolver shouldUseSingleQuery.
 ]

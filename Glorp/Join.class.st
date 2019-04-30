@@ -24,14 +24,14 @@ Class {
 		'outerJoin',
 		'owningMapping'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 Join class >> from: aField to: anotherField [
 
 	^self new
-		addSource: aField target: anotherField
+		addSource: aField target: anotherField.
 ]
 
 { #category : #'instance creation' }
@@ -40,7 +40,7 @@ from: from2Field to: to2Field [
 
 	^self new
 		addSource: from1Field target: to1Field;
-		addSource: from2Field target: to2Field
+		addSource: from2Field target: to2Field.
 ]
 
 { #category : #'instance creation' }
@@ -51,7 +51,7 @@ from: from3Field to: to3Field [
 	^self new
 		addSource: from1Field target: to1Field;
 		addSource: from2Field target: to2Field;
-		addSource: from3Field target: to3Field
+		addSource: from3Field target: to3Field.
 ]
 
 { #category : #'instance creation' }
@@ -79,20 +79,20 @@ from: from5Field to: to5Field [
 		addSource: from2Field target: to2Field;
 		addSource: from3Field target: to3Field;		
 		addSource: from4Field target: to4Field;
-		addSource: from5Field target: to5Field
+		addSource: from5Field target: to5Field.
 ]
 
 { #category : #'instance creation' }
 Join class >> fromAll: sourceFields toAll: targetFields [
 
 	^self new
-		sourceFields: sourceFields targetFields: targetFields
+		sourceFields: sourceFields targetFields: targetFields.
 ]
 
 { #category : #'instance creation' }
 Join class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #converting }

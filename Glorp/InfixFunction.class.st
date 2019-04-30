@@ -14,7 +14,7 @@ Class {
 		'arguments',
 		'functionParts'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
@@ -27,7 +27,7 @@ InfixFunction class >> named: aStringOrArray [
 			instance functionParts: aStringOrArray.
 			trimmedName := aStringOrArray copyFrom: 2 to: aStringOrArray size.
 			instance function: (trimmedName inject: aStringOrArray first into: [:sum :each | sum, ' ', each])].
-	^instance
+	^instance.
 ]
 
 { #category : #accessing }

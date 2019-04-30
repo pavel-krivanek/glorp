@@ -21,19 +21,19 @@ Class {
 
 { #category : #'instance creation' }
 JoinPrinter class >> for: aQuery [
-	^self new query: aQuery
+	^self new query: aQuery.
 ]
 
 { #category : #accessing }
 JoinPrinter >> allTables [
-	^query tablesToPrint
+	^query tablesToPrint.
 ]
 
 { #category : #printing }
 JoinPrinter >> nextJoin [
 	^joinsToProcess detect: [:eachJoinExpression |
 		eachJoinExpression tablesForANSIJoin anySatisfy: [:eachTable |
-			availableTables includes: eachTable]]
+			availableTables includes: eachTable]].
 ]
 
 { #category : #printing }
@@ -72,22 +72,22 @@ JoinPrinter >> printLeftoverTablesOn: aCommand [
 		print: [:each | each sqlTableName]
 		on: aCommand
 		for: leftOverTables
-		separatedBy: ', '
+		separatedBy: ', '.
 ]
 
 { #category : #accessing }
 JoinPrinter >> query: aQuery [
 	query := aQuery.	
-	self setUp
+	self setUp.
 ]
 
 { #category : #accessing }
 JoinPrinter >> rootTable [
 	"Pick a table to start with"
-	^self allTables first
+	^self allTables first.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 JoinPrinter >> setUp [
-	availableTables := Set new
+	availableTables := Set new.
 ]

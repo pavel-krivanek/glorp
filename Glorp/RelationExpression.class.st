@@ -18,13 +18,13 @@ Class {
 		'rightChild',
 		'outerJoin'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 RelationExpression class >> named: aSymbol basedOn: anExpression withArguments: anArray [
 
-	^(self new)
+	^self new
 		named: aSymbol
 		basedOn: anExpression
 		withArguments: anArray.
@@ -47,7 +47,7 @@ RelationExpression >> additionalExpressions [
 	^#().
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 RelationExpression >> allSourceFields [
 	"If we are sending this, then we're treating the expression as a join, for a complex (and probably read-only) relationship. So in that case we want to treat the source fields as the parameters that this expression takes, and specifically the parameters that are based on fields."
 	^self inject: OrderedCollection new into: [:sum :each |
@@ -55,7 +55,7 @@ RelationExpression >> allSourceFields [
 		sum].
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 RelationExpression >> allTargetFields [
 	"If we are sending this, then we're treating the expression as a join, for a complex (and probably read-only) relationship. So in that case we want to treat the target fields as being the source fields of the bottom-most mapping. That is, the fields we'll use to connect to the thing we want are the things that our expression's base (which represents the thing we want) would use to connect to the first level mapping arising from it. If we have a relation, that's a bit of a mess, but guess that we want the left child's information."
 	^self leftChild allTargetFields.
@@ -158,7 +158,7 @@ RelationExpression >> canHaveBase [
 	^true.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #testing }
 RelationExpression >> canUseBinding [
 	"Return true if we can use binding for our right child's value"
 	^self expectsCollectionArgument not.
@@ -268,7 +268,7 @@ RelationExpression >> do: aBlock skipping: aSet [
 			aBlock value: self.].
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #testing }
 RelationExpression >> expectsCollectionArgument [
 	^self relationsWithCollectionArguments includes: relation.
 ]
@@ -445,7 +445,7 @@ RelationExpression >> printComparisonTo: value withParameters: aDictionary on: a
 				on: aStream].
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #'printing SQL' }
 RelationExpression >> printForANSIJoinTo: table on: aCommand [
 	"Print ourselves as table JOIN otherTable USING (criteria). Return the table we joined"
 
@@ -729,7 +729,7 @@ RelationExpression >> tablesForANSIJoin [
 		sum].
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 RelationExpression >> targetKeys [
 	"Assume that part of us is a join, and the rest doesn't count"
 	^self inject: OrderedCollection new into: [:sum :each |
@@ -749,7 +749,7 @@ RelationExpression >> ultimateBaseExpression [
 	^leftChild canHaveBase ifTrue: [leftChild ultimateBaseExpression] ifFalse: [rightChild ultimateBaseExpression].
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #testing }
 RelationExpression >> useBindingFor: aValue to: aType in: aCommand [
 	"Return true if we can use binding for our right child's value, in the context of this command"
 	aCommand useBinding ifFalse: [^false].

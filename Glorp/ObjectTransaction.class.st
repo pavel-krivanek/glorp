@@ -22,7 +22,7 @@ Class {
 	#category : 'Glorp-UnitOfWork'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 ObjectTransaction class >> new [
 	^super new initialize
 ]
@@ -47,12 +47,12 @@ ObjectTransaction >> begin [
 { #category : #accessing }
 ObjectTransaction >> collectionMementoFor: anObject [
 	anObject isNil ifTrue: [^#()].
-	^collectionMementos at: anObject ifAbsent: [self mementoFor: anObject]
+	^collectionMementos at: anObject ifAbsent: [self mementoFor: anObject].
 ]
 
 { #category : #accessing }
 ObjectTransaction >> collectionMementos [
-	^collectionMementos
+	^collectionMementos.
 ]
 
 { #category : #'begin/commit/abort' }
@@ -65,11 +65,11 @@ ObjectTransaction >> initialize [
 	self initializeUndoMap.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 ObjectTransaction >> initializeUndoMap [
 
 	undoMap := IdentityDictionary new: 1000.
-	collectionMementos := IdentityDictionary new: 200
+	collectionMementos := IdentityDictionary new: 200.
 ]
 
 { #category : #registering }
@@ -77,7 +77,7 @@ ObjectTransaction >> isRegistered: anObject [
 	"Note: We can never have a situation where a proxy is registered but its contents aren't, so we don't have to worry about that ambiguous case."
 	| realObject |
 	realObject := self realObjectFor: anObject ifNone: [^false].
-	^undoMap includesKey: realObject
+	^undoMap includesKey: realObject.
 ]
 
 { #category : #'private/restoring' }
@@ -88,19 +88,19 @@ ObjectTransaction >> isShapeOf: original differentThanThatOf: copy [
 
 { #category : #accessing }
 ObjectTransaction >> mementoFor: anObject [
-	^undoMap at: anObject
+	^undoMap at: anObject.
 ]
 
 { #category : #registering }
 ObjectTransaction >> needsCollectionMementoFor: aCollection [
 	"We can avoid the need for a collection copy if the collection has no internal structure - that is, if we'll be able to loop over a simple shallow copy. This is dialect and collection class dependent"
-	^Dialect needsCollectionMementoFor: aCollection
+	^Dialect needsCollectionMementoFor: aCollection.
 ]
 
 { #category : #registering }
 ObjectTransaction >> realObjectFor: anObject [ 
 	"If this is a proxy, return the contents (if available). Otherwise, return nil"
-	^self realObjectFor: anObject ifNone: [nil]
+	^self realObjectFor: anObject ifNone: [nil].
 ]
 
 { #category : #registering }
@@ -132,7 +132,7 @@ ObjectTransaction >> registerTransientInternalsOfCollection: aCollection [
 	aCollection class isBits ifTrue: [^self].
 	(self needsCollectionMementoFor: aCollection)
 		ifTrue: [collectionMementos at: aCollection put: aCollection copy].
-	aCollection glorpRegisterCollectionInternalsIn: self
+	aCollection glorpRegisterCollectionInternalsIn: self.
 
 "For this to work, the dialect must not copy collections so shallowly that internals are reused identically.
 In VW, Dictionary copy calls postCopy, which copies the associations or value collection (but not the
@@ -156,7 +156,7 @@ ObjectTransaction >> registeredObjectsDo: aBlock [
 			undoMap
 				keysDo:
 					[:eachKey | (previousVersion includes: eachKey) ifFalse: [newAdditions add: eachKey]].
-			newAdditions isEmpty ifFalse: [previousVersion := undoMap keys]]
+			newAdditions isEmpty ifFalse: [previousVersion := undoMap keys]].
 ]
 
 { #category : #registering }
@@ -173,7 +173,7 @@ ObjectTransaction >> restoreIndexedInstanceVariablesOf: original toThoseOf: copy
 	copy glorpStartOfIndexedInstVars to: copy glorpEndOfIndexedInstVars do: [:index |
 		original isString 
 			ifTrue: [original at: index put: (copy at: index)]
-			ifFalse: [original basicAt: index put: (copy basicAt: index)]]
+			ifFalse: [original basicAt: index put: (copy basicAt: index)]].
 ]
 
 { #category : #'private/restoring' }
@@ -190,7 +190,7 @@ ObjectTransaction >> restoreShapeOf: original toThatOf: copy [
 	(copy class isBits or: [copy class isVariable])
 		ifTrue: [newOriginal := copy class basicNew: copy glorpBasicSize]
 		ifFalse: [newOriginal := copy class basicNew].
-	original become: newOriginal
+	original become: newOriginal.
 ]
 
 { #category : #'private/restoring' }

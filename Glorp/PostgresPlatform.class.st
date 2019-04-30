@@ -5,6 +5,8 @@ This supports binding but has it off by default.  To change this generally, impl
 	Glorp.DatabasePlatform.UseBindingIfSupported := true
 In either case check already-assigned values of any existing platform instances after changing.
 
+Instance Variables
+	charactersThatNeedEscaping	<Array of Char>	the standard_conforming_strings setting determines whether we must escape backslash;  we must always escape single-quote
 "
 Class {
 	#name : #PostgresPlatform,
@@ -12,16 +14,16 @@ Class {
 	#instVars : [
 		'charactersThatNeedEscaping'
 	],
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #constants }
 PostgresPlatform class >> reservedWords [
 	^#('all' 'analyse' 'analyze' 'and' 'any' 'array' 'as' 'asc' 'asymmetric' 'both' 'case' 'cast' 'check' 'collate' 'column' 'constraint' 'create' 'current_catalog' 'current_date' 'current_role' 'current_time' 'current_timestamp' 'current_user' 'default' 'deferrable' 'desc' 'distinct' 'do' 'else' 'end' 'except' 'false' 'fetch' 'for' 'foreign' 'from' 'grant' 'group' 'having' 'in' 'initially' 'intersect' 'into' 'leading' 'limit' 'localtime' 'localtimestamp' 'not' 'null' 'offset' 'on' 'only' 'or' 'order' 'placing' 'primary' 'references' 'returning' 'select' 'session_user' 'some' 'symmetric' 'table' 'then' 'to' 'trailing' 'true' 'union' 'unique' 'user' 'using' 'variadic' 'when' 'where' 'window' 'with')
 		asSet
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 PostgresPlatform class >> useBindingByDefault [
 	^false
 ]
@@ -229,7 +231,7 @@ PostgresPlatform >> int8 [
 	^self typeNamed: #int8 ifAbsentPut: [GlorpIntegerType new typeString: 'int8'].
 ]
 
-{ #category : #SQL }
+{ #category : #testing }
 PostgresPlatform >> isPostgreSQLPlatform [
 	^true.
 ]

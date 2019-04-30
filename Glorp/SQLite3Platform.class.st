@@ -32,7 +32,10 @@ My int* and float*/double type methods that define Glorp types for SQLite confor
 Class {
 	#name : #SQLite3Platform,
 	#superclass : #DatabasePlatform,
-	#category : 'Glorp-Platforms'
+	#instVars : [
+		'supportsGroupWritingValues'
+	],
+	#category : #'Glorp-Database'
 }
 
 { #category : #'as yet unclassified' }
@@ -355,7 +358,7 @@ SQLite3Platform >> supportsBinding [
 	^false.
 ]
 
-{ #category : #constants }
+{ #category : #testing }
 SQLite3Platform >> supportsConstraints [
 	"Return false, because this platform does not support constraint add or drop statements.
 	However, foreign key constraints can be created as part of the create table statement.

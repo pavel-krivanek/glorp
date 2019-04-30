@@ -21,7 +21,7 @@ Class {
 RowMapForMementos class >> withCorrespondenceMap: aDictionary [
 
 	^self new
-		correspondenceMap: aDictionary
+		correspondenceMap: aDictionary.
 ]
 
 { #category : #api }
@@ -32,19 +32,19 @@ RowMapForMementos >> adjustForMementos: objects [
 		possibleRowMapKey := objects at: i.
 		(self isRowMapKey: possibleRowMapKey) ifTrue: [
 			objects at: i put: (possibleRowMapKey adjustIn: correspondenceMap)]].
-	^objects
+	^objects.
 ]
 
 { #category : #'private/mapping' }
 RowMapForMementos >> collectionMementoFor: aCollection [
 
 	aCollection glorpIsCollection ifFalse: [^aCollection].
-	^collectionMementos at: aCollection ifAbsent: [correspondenceMap at: aCollection]
+	^collectionMementos at: aCollection ifAbsent: [correspondenceMap at: aCollection].
 ]
 
 { #category : #accessing }
 RowMapForMementos >> collectionMementos: aDictionary [
-	collectionMementos := aDictionary
+	collectionMementos := aDictionary.
 ]
 
 { #category : #accessing }
@@ -59,25 +59,25 @@ RowMapForMementos >> correspondenceMap: anObject [
 
 { #category : #api }
 RowMapForMementos >> deleteRowForTable: aTable withKey: aKey ifAbsent: aBlock [
-	^super deleteRowForTable: aTable withKey: (self mementoFor: aKey) ifAbsent: aBlock
+	^super deleteRowForTable: aTable withKey: (self mementoFor: aKey) ifAbsent: aBlock.
 ]
 
 { #category : #api }
 RowMapForMementos >> findOrAddRowForTable: aTable withKey: aKey [ 
-	^super findOrAddRowForTable: aTable withKey: (self mementoFor: aKey)
+	^super findOrAddRowForTable: aTable withKey: (self mementoFor: aKey).
 ]
 
 { #category : #api }
 RowMapForMementos >> mementoFor: aKey [
 	^(self isRowMapKey: aKey)
 		ifTrue: [aKey adjustIn: correspondenceMap]
-		ifFalse: [correspondenceMap at: aKey ifAbsent: [aKey]]
+		ifFalse: [correspondenceMap at: aKey ifAbsent: [aKey]].
 ]
 
 { #category : #'private/mapping' }
 RowMapForMementos >> originalObjectFor: anObject [
 
-	^correspondenceMap at: anObject
+	^correspondenceMap at: anObject.
 ]
 
 { #category : #'private/mapping' }
@@ -85,7 +85,7 @@ RowMapForMementos >> reverseLookup: anObject [
 
       (self isRowMapKey: anObject) ifTrue: [
             ^anObject reverseAdjustIn: self].
-      ^ self reversedCorrespondenceMap at: anObject
+      ^ self reversedCorrespondenceMap at: anObject.
 ]
 
 { #category : #api }
@@ -97,7 +97,7 @@ RowMapForMementos >> reversedCorrespondenceMap [
 				new: correspondenceMap size.
 			correspondenceMap
 				keysAndValuesDo: [:k :v | reversedCorrespondenceMap at: v put: k]].
-	^reversedCorrespondenceMap
+	^reversedCorrespondenceMap.
 ]
 
 { #category : #api }
@@ -105,5 +105,5 @@ RowMapForMementos >> rowForTable: aTable withKey: aKey ifAbsent: aBlock [
 	^super
 		rowForTable: aTable
 		withKey: (self mementoFor: aKey)
-		ifAbsent: aBlock
+		ifAbsent: aBlock.
 ]

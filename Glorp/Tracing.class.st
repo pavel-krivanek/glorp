@@ -26,18 +26,18 @@ Class {
 
 { #category : #'instance creation' }
 Tracing class >> for: aQuery [
-	^self new base: aQuery whereClause ultimateBaseExpression
+	^self new base: aQuery whereClause ultimateBaseExpression.
 ]
 
 { #category : #'instance creation' }
 Tracing class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #accessing }
 Tracing >> addExpression: anExpression [
-	self addExpression: anExpression andDo: [:ignore |]
+	self addExpression: anExpression andDo: [:ignore |].
 ]
 
 { #category : #accessing }
@@ -46,7 +46,7 @@ Tracing >> addExpression: anExpression andDo: aBlock [
 	exp := anExpression asGlorpExpressionOn: self base in: query.
 	(allTracings includes: exp) ifFalse: [
 		allTracings add: exp.
-		aBlock value: exp]
+		aBlock value: exp].
 ]
 
 { #category : #accessing }
@@ -62,7 +62,7 @@ Tracing >> additionalExpressions [
 { #category : #accessing }
 Tracing >> allTracings [
 
-	^allTracings
+	^allTracings.
 ]
 
 { #category : #api }
@@ -70,7 +70,7 @@ Tracing >> alsoFetch: anExpression [
 	"Add the expression as something which will be explicitly retrieved and knit together with other results, but NOT included in the result list"
 
 	self addExpression: anExpression andDo: [:exp |
-		alsoFetchExpressions add: exp]
+		alsoFetchExpressions add: exp].
 ]
 
 { #category : #accessing }
@@ -80,7 +80,7 @@ Tracing >> alsoFetchExpressions [
 
 { #category : #accessing }
 Tracing >> base [
-	^query isNil ifTrue: [base] ifFalse: [query baseExpression]
+	^query isNil ifTrue: [base] ifFalse: [query baseExpression].
 ]
 
 { #category : #accessing }
@@ -90,28 +90,28 @@ Tracing >> base: anExpression [
 
 { #category : #copying }
 Tracing >> copy [
-	^self shallowCopy postCopy
+	^self shallowCopy postCopy.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialize }
 Tracing >> initialize [
 
 	base := BaseExpression new.
 	allTracings := OrderedCollection new: 2.
 	retrievalExpressions := Set new: 3.
-	alsoFetchExpressions := Set new: 3
+	alsoFetchExpressions := Set new: 3.
 ]
 
 { #category : #copying }
 Tracing >> postCopy [
 	allTracings := allTracings copy.
 	retrievalExpressions := retrievalExpressions copy.
-	alsoFetchExpressions := alsoFetchExpressions copy
+	alsoFetchExpressions := alsoFetchExpressions copy.
 ]
 
 { #category : #accessing }
 Tracing >> retrievalExpressions [
-	^retrievalExpressions
+	^retrievalExpressions.
 ]
 
 { #category : #api }
@@ -132,7 +132,7 @@ Tracing >> setup [
 { #category : #querying }
 Tracing >> tracesThrough: aMapping [
 
-	^aMapping isStoredInSameTable
+	^aMapping isStoredInSameTable.
 ]
 
 { #category : #setup }

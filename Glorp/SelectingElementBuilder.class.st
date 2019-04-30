@@ -9,22 +9,22 @@ Class {
 
 { #category : #'building objects' }
 SelectingElementBuilder >> buildObjectFrom: anArray [
-	^self
+	^self.
 ]
 
 { #category : #'selecting fields' }
 SelectingElementBuilder >> fieldsForSelectStatement [
-	^#()
+	^#().
 ]
 
 { #category : #'selecting fields' }
 SelectingElementBuilder >> fieldsFromMyPerspective [
-	^#()
+	^#().
 ]
 
 { #category : #'building objects' }
 SelectingElementBuilder >> findInstanceForRow: aRow proxyType: proxyType [
-	^self
+	^self.
 ]
 
 { #category : #'building objects' }
@@ -37,5 +37,5 @@ SelectingElementBuilder >> returnValueIn: aCursoredStream [
 				and: [each expression ~~ aCursoredStream command query baseExpression]]
 		ifNone:
 			[self error: 'Internal error in computing horizontal inheritance query.'].
-	^builder instance
+	^builder instance.
 ]

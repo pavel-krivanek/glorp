@@ -23,24 +23,24 @@ RowMap class >> forRows: aCollection [
 	| map |
 	map := self new.
 	aCollection do: [:each | map addRow: each].
-	^map
+	^map.
 ]
 
 { #category : #'instance creation' }
 RowMap class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #'instance creation' }
 RowMap class >> new: size [
 
-	^super new initialize: size
+	^super new initialize: size.
 ]
 
 { #category : #lookup }
 RowMap >> addRow: aRow [
-	^self addRow: aRow forTable: aRow table withKey: aRow owner
+	^self addRow: aRow forTable: aRow table withKey: aRow owner.
 ]
 
 { #category : #lookup }
@@ -49,7 +49,7 @@ RowMap >> addRow: aRow forTable: aTable withKey: aKey [
 	aKey isGlorpProxy ifTrue: [self halt].
 	submap := self subMapForTable: aTable withKey: aKey.
 	submap at: aKey put: aRow.
-	^aRow
+	^aRow.
 ]
 
 { #category : #'set operations' }
@@ -68,17 +68,17 @@ RowMap >> additiveDifferencesFrom: aRowMap into: differencesMap [
 					addRow: (row withAllFieldsIn: correspondingRow)
 					forTable: row table
 					withKey: object.
-				newRow forDeletion: row forDeletion]]
+				newRow forDeletion: row forDeletion]].
 ]
 
 { #category : #'private/mapping' }
 RowMap >> adjustForMementos: objects [
-	^self
+	^self.
 ]
 
 { #category : #api }
 RowMap >> at: aField key: anObject put: aValue [
-	(self findOrAddRowForTable: aField table withKey: anObject) at: aField put: aValue
+	(self findOrAddRowForTable: aField table withKey: anObject) at: aField put: aValue.
 ]
 
 { #category : #'private/deletion' }
@@ -128,7 +128,7 @@ to the no-op check following.  Lacking this certainty, we do not set the deletio
 { #category : #'private/mapping' }
 RowMap >> collectionMementoFor: aCollection [
 
-	^aCollection
+	^aCollection.
 ]
 
 { #category : #'private/deletion' }
@@ -154,7 +154,7 @@ RowMap >> deleteRowForTable: aTable withKey: aKey ifAbsent: aBlock [
 
 	| row |
 	row := (self subMapForTable: aTable) at: aKey ifAbsent: aBlock.
-	row isNil ifFalse: [self privateDeleteRow: row]
+	row isNil ifFalse: [self privateDeleteRow: row].
 ]
 
 { #category : #'private/mapping' }
@@ -162,7 +162,7 @@ RowMap >> dictionaryClassRequiredForKey: anObject [
 
 	^(self isRowMapKey: anObject)
 		ifTrue: [Dictionary]
-		ifFalse: [IdentityDictionary]
+		ifFalse: [IdentityDictionary].
 ]
 
 { #category : #'set operations' }
@@ -171,7 +171,7 @@ RowMap >> differenceFrom: aMementoRowMap [
 	differencesMap := RowMap new.
 	self	additiveDifferencesFrom: aMementoRowMap into: differencesMap.
 	self	subtractiveDifferencesFrom: aMementoRowMap into: differencesMap.
-	^differencesMap
+	^differencesMap.
 ]
 
 { #category : #api }
@@ -187,7 +187,7 @@ RowMap >> findOrAddRowForTable: aTable withKey: aKey [
 			newRow := DatabaseRow newForTable: aTable withOwner: aKey.
 			submap at: aKey put: newRow.
 			newRow]
-		ifFalse: [row]
+		ifFalse: [row].
 ]
 
 { #category : #lookup }
@@ -195,7 +195,7 @@ RowMap >> includesRowForTable: aTable withKey: aKey [
 
 	| row |
 	row := (self subMapForTable: aTable ifAbsent: [^false]) at: aKey ifAbsent: [^false].
-	^(self isDeleted: row) not
+	^(self isDeleted: row) not.
 ]
 
 { #category : #'initialize/release' }
@@ -203,15 +203,15 @@ RowMap >> initialize [
       self initialize: 17
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #'initialize/release' }
 RowMap >> initialize: size [
 	rowDictionary := IdentityDictionary new: size.
-	hasDeletions := false
+	hasDeletions := false.
 ]
 
 { #category : #'private/deletion' }
 RowMap >> isDeleted: row [
-	^row status == #invisible
+	^row status == #invisible.
 ]
 
 { #category : #testing }
@@ -223,7 +223,7 @@ RowMap >> isEmpty [
 
 { #category : #api }
 RowMap >> isRowMapKey: anObject [
-	^anObject class == RowMapKey or: [anObject class == MultipleRowMapKey]
+	^anObject class == RowMapKey or: [anObject class == MultipleRowMapKey].
 ]
 
 { #category : #'private/deletion' }
@@ -235,18 +235,18 @@ RowMap >> isSuitableForCollapsing: eachTablesRows [
 			[:eachKey :eachRow | 
 				"(self isRowMapKey: eachKey) ifFalse: [^false]."
 				eachRow table primaryKeyFields isEmpty ifTrue: [^false].
-				^true ]
+				^true ].
 ]
 
 { #category : #iterating }
 RowMap >> keysAndValuesDo: aBlock [ 
 	self tables do: [:each | 
-		(self subMapForTable: each) keysAndValuesDo: aBlock]
+		(self subMapForTable: each) keysAndValuesDo: aBlock].
 ]
 
 { #category : #api }
 RowMap >> mementoFor: anObject [
-	^anObject
+	^anObject.
 ]
 
 { #category : #testing }
@@ -263,7 +263,7 @@ RowMap >> numberOfEntries [
 { #category : #counting }
 RowMap >> numberOfEntriesForTable: aTable [
 	self compress.
-	^(self subMapForTable: aTable) size
+	^(self subMapForTable: aTable) size.
 ]
 
 { #category : #iterating }
@@ -283,7 +283,7 @@ RowMap >> objectsAndRowsDo: aTwoArgumentBlock [
 				keysAndValuesDo:
 					[:key :value | 
 					(self isDeleted: value)
-						ifFalse: [aTwoArgumentBlock value: key value: value]]]
+						ifFalse: [aTwoArgumentBlock value: key value: value]]].
 ]
 
 { #category : #iterating }
@@ -292,7 +292,7 @@ RowMap >> objectsAndRowsForTable: aTable do: aTwoArgumentBlock [
 		keysAndValuesDo:
 			[:key :value | 
 			(self isDeleted: value)
-				ifFalse: [aTwoArgumentBlock value: key value: value]]
+				ifFalse: [aTwoArgumentBlock value: key value: value]].
 ]
 
 { #category : #iterating }
@@ -302,31 +302,31 @@ RowMap >> objectsDo: aBlock [
 			[:each | 
 			(self subMapForTable: each)
 				keysAndValuesDo:
-					[:key :value | (self isDeleted: value) ifFalse: [aBlock value: key]]]
+					[:key :value | (self isDeleted: value) ifFalse: [aBlock value: key]]].
 ]
 
 { #category : #'private/deletion' }
 RowMap >> privateDeleteRow: row [
 	row status: #invisible.
-	hasDeletions := true
+	hasDeletions := true.
 ]
 
 { #category : #'private/mapping' }
 RowMap >> reverseLookup: anObject [
 
-	^anObject
+	^anObject.
 ]
 
 { #category : #lookup }
 RowMap >> rowForTable: aTable withKey: aKey [ 
-	^self rowForTable: aTable withKey: aKey ifAbsent: [self error: 'missing element']
+	^self rowForTable: aTable withKey: aKey ifAbsent: [self error: 'missing element'].
 ]
 
 { #category : #lookup }
 RowMap >> rowForTable: aTable withKey: aKey ifAbsent: aBlock [
 	| row |
 	row := (self subMapForTable: aTable) at: aKey ifAbsent: aBlock.
-	^(self isDeleted: row) ifTrue: [aBlock value] ifFalse: [row]
+	^(self isDeleted: row) ifTrue: [aBlock value] ifFalse: [row].
 ]
 
 { #category : #lookup }
@@ -334,7 +334,7 @@ RowMap >> rowForTable: aTable withKey: aKey ifPresent: aBlock [
 	^(self subMapForTable: aTable)
 		at: aKey
 		ifPresent:
-			[:row | (self isDeleted: row) ifTrue: [nil] ifFalse: [aBlock value: row]]
+			[:row | (self isDeleted: row) ifTrue: [nil] ifFalse: [aBlock value: row]].
 ]
 
 { #category : #iterating }
@@ -354,20 +354,20 @@ RowMap >> rowsForKey: aKey [
 			| row |
 			row := each at: aKey ifAbsent: [nil].
 			(row notNil and: [(self isDeleted: row) not]) ifTrue: [rowsForKey add: row]].
-	^rowsForKey
+	^rowsForKey.
 ]
 
 { #category : #iterating }
 RowMap >> rowsForTable: aTable do: aBlock [
 	^(self subMapForTable: aTable)
 		keysAndValuesDo:
-			[:key :value | (self isDeleted: value) ifFalse: [aBlock value: value]]
+			[:key :value | (self isDeleted: value) ifFalse: [aBlock value: value]].
 ]
 
 { #category : #'private/mapping' }
 RowMap >> subMapForTable: aTable [
 	
-	^self subMapForTable: aTable withKey: nil
+	^self subMapForTable: aTable withKey: nil.
 ]
 
 { #category : #'private/mapping' }
@@ -400,13 +400,13 @@ RowMap >> subtractiveDifferencesFrom: aRowMap into: differencesMap [
 			differencesMap
 				addRow: row
 				forTable: row table
-				withKey: adjustedObject]
+				withKey: adjustedObject].
 ]
 
 { #category : #'private/mapping' }
 RowMap >> tables [
 
-	^rowDictionary keys
+	^rowDictionary keys.
 ]
 
 { #category : #api }
@@ -414,7 +414,7 @@ RowMap >> unifyField: eachSourceField key: sourceObject withField: eachTargetFie
 	| sourceRow targetRow |
 	sourceRow := self findOrAddRowForTable: eachSourceField table withKey: sourceObject.
 	targetRow := self findOrAddRowForTable: eachTargetField table withKey: targetObject.
-	sourceRow unifyField: eachSourceField withField: eachTargetField inRow: targetRow
+	sourceRow unifyField: eachSourceField withField: eachTargetField inRow: targetRow.
 ]
 
 { #category : #api }
@@ -432,5 +432,5 @@ RowMap >> unifyField: sourceField key: sourceObject withField: targetField key: 
 		innerWrapper: existingWrapper;
 		forwardTransformation: forwardTransformation;
 		inverseTransformation: inverseTransformation.
-	targetRow wrapperAt: targetField put: newWrapper
+	targetRow wrapperAt: targetField put: newWrapper.
 ]

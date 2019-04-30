@@ -81,5 +81,5 @@ InsertCommand >> singleRowBoundFields [
 
 { #category : #testing }
 InsertCommand >> supportsGroupWriting [
-	^true.
+	^true
 ]

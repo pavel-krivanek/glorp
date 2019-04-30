@@ -62,9 +62,8 @@ QueryDeleteCommand >> query [
 ]
 
 { #category : #accessing }
-QueryDeleteCommand >> query: anObject [
-
-	query := anObject
+QueryDeleteCommand >> query: aSimpleQuery [
+	query := aSimpleQuery
 ]
 
 { #category : #accessing }

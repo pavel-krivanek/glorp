@@ -117,9 +117,9 @@ RowBasedCommand >> bindingTypes [
 
 { #category : #'bound values' }
 RowBasedCommand >> bindings [
-	^(self shouldUseGroupWriting)
+	^self shouldUseGroupWriting
 		ifTrue: [self platform bindingsForGroupWritingFor: self]
-		ifFalse: [self singleRowBindings].
+		ifFalse: [self singleRowBindings]
 ]
 
 { #category : #executing }
