@@ -25,7 +25,7 @@ CachePolicy class >> default [
 	^self new
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 CachePolicy class >> new [
 
 	^super new initialize.

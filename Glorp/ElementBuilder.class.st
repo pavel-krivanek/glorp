@@ -37,7 +37,7 @@ Class {
 	#category : 'Glorp-Queries'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #private }
 ElementBuilder class >> basicClassFor: anExpression in: aQuery [
 
 	^(anExpression hasDescriptor and: [anExpression mapsSimpleObject not])
@@ -51,10 +51,10 @@ ElementBuilder class >> basicFor: anExpression in: aQuery [
 	^(self basicClassFor: anExpression in: aQuery) new
 		expression: anExpression;
 		query: aQuery;
-		setup
+		setup.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #private }
 ElementBuilder class >> classFor: anExpression in: aQuery [
 	
 	((aQuery returnsDictionary and: [anExpression == aQuery baseExpression])
@@ -69,33 +69,33 @@ ElementBuilder class >> for: anExpression in: aQuery [
 	^(self classFor: anExpression in: aQuery) new
 		expression: anExpression;
 		query: aQuery;
-		setup
+		setup.
 ]
 
 { #category : #'instance creation' }
 ElementBuilder class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #'building objects' }
 ElementBuilder >> buildObjectFrom: anArray [ 
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #testing }
 ElementBuilder >> buildsObjects [
-	^false
+	^false.
 ]
 
 { #category : #accessing }
 ElementBuilder >> canCauseDuplicateRows [
-	^false
+	^false.
 ]
 
 { #category : #copying }
 ElementBuilder >> copy [
-	^self shallowCopy postCopy
+	^self shallowCopy postCopy.
 ]
 
 { #category : #accessing }
@@ -110,7 +110,7 @@ ElementBuilder >> cursor: aGlorpCursoredStream [
 
 { #category : #'building objects' }
 ElementBuilder >> didValidationFail: validateResult [
-	^validateResult == false
+	^validateResult == false.
 ]
 
 { #category : #accessing }
@@ -120,7 +120,7 @@ ElementBuilder >> expression [
 
 { #category : #accessing }
 ElementBuilder >> expression: anExpression [
-	expression := anExpression
+	expression := anExpression.
 ]
 
 { #category : #accessing }
@@ -130,13 +130,13 @@ ElementBuilder >> fieldTranslations [
 
 { #category : #accessing }
 ElementBuilder >> fieldTranslations: aDictionary [ 
-	fieldTranslations := aDictionary
+	fieldTranslations := aDictionary.
 ]
 
 { #category : #'selecting fields' }
 ElementBuilder >> fieldsForSelectStatement [
 
-	^self subclassResponsibility
+	^self subclassResponsibility.
 ]
 
 { #category : #'selecting fields' }
@@ -146,7 +146,7 @@ ElementBuilder >> fieldsFromMyPerspective [
 
 { #category : #'building objects' }
 ElementBuilder >> findInstanceForRow: aRow proxyType: proxyType [
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #executing }
@@ -172,7 +172,7 @@ ElementBuilder >> instanceValue [
 ElementBuilder >> knitResultIn: aSimpleQuery [
 	"Connect up our built object with any other builders that use the same thing"
 
-	^self
+	^self.
 ]
 
 { #category : #copying }
@@ -180,7 +180,7 @@ ElementBuilder >> postCopy [
 	instance := nil.
 	row := nil.
 	requiresPopulating := false.
-	isExpired := false
+	isExpired := false.
 ]
 
 { #category : #accessing }
@@ -208,7 +208,7 @@ ElementBuilder >> registerObjectInUnitOfWork [
 { #category : #accessing }
 ElementBuilder >> requiresDistinct [
 
-	^expression requiresDistinct
+	^expression requiresDistinct.
 ]
 
 { #category : #accessing }
@@ -231,30 +231,30 @@ ElementBuilder >> row: anArray [
 	"Since nil is a possible key value, use self as a special marker to indicate we haven't found the key yet"
 	row == anArray ifFalse: [
 		key := self].
-	row := anArray
+	row := anArray.
 ]
 
 { #category : #'building objects' }
 ElementBuilder >> sendPostFetchValidateIn: aSession OnFailureDo: aBlock [
 	| validateResult |
 	validateResult := aSession sendPostFetchValidateEventTo: self instance.
-	(self didValidationFail: validateResult) ifTrue: aBlock
+	(self didValidationFail: validateResult) ifTrue: aBlock.
 ]
 
 { #category : #accessing }
 ElementBuilder >> session [
-	^expression descriptor session
+	^expression descriptor session.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 ElementBuilder >> setup [
 	"Do any initialization required once we've got our parameters"
-	^self
+	^self.
 ]
 
 { #category : #accessing }
 ElementBuilder >> subBuilders [
-	^#()
+	^#().
 ]
 
 { #category : #accessing }
@@ -265,7 +265,7 @@ ElementBuilder >> system [
 { #category : #'translating fields' }
 ElementBuilder >> translateFieldPosition: aDatabaseField [ 
 	fieldTranslations isNil ifTrue: [^aDatabaseField position].
-	^fieldTranslations at: aDatabaseField
+	^fieldTranslations at: aDatabaseField.
 ]
 
 { #category : #'translating fields' }
@@ -289,5 +289,5 @@ ElementBuilder >> valueOfField: aField in: aRow [
 
 { #category : #accessing }
 ElementBuilder >> withAllSubBuilders [
-	^Array with: self
+	^Array with: self.
 ]

@@ -14,9 +14,9 @@ Instance Variables:
 	resultClass	<Behavior>	What kind of objects are we looking for.
 	shouldRefresh	<Boolean>	If the result is already in cache, should we refresh it according to what the database says, or just return it as is.
 	tracing	<Tracing>	The tracing. This describes the graph of objects we will actually retrieve.
-	whereClause	<GlorpExpression>	What is the criteria on which we will filter the results.
+	whereClause	<GlorpExpression | BlockClosure>	What is the criteria on which we will filter the results?
 
-
+The whereClause often begins as a one-argument BlockClosure.  At some point during construction or evaluation it is converted to a GlorpExpression.
 "
 Class {
 	#name : #AbstractReadQuery,
@@ -31,15 +31,15 @@ Class {
 		'shouldRefresh',
 		'tracing'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> newQuery [
-	^SimpleQuery new
+	^SimpleQuery new.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 AbstractReadQuery class >> read: aClass [
 	^self read: aClass where: nil
 ]
@@ -49,7 +49,7 @@ AbstractReadQuery class >> read: aClass limit: anInteger [
 	^self returningManyOf: aClass limit: anInteger
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 AbstractReadQuery class >> read: aClass where: anExpression [
 	^self read: aClass where: anExpression limit: nil
 ]
@@ -75,12 +75,12 @@ AbstractReadQuery class >> readManyOf: aClass where: anExpression limit: anInteg
 		limit: anInteger
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 AbstractReadQuery class >> readOneOf: aClass [
 	^self readOneOf: aClass where: nil.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 AbstractReadQuery class >> readOneOf: aClass where: anExpression [
 	^self newQuery
 		initResultClass: aClass
@@ -133,8 +133,8 @@ AbstractReadQuery class >> returningOneOf: aClass where: anExpression [
 AbstractReadQuery >> AND: anExpression [
 	"Allow you to send AND: or OR: directly to a query to build up a query dynamically without needing to mess with the criteria explicitly"
 
-	whereClause := (anExpression asGlorpExpressionOn: base)
-		AND: (whereClause asGlorpExpressionOn: base) asGeneralGlorpExpression
+	whereClause := (anExpression
+		asGlorpExpressionOn: base) AND: ((whereClause asGlorpExpressionOn: base) asGeneralGlorpExpression).
 ]
 
 { #category : #'boolean operations' }
@@ -142,32 +142,32 @@ AbstractReadQuery >> OR: anExpression [
 	"Allow you to send AND: or OR: directly to a query to build up a query dynamically without needing to mess with the criteria explicitly"
 
 	whereClause := (anExpression asGlorpExpressionOn: base)
-		OR: (whereClause asGlorpExpressionOn: base) asGeneralGlorpExpression
+		OR: (whereClause asGlorpExpressionOn: base) asGeneralGlorpExpression.
 ]
 
 { #category : #preparing }
 AbstractReadQuery >> adjustWhereClause [
-	^self
+	^self.
 ]
 
 { #category : #'specifying retrievals' }
 AbstractReadQuery >> alsoFetch: anExpression [
-	self tracing alsoFetch: (self expressionBlockFor: anExpression)
+	self tracing alsoFetch: (self expressionBlockFor: anExpression).
 ]
 
 { #category : #converting }
 AbstractReadQuery >> asFullQuery [
-	^self
+	^self.
 ]
 
 { #category : #accessing }
 AbstractReadQuery >> baseExpression [
-	^base
+	^base.
 ]
 
 { #category : #accessing }
 AbstractReadQuery >> baseExpression: aBaseExpression [
-	base := aBaseExpression
+	base := aBaseExpression.
 ]
 
 { #category : #caching }
@@ -212,7 +212,7 @@ AbstractReadQuery >> copyAttributesTo: newQuery [
 	newQuery limit: self limit.
 	newQuery offset: self offset.
 	newQuery proxyType: self proxyType.
-	newQuery shouldRefresh: self shouldRefresh
+	newQuery shouldRefresh: self shouldRefresh.
 ]
 
 { #category : #accessing }
@@ -220,7 +220,7 @@ AbstractReadQuery >> defaultTracing [
 	| defaultTracing |
 	defaultTracing := Tracing new.
 	defaultTracing base: base.
-	^defaultTracing
+	^defaultTracing.
 ]
 
 { #category : #executing }
@@ -246,12 +246,12 @@ AbstractReadQuery >> deleteWithParameters: parameterArray in: aSession [
 
 { #category : #accessing }
 AbstractReadQuery >> descriptor [
-	^session descriptorFor: resultClass
+	^session descriptorFor: resultClass.
 ]
 
 { #category : #'boolean operations' }
 AbstractReadQuery >> except: aQuery [
-	^self minus: aQuery
+	^self minus: aQuery.
 ]
 
 { #category : #executing }
@@ -265,31 +265,31 @@ AbstractReadQuery >> executeWithParameters: parameterArray in: aSession [
 	self checkCacheWithParameters: parameterArray ifPresent: [:hit | session register: hit. ^hit].
 	self setupTracing.
 	^self 
-		readFromDatabaseWithParameters: parameterArray
+		readFromDatabaseWithParameters: parameterArray.
 ]
 
 { #category : #testing }
 AbstractReadQuery >> hasLimit [
-	^self limit notNil
+	^self limit notNil.
 ]
 
 { #category : #testing }
 AbstractReadQuery >> hasOffset [
-	^self offset notNil and: [self offset > 0]
+	^self offset notNil and: [self offset > 0].
 ]
 
 { #category : #testing }
 AbstractReadQuery >> hasTracing [
 	"Return true if we've given this query a tracing already"
-	^false
+	^false.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialize }
 AbstractReadQuery >> initResultClass: aClass whereClause: theCriteria singleObject: aBoolean [ 
 	resultClass := aClass.
 	self whereClause: ((theCriteria isNil or: [theCriteria = true or: [theCriteria = false]]) ifTrue: [EmptyExpression on: theCriteria] ifFalse: [theCriteria]).
 	readsOneObject := aBoolean.
-	aBoolean ifTrue: [self limit: 1]
+	aBoolean ifTrue: [self limit: 1].
 ]
 
 { #category : #initialize }
@@ -304,29 +304,29 @@ AbstractReadQuery >> initialize [
 AbstractReadQuery >> intersect: aQuery [
 	aQuery shortCircuitEmptyReturn ifTrue: [^aQuery].
 	self shortCircuitEmptyReturn ifTrue: [^self].
-	^CompoundQuery newIntersect addQuery: self; addQuery: aQuery
+	^CompoundQuery newIntersect addQuery: self; addQuery: aQuery.
 ]
 
 { #category : #accessing }
 AbstractReadQuery >> limit [
-	^limit
+	^limit.
 ]
 
 { #category : #accessing }
 AbstractReadQuery >> limit: anInteger [
-	limit := anInteger
+	limit := anInteger.
 ]
 
 { #category : #testing }
 AbstractReadQuery >> limitMakesSense [
-	^self hasLimit not or: [self limit > 0]
+	^self hasLimit not or: [self limit > 0].
 ]
 
 { #category : #'boolean operations' }
 AbstractReadQuery >> minus: aQuery [
 	aQuery shortCircuitEmptyReturn ifTrue: [^self].
 	self shortCircuitEmptyReturn ifTrue: [^aQuery].
-	^CompoundQuery newMinus addQuery: self; addQuery: aQuery
+	^CompoundQuery newMinus addQuery: self; addQuery: aQuery.
 ]
 
 { #category : #accessing }
@@ -336,7 +336,7 @@ AbstractReadQuery >> offset [
 
 { #category : #accessing }
 AbstractReadQuery >> offset: anObject [
-	offset := anObject
+	offset := anObject.
 ]
 
 { #category : #copying }
@@ -363,13 +363,13 @@ AbstractReadQuery >> primaryKeyFrom: aDictionary [
 		anySatisfy:
 			[:each | self session system shouldForeignKeyValueBeTreatedAsNull: each])
 		ifTrue: [^#()].
-	^self whereClause primaryKeyFromDictionary: aDictionary
+	^self whereClause primaryKeyFromDictionary: aDictionary.
 ]
 
 { #category : #private }
 AbstractReadQuery >> privateAnd: anExpression [
 	"AND these two together without checking for common bases, rebuilding, etc. Everything had better be right"
-	whereClause := whereClause AND: anExpression
+	whereClause := whereClause AND: anExpression.
 ]
 
 { #category : #accessing }
@@ -385,7 +385,7 @@ AbstractReadQuery >> proxyType [
 { #category : #accessing }
 AbstractReadQuery >> proxyType: aClass [
 	
-	proxyType := aClass
+	proxyType := aClass.
 ]
 
 { #category : #executing }
@@ -394,12 +394,12 @@ AbstractReadQuery >> readFromDatabaseWithParameters: anArray [
 	answerStream := self rowsFromDatabaseWithParameters: anArray.
 	^readsOneObject
 		ifTrue: [result := answerStream next. answerStream release. result]
-		ifFalse: [self resultCollectionFor: answerStream]
+		ifFalse: [self resultCollectionFor: answerStream].
 ]
 
 { #category : #testing }
 AbstractReadQuery >> requiresFullQuery [
-	^false
+	^false.
 ]
 
 { #category : #accessing }
@@ -416,22 +416,22 @@ AbstractReadQuery >> resultType [
 
 { #category : #'specifying retrievals' }
 AbstractReadQuery >> retrieve: anExpression [
-	self tracing retrieve: (self expressionBlockFor: anExpression)
+	self tracing retrieve: (self expressionBlockFor: anExpression).
 ]
 
 { #category : #'specifying retrievals' }
 AbstractReadQuery >> retrieveMax: anExpression [
-	self tracing retrieve: ((self expressionBlockFor: anExpression) asGlorpExpression get: #max)
+	self tracing retrieve: ((self expressionBlockFor: anExpression) asGlorpExpression get: #max).
 ]
 
 { #category : #'specifying retrievals' }
 AbstractReadQuery >> retrieveMin: anExpression [
-	self tracing retrieve: ((self expressionBlockFor: anExpression) asGlorpExpression get: #min)
+	self tracing retrieve: ((self expressionBlockFor: anExpression) asGlorpExpression get: #min).
 ]
 
 { #category : #'specifying retrievals' }
 AbstractReadQuery >> retrieveSum: anExpression [
-	self tracing retrieve: ((self expressionBlockFor: anExpression) asGlorpExpression get: #sum)
+	self tracing retrieve: ((self expressionBlockFor: anExpression) asGlorpExpression get: #sum).
 ]
 
 { #category : #accessing }
@@ -442,7 +442,7 @@ AbstractReadQuery >> returnProxies [
 { #category : #accessing }
 AbstractReadQuery >> returnProxies: aBoolean [
 	
-	aBoolean ifTrue: [proxyType := Proxy] ifFalse: [proxyType := nil]
+	aBoolean ifTrue: [proxyType := Proxy] ifFalse: [proxyType := nil].
 ]
 
 { #category : #testing }
@@ -458,7 +458,7 @@ AbstractReadQuery >> returnTimedProxies: aBoolean [
 
 { #category : #executing }
 AbstractReadQuery >> rowsFromDatabaseWithParameters: anArray [
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #accessing }
@@ -510,7 +510,7 @@ AbstractReadQuery >> shortCircuitEmptyReturn [
 
 	(whereClause class == EmptyExpression and: [whereClause isFalse]) ifTrue: [^true].
 	self limitMakesSense ifFalse: [^true].
-	^false
+	^false.
 ]
 
 { #category : #testing }
@@ -523,7 +523,7 @@ AbstractReadQuery >> shortCircuitEmptyReturn: parameters [
 	self limitMakesSense ifFalse: [^true].
 	self prepare.
 	(whereClause shortCircuitOnNullComparison: parameters) ifTrue: [^true].
-	^false
+	^false.
 ]
 
 { #category : #preparing }
@@ -534,7 +534,7 @@ AbstractReadQuery >> shouldExpressionBeJoin: anExpression [
 			[:eachNode | 
 			| queryBase |
 			queryBase := eachNode queryLevelBaseExpression.
-			queryBase isNil or: [	queryBase = self baseExpression]]
+			queryBase isNil or: [	queryBase = self baseExpression]].
 ]
 
 { #category : #accessing }
@@ -557,14 +557,14 @@ AbstractReadQuery >> tracing [
 AbstractReadQuery >> tracing: aTracing [
 	tracing := aTracing.
 	tracing updateBase: base.
-	tracing setup
+	tracing setup.
 ]
 
 { #category : #'boolean operations' }
 AbstractReadQuery >> unionAll: aQuery [
 	aQuery shortCircuitEmptyReturn ifTrue: [^self].
 	self shortCircuitEmptyReturn ifTrue: [^aQuery].
-	^CompoundQuery newUnionAll addQuery: self; addQuery: aQuery
+	^CompoundQuery newUnionAll addQuery: self; addQuery: aQuery.
 ]
 
 { #category : #executing }
@@ -585,5 +585,5 @@ AbstractReadQuery >> whereClause [
 { #category : #accessing }
 AbstractReadQuery >> whereClause: anExpression [
 	whereClause := anExpression.
-	self setUpBase
+	self setUpBase.
 ]

@@ -32,7 +32,7 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseCommand class >> new [
 	^super new initialize.
 ]
@@ -180,7 +180,7 @@ DatabaseCommand >> session: aGlorpSession [
 
 { #category : #testing }
 DatabaseCommand >> shouldUseGroupWriting [
-	^(self hasMultipleRows and: [self platform supportsGroupWritingFor: self])
+	^self hasMultipleRows and: [self platform supportsGroupWritingFor: self]
 ]
 
 { #category : #accessing }

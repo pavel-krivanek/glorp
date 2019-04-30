@@ -20,13 +20,13 @@ Class {
 { #category : #'instance creation' }
 AbstractProxy class >> new [
 
-	^super new proxyInitialize
+	^super new proxyInitialize.
 ]
 
 { #category : #accessing }
 AbstractProxy >> = anObject [
 	"In VA we inherit this as identity. Need to override"
-	^self getValue = anObject
+	^anObject = self getValue.
 ]
 
 { #category : #printing }
@@ -48,13 +48,13 @@ AbstractProxy >> basicPrintString [
 
 { #category : #overrides }
 AbstractProxy >> basicSize [
-	^self getValue basicSize
+	^self getValue basicSize.
 ]
 
 { #category : #'dnu handling' }
 AbstractProxy >> doesNotUnderstand: aMessage [
 
-	^self getValue perform: aMessage selector withArguments: aMessage arguments
+	^self getValue perform: aMessage selector withArguments: aMessage arguments.
 ]
 
 { #category : #'dnu handling' }
@@ -79,12 +79,12 @@ AbstractProxy >> glorpPostFetchValidate: aSession [
 
 { #category : #overrides }
 AbstractProxy >> hash [
-	^self getValue hash
+	^self getValue hash.
 ]
 
 { #category : #overrides }
 AbstractProxy >> inspect [
-	^self getValue inspect
+	^self getValue inspect.
 ]
 
 { #category : #'initialize-release' }
@@ -101,12 +101,12 @@ AbstractProxy >> instVarAt: index [
 
 { #category : #testing }
 AbstractProxy >> isGlorpProxy [
-	^true
+	^true.
 ]
 
 { #category : #overrides }
 AbstractProxy >> isImmutable [
-	^self getValue isImmutable
+	^self getValue isImmutable.
 ]
 
 { #category : #testing }
@@ -192,10 +192,10 @@ AbstractProxy >> printStringLimitedTo: limit [
 	^ limitedString , '...etc...'
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialize }
 AbstractProxy >> proxyInitialize [
 
-	isInstantiated := false
+	isInstantiated := false.
 ]
 
 { #category : #overrides }
@@ -214,7 +214,7 @@ AbstractProxy >> store [
 AbstractProxy >> uninstantiate [
 
 	value := nil.
-	isInstantiated := false
+	isInstantiated := false.
 ]
 
 { #category : #accessing }

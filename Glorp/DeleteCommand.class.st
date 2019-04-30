@@ -18,7 +18,7 @@ DeleteCommand >> blockFactor [
 	^1.
 ]
 
-{ #category : #accessing }
+{ #category : #executing }
 DeleteCommand >> printSQL [
 	self nextPutAll: 'DELETE FROM '.
 	row table printSQLOn: self withParameters: #().

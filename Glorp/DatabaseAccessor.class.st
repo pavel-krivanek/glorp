@@ -13,10 +13,12 @@ Subclasses must implement the following messages:
 		logout
 		showDialog:
 
-Instance Variables:
+Instance Variables
 	connection	<varies>	The underlying database connection
 	currentLogin	<Login> The glorp-level login we are using
-	logging	<Boolean>	Is logging on or off
+	logging	<Boolean>	(default is false) Is logging on or off
+	logOnly <Boolean> (default is false) If logging is true, and logOnly is true, then the commands are ONLY logged and not executed.
+	logger <TextCollector> (default is Transcript) The user can put any TextCollector API supporting class in here to collect information. It must support #show: and #cr.
 	permittedCommands	<Collection of: DatabaseCommand class>	The list of commands we are permitted to use. This allows us to filter commands, indicating that a particular session should only be doing inserts right now, not updates, deletes, or queries. Or that it should only be doing writes, not reads.
 	reusePreparedStatements	<Boolean>	Should we try to reuse prepared statements,that have the same SQL, or just re-prepare each time.
 
@@ -29,17 +31,17 @@ Class {
 		'connection',
 		'currentLogin',
 		'logging',
+		'logger',
+		'logOnly',
 		'reusePreparedStatements',
 		'deniedCommands',
 		'mutex',
-		'dependents',
-		'logOnly',
-		'logger'
+		'dependents'
 	],
 	#classVars : [
-		'LoggingEnabled'
+		'DatabaseAccessor'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Database'
 }
 
 { #category : #'instance creation' }
@@ -48,23 +50,23 @@ DatabaseAccessor class >> classForThisPlatform [
 	^PharoDatabaseAccessor
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 DatabaseAccessor class >> forLogin: aLogin [ 
 	^self classForThisPlatform new currentLogin: aLogin
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 DatabaseAccessor class >> loggingEnabled [
 	LoggingEnabled isNil ifTrue: [LoggingEnabled := false].
 	^LoggingEnabled
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 DatabaseAccessor class >> loggingEnabled: aBoolean [ 
 	LoggingEnabled := aBoolean
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 DatabaseAccessor class >> new [
 
 	^super new initialize.
@@ -737,7 +739,7 @@ DatabaseAccessor >> inTransactionDo: aBlock [
 	| alreadyInTransaction result |
 	[ 
 	alreadyInTransaction := self isInTransaction.
-	alreadyInTransaction ifFalse: [self beginTransaction. ].
+	alreadyInTransaction ifFalse: [self beginTransaction].
 	result := aBlock numArgs = 1 ifTrue: [aBlock value: self] ifFalse: [aBlock value].
 	alreadyInTransaction ifFalse: [self commitTransaction]]
 		ifCurtailed:
@@ -890,7 +892,7 @@ DatabaseAccessor >> logger [
 
 { #category : #logging }
 DatabaseAccessor >> logger: aTextCollector [
- 
+
 	logger := aTextCollector
 ]
 
@@ -1026,7 +1028,7 @@ DatabaseAccessor >> returnRowCount: aBoolean [
 
 { #category : #accessing }
 DatabaseAccessor >> reusePreparedStatements [
-	^reusePreparedStatements and: [self useBinding].
+	^reusePreparedStatements and: [self useBinding]
 ]
 
 { #category : #accessing }

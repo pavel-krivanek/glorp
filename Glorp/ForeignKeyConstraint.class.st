@@ -21,7 +21,7 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 ForeignKeyConstraint class >> sourceField: aDatabaseField targetField: anotherDatabaseField [
 	^self
 		sourceField: aDatabaseField
@@ -29,14 +29,14 @@ ForeignKeyConstraint class >> sourceField: aDatabaseField targetField: anotherDa
 		suffixExpression: nil.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 ForeignKeyConstraint class >> sourceField: aDatabaseField targetField: anotherDatabaseField suffixExpression: suffixExpression [
 	^(self new)
 		sourceField: aDatabaseField targetField: anotherDatabaseField suffixExpression: suffixExpression;
 		yourself.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 ForeignKeyConstraint class >> sourceFields: sourceFields targetFields: targetFields [
 	^self
 		sourceFields: sourceFields
@@ -44,7 +44,7 @@ ForeignKeyConstraint class >> sourceFields: sourceFields targetFields: targetFie
 		suffixExpression: nil.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 ForeignKeyConstraint class >> sourceFields: sourceFields targetFields: targetFields suffixExpression: suffixExpression [
 	^(self new)
 		sourceFields: sourceFields targetFields: targetFields suffixExpression: suffixExpression;
@@ -190,7 +190,8 @@ ForeignKeyConstraint >> rowsRelatedTo: aRow [
 { #category : #accessing }
 ForeignKeyConstraint >> someSourceField [
 	"Return any one of our source fields"
-	^self sourceFields first.
+
+	^self sourceFields first
 ]
 
 { #category : #accessing }

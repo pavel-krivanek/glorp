@@ -12,22 +12,22 @@ Class {
 
 { #category : #accessing }
 CompositeQuery >> addQuery: aQuery [
-	queries add: aQuery
+	queries add: aQuery.
 ]
 
 { #category : #accessing }
 CompositeQuery >> baseExpression [
-	^queries first baseExpression
+	^queries first baseExpression.
 ]
 
 { #category : #accessing }
 CompositeQuery >> collectionType [
-	^self primaryQuery collectionType
+	^self primaryQuery collectionType.
 ]
 
 { #category : #preparing }
 CompositeQuery >> copyOfBuilders [ 
-	^self primaryQuery copyOfBuilders
+	^self primaryQuery copyOfBuilders.
 ]
 
 { #category : #executing }
@@ -36,7 +36,7 @@ CompositeQuery >> executeWithParameters: parameterArray in: aSession [
 	results := self collectionType new writeStream.
 	queries do: [:each |
 		results nextPutAll: (each executeWithParameters: parameterArray in: aSession)].
-	^results contents
+	^results contents.
 ]
 
 { #category : #initialize }
@@ -60,16 +60,16 @@ CompositeQuery >> prepare [
 
 { #category : #accessing }
 CompositeQuery >> primaryQuery [
-	^queries first
+	^queries first.
 ]
 
 { #category : #accessing }
 CompositeQuery >> proxyType [
-	^self primaryQuery proxyType
+	^self primaryQuery proxyType.
 ]
 
 { #category : #accessing }
 CompositeQuery >> proxyType: aClass [	
 	"We currently ignore proxy types and use the ones from our main query."
-	^self
+	^self.
 ]

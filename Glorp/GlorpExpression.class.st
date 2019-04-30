@@ -23,13 +23,13 @@ Subclasses must implement the following messages:
 Class {
 	#name : #GlorpExpression,
 	#superclass : #Object,
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 GlorpExpression class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #api }
@@ -270,7 +270,7 @@ GlorpExpression >> base [
 
 { #category : #accessing }
 GlorpExpression >> beOuterJoin [
-	^self.
+	"A no-op"
 ]
 
 { #category : #preparing }

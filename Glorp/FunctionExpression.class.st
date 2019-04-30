@@ -23,7 +23,7 @@ Class {
 	#classInstVars : [
 		'functions'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #accessing }
@@ -93,7 +93,7 @@ FunctionExpression class >> for: aSymbol withArguments: anArray basedOn: anExpre
 	| base system |
 	base := anExpression ultimateBaseExpression.
 	system := base isNil ifTrue: [nil] ifFalse: [base system].	
-	^self for: aSymbol withArguments: anArray basedOn: anExpression system: system
+	^self for: aSymbol withArguments: anArray basedOn: anExpression system: system.
 ]
 
 { #category : #'instance creation' }
@@ -106,7 +106,7 @@ FunctionExpression class >> for: aSymbol withArguments: anArray basedOn: anExpre
 		createFor: anArray
 		withBase: anExpression
 		symbol: aSymbol.
-	^newFunction
+	^newFunction.
 ]
 
 { #category : #initializing }
@@ -119,13 +119,13 @@ FunctionExpression class >> initialize [
 FunctionExpression class >> named: aString [
 	"Used for creating template instances only"
 
-	^self new function: aString
+	^self new function: aString.
 ]
 
 { #category : #private }
 FunctionExpression class >> resetFunctions [
 	"self resetFunctions"
-	functions := nil
+	functions := nil.
 ]
 
 { #category : #accessing }
@@ -226,13 +226,13 @@ FunctionExpression >> createFor: arguments [
 ]
 
 { #category : #copying }
-FunctionExpression >> createFor: anArray withBase: anExpression symbol: aSymbol [
+FunctionExpression >> createFor: arguments withBase: anExpression symbol: aSymbol [
 	| new |
 	new := self copy.
 	new base: anExpression.
 	new symbol: aSymbol.
 	new type: type.
-	new arguments: anArray.
+	new arguments: arguments.
 	^new.
 ]
 

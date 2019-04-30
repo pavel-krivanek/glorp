@@ -1,13 +1,3 @@
-"
-Mempry Sequence type
-
-Instance Variables
-	representationType:		<Object>
-
-representationType
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpInMemorySequenceDatabaseType,
 	#superclass : #GlorpDatabaseType,
@@ -17,10 +7,10 @@ Class {
 	#classInstVars : [
 		'count'
 	],
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpInMemorySequenceDatabaseType class >> next [
 
 	(count isNil)
@@ -29,14 +19,14 @@ GlorpInMemorySequenceDatabaseType class >> next [
 	^count
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpInMemorySequenceDatabaseType class >> representedBy: dbType [
 
 	^super new
 		representedBy: dbType
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpInMemorySequenceDatabaseType class >> reset [
 
 	count := 0

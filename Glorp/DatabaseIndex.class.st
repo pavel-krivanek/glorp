@@ -17,26 +17,26 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseIndex class >> forField: aField [
 	^(self new initialize)
 		addField: aField;
 		yourself
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseIndex class >> forFields: aCollection [
 	^(self new)
 		addFields: aCollection;
 		yourself
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseIndex class >> new [
 	^super new initialize.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 DatabaseIndex >> addField: aField [
 	^fields add: aField
 ]

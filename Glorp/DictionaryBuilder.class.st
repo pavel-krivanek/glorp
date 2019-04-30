@@ -20,13 +20,13 @@ Class {
 { #category : #'building objects' }
 DictionaryBuilder >> buildObjectFrom: anArray [
 	"We just build an association out of the sub-builders "
-
-	self row: anArray
+	| |
+	self row: anArray.
 ]
 
 { #category : #accessing }
 DictionaryBuilder >> canCauseDuplicateRows [
-	^expression class == MappingExpression and: [expression mapping isToManyRelationship]
+	^expression class == MappingExpression and: [expression mapping isToManyRelationship].
 ]
 
 { #category : #'selecting fields' }
@@ -42,7 +42,7 @@ DictionaryBuilder >> fieldsFromMyPerspective [
 { #category : #'building objects' }
 DictionaryBuilder >> findInstanceForRow: aRow proxyType: proxyType [
 
-	instance := Association new
+	instance := Association new.
 ]
 
 { #category : #accessing }
@@ -76,7 +76,7 @@ DictionaryBuilder >> reconcileWithBuilders: oldCollection andCopy: newCollection
 	keyIndex := oldCollection indexOf: keyBuilder.
 	keyBuilder := newCollection at: keyIndex.
 	valueIndex := oldCollection indexOf: valueBuilder.
-	valueBuilder := newCollection at: valueIndex
+	valueBuilder := newCollection at: valueIndex.
 ]
 
 { #category : #'initialize-release' }
@@ -86,15 +86,15 @@ DictionaryBuilder >> setup [
 	base := query baseExpression.
 	collectionType := expression == base ifTrue: [query collectionType] ifFalse: [expression mapping query collectionType].
 	keyBuilder := ElementBuilder for: (collectionType keyExpression asGlorpExpressionOn: expression) in: query.
-	valueBuilder := ElementBuilder basicFor: (collectionType valueExpression asGlorpExpressionOn: expression) in: query
+	valueBuilder := ElementBuilder basicFor: (collectionType valueExpression asGlorpExpressionOn: expression) in: query.
 ]
 
 { #category : #accessing }
 DictionaryBuilder >> subBuilders [
-	^Array with: keyBuilder with: valueBuilder
+	^Array with: keyBuilder with: valueBuilder.
 ]
 
 { #category : #accessing }
 DictionaryBuilder >> withAllSubBuilders [
-	^Array with: self with: keyBuilder with: valueBuilder
+	^Array with: self with: keyBuilder with: valueBuilder.
 ]

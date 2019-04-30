@@ -34,13 +34,13 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseTable class >> named: aString [
 
 	^self new name: aString.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseTable class >> new [
 
 	^super new initialize.

@@ -23,13 +23,13 @@ Class {
 	#category : 'Glorp-Types'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpDatabaseType class >> instance [
 
 	^super new
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpDatabaseType class >> new [
 	^super new initialize.
 ]
@@ -45,7 +45,7 @@ GlorpDatabaseType class >> padToThreeDigits: anInteger [
 	^string
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #printing }
 GlorpDatabaseType class >> padToTwoDigits: anInteger [
 
 	| string |

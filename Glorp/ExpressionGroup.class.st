@@ -10,14 +10,12 @@ Class {
 	#instVars : [
 		'children'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 ExpressionGroup class >> with: anExpression [
-
-	^(self new) 
-		add: anExpression
+	^self new add: anExpression.
 ]
 
 { #category : #accessing }
@@ -43,7 +41,7 @@ ExpressionGroup >> do: aBlock skipping: aSet [
 
 	(aSet includes: self) ifTrue: [^self].
 	aSet add: self.
-	children do: 	[:each | each do: aBlock skipping: aSet].
+	children do: [:each | each do: aBlock skipping: aSet].
 	aBlock value: self.
 ]
 

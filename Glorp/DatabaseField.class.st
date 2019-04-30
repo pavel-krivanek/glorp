@@ -2,8 +2,12 @@
 This represents a field in a database table. See also DatabaseTable. Glorp relies heavily on identity of fields for comparison purposes, so be careful when copying these.
 
 Instance Variables:
-	defaultValue	<Object>	What is the default value of this field, if unspecified in the creation statement.
-	isLockKey	<Boolean>	Is this field part of an optimistic lock key. If so, then on update we will generate an update statement that checks that this value hasn't changed since the object wasn't read.
+	imDefaultValue	<Object>	If the column in the database does not have a default value but we wish one, or it
+						does but we wish to use a different default value, set this in the image before writing.
+	dbDefaultValue	<Object>	If the column in the database has a default value, put it here to use in (re)creation
+						statements (by the user setting it or by reading it in a metadata descriptor system).
+	isLockKey	<Boolean>	Is this field part of an optimistic lock key. If so, then on update we will generate an
+						update statement that checks that this value hasn't changed since the object was read.
 	isNullable	<Boolean>	Is this field allowed to be null?
 	isPrimaryKey	<Boolean>	Is this field part of the primary key?
 	isUnique	<Boolean>	Does this field have a unique constraint in the database?
@@ -26,18 +30,19 @@ Class {
 		'isNullable',
 		'isUnique',
 		'isLockKey',
-		'defaultValue'
+		'imDefaultValue',
+		'dbDefaultValue'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseField class >> named: aString [
 
 	^self error: 'type needed'
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseField class >> named: aString type: dbType [
 
 	^super new initialize
@@ -45,7 +50,7 @@ DatabaseField class >> named: aString type: dbType [
 		type: dbType
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseField class >> new [
 
 	^self error: 'dbType needed'
@@ -138,7 +143,7 @@ DatabaseField >> impliedSmalltalkType [
 	^self type impliedSmalltalkType.
 ]
 
-{ #category : #initializing }
+{ #category : #'initialize-release' }
 DatabaseField >> initialize [
 	isPrimaryKey := false.
 	isNullable := true.
@@ -271,7 +276,7 @@ DatabaseField >> position: anObject [
 	position := anObject
 ]
 
-{ #category : #initializing }
+{ #category : #'initialize-release' }
 DatabaseField >> postInitializeIn: aDescriptorSystem [
 	"Any initialization that has to be delayed until we're in the table"
 	type initializeForField: self in: aDescriptorSystem.

@@ -19,14 +19,14 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DelegatingDatabaseConverter class >> hostedBy: anObject fromStToDb: stDbSelector fromDbToSt: dbStSelector [
 
 	^super new
 		hostedBy: anObject fromStToDb: stDbSelector fromDbToSt: dbStSelector
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DelegatingDatabaseConverter class >> named: aSymbol hostedBy: anObject fromStToDb: stDbSelector fromDbToSt: dbStSelector [
 	^super new
 		named: aSymbol

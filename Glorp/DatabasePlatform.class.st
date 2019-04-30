@@ -43,15 +43,15 @@ Class {
 		'characterEncoding'
 	],
 	#classVars : [
-		'UseBindingIfSupported'
+		'DatabasePlatform'
 	],
 	#classInstVars : [
 		'converterRepository'
 	],
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #constants }
 DatabasePlatform class >> allReservedWords [
 
 	| words |
@@ -74,7 +74,7 @@ DatabasePlatform class >> loginWithConnectionDictionary: aDict [
 		ifFalse: [platformClass createLoginFromConnectionDictionary: aDict] ifTrue: [nil]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #constants }
 DatabasePlatform class >> reservedWords [
 	
 	^Set new.
@@ -86,12 +86,12 @@ DatabasePlatform class >> understandsConnectionDictionary: aDict [
 	^false
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 DatabasePlatform class >> useBindingByDefault [
 	^true
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 DatabasePlatform class >> useBindingIfSupported [
 	"If I am nil (the default), each platform that supportsBinding lazily initializes to its defaultUseBinding value.  If I have a value, I force lazy initialization of each platform that supportsBinding to my value.  Normally, a value is set only for specific testing purposes."
 
@@ -99,7 +99,7 @@ DatabasePlatform class >> useBindingIfSupported [
 	^UseBindingIfSupported
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 DatabasePlatform class >> useBindingIfSupported: aBooleanOrNil [
 	"If I am nil (the default), each platform that supportsBinding lazily initializes to its defaultUseBinding value.  If I have a value, I force lazy initialization of each platform that supportsBinding to my value.  Normally, a value is set only for specific testing purposes."
 
@@ -294,7 +294,7 @@ DatabasePlatform >> characterEncoding: anEncodingName [
 
 { #category : #constants }
 DatabasePlatform >> charactersThatNeedEscaping [
-	^#($' )
+	^#($')
 ]
 
 { #category : #types }
@@ -311,8 +311,9 @@ DatabasePlatform >> columnNameSeparatorString [
 
 { #category : #'database-specific' }
 DatabasePlatform >> compoundOperationFor: aSymbol [
-	"Return the platform specific version of a compound statement symbol"
-	^aSymbol.
+	"Return the platform specific version of a compound statement symbol."
+
+	^aSymbol
 ]
 
 { #category : #'conversion-boolean' }
@@ -463,7 +464,7 @@ DatabasePlatform >> converters [
 DatabasePlatform >> createAddColumnStatementFor: aField [
 	| stream |
 	stream := WriteStream on: String new.
-	stream 
+	stream
 		nextPutAll: 'ALTER TABLE';
 		space.
 	self printDDLTableNameFor: aField table on: stream.
@@ -472,8 +473,7 @@ DatabasePlatform >> createAddColumnStatementFor: aField [
 		nextPutAll: ' ADD ';
 		nextPutAll: self startColumnAddString.
 	self  printColumn: aField on: stream.
-	stream nextPutAll: self  endColumnAddString.
-		
+	stream nextPutAll: self endColumnAddString.
 	^stream contents
 ]
 
@@ -965,6 +965,7 @@ DatabasePlatform >> int8 [
 
 { #category : #types }
 DatabasePlatform >> integer [
+
 	^self typeNamed: #integer ifAbsentPut: [GlorpIntegerType new].
 ]
 
@@ -2454,9 +2455,9 @@ DatabasePlatform >> versionFieldFor: aType [
 
 { #category : #accessing }
 DatabasePlatform >> vwConnectionClass [
-	^self isODBCPlatform 
-			ifTrue: [self vwODBCConnectionClass]
-			ifFalse: [self vwEXDIConnectionClass]
+	^self isODBCPlatform
+		ifTrue: [self vwODBCConnectionClass]
+		ifFalse: [self vwEXDIConnectionClass]
 ]
 
 { #category : #accessing }
@@ -2466,7 +2467,7 @@ DatabasePlatform >> vwODBCConnectionClass [
 	'ODBCThreadedConnection' asQualifiedReference ifDefinedDo:
 		[:class | ^class].
 	'ODBCConnection' asQualifiedReference ifDefinedDo:
-		[:class | ^class].		
+		[:class | ^class].	
 	^'ODBCThreadedConnection' asQualifiedReference valueIfUndefinedLoadFrom: 'ODBCThapiEXDI'
 ]
 

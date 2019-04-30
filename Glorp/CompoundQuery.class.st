@@ -5,9 +5,6 @@ Instance Variables:
 	operation	<String>	The name of the operation we are using to combine the queries.
 	primaryQuery	<Query>	The first query that we contain. This determines what objects we actually return. All of the queries should match up in terms of what they return, or the database is unlikely to accept this as a valid query.
 	queries	<(SequenceableCollection of: SimpleQuery)>	The queries we contain.
-	specialBuilders <Array of: ElementBuilder> If we want to do something to modify our result, we can add our own set of builders here, which will be added to those of the internal queries. Motivating example is doing a horizontal inheritance query, where we can end up with one of N different objects in the row, and we just want to return that one directly.
-
-
 "
 Class {
 	#name : #CompoundQuery,
@@ -16,53 +13,52 @@ Class {
 		'queries',
 		'operation',
 		'primaryQuery',
-		'specialBuilders',
 		'requiresDistinct'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 CompoundQuery class >> newIntersect [
-	^self new operation: #INTERSECT
+	^self new operation: #INTERSECT.
 ]
 
 { #category : #'instance creation' }
 CompoundQuery class >> newMinus [
-	^self new operation: #EXCEPT
+	^self new operation: #EXCEPT.
 ]
 
 { #category : #'instance creation' }
 CompoundQuery class >> newUnionAll [
-	^self new operation: #'UNION ALL'
+	^self new operation: #'UNION ALL'.
 ]
 
 { #category : #accessing }
 CompoundQuery >> addQuery: aQuery [
 	queries isEmpty ifTrue: [primaryQuery := aQuery].
-	queries add: aQuery
+	queries add: aQuery.
 ]
 
 { #category : #accessing }
 CompoundQuery >> baseExpression [
-	^queries first baseExpression
+	^queries first baseExpression.
 ]
 
 { #category : #preparing }
 CompoundQuery >> copyOfBuilders [ 
-	^primaryQuery copyOfBuilders
+	^primaryQuery copyOfBuilders.
 ]
 
 { #category : #'boolean operations' }
 CompoundQuery >> except: aQuery [
-	^self minus: aQuery
+	^self minus: aQuery.
 ]
 
 { #category : #executing }
 CompoundQuery >> executeWithParameters: parameterArray in: aSession [
 	session := aSession.
 	^self 
-		readFromDatabaseWithParameters: parameterArray
+		readFromDatabaseWithParameters: parameterArray.
 ]
 
 { #category : #initializing }
@@ -84,50 +80,50 @@ CompoundQuery >> isMinus [
 
 { #category : #testing }
 CompoundQuery >> isUnionAll [
-	^operation = #'UNION ALL'
+	^operation = #'UNION ALL'.
 ]
 
 { #category : #accessing }
 CompoundQuery >> joins [
-	^queries inject: #() into: [:sum :each | sum, each joins]
+	^queries inject: #() into: [:sum :each | sum, each joins].
 ]
 
 { #category : #accessing }
 CompoundQuery >> limit [
-	^primaryQuery limit
+	^primaryQuery limit.
 ]
 
 { #category : #accessing }
 CompoundQuery >> limit: anInteger [
 	"We currently ignore limit sets and use the one from our contained queries."
-	^self
+	^self.
 ]
 
 { #category : #accessing }
 CompoundQuery >> mightHaveDuplicateRows [
-	^primaryQuery mightHaveDuplicateRows
+	^primaryQuery mightHaveDuplicateRows.
 ]
 
 { #category : #'boolean operations' }
 CompoundQuery >> minus: aQuery [
 	aQuery shortCircuitEmptyReturn ifTrue: [^self].
-	^CompoundQuery newMinus addQuery: self; addQuery: aQuery
+	^CompoundQuery newMinus addQuery: self; addQuery: aQuery.
 ]
 
 { #category : #accessing }
 CompoundQuery >> offset [
-	^primaryQuery offset
+	^primaryQuery offset.
 ]
 
 { #category : #accessing }
 CompoundQuery >> offset: anInteger [
 	"We currently ignore offset sets and use the one from our contained queries."
-	^self
+	^self.
 ]
 
 { #category : #accessing }
 CompoundQuery >> operation: aString [
-	operation := aString
+	operation := aString.
 ]
 
 { #category : #copying }
@@ -151,7 +147,7 @@ CompoundQuery >> prepare [
 
 { #category : #accessing }
 CompoundQuery >> primaryQuery: aQuery [
-	primaryQuery := aQuery
+	primaryQuery := aQuery.
 ]
 
 { #category : #printing }
@@ -159,25 +155,25 @@ CompoundQuery >> printCompoundSelectAliasesOn: aStream [
 	"We only want one table. This is a somewhat convoluted way of getting 't1' uniformly appended"
 	aStream nextPutAll: ' '.
 	self session platform supportsAliasInCompoundQuery ifTrue: [
-		primaryQuery tablesToPrint first printSQLOn: aStream withParameters: nil]
+		primaryQuery tablesToPrint first printSQLOn: aStream withParameters: nil].
 ]
 
 { #category : #printing }
 CompoundQuery >> printOperationOn: aCommand [
 	aCommand space.
 	aCommand nextPutAll: (self platform compoundOperationFor: operation).
-	aCommand space
+	aCommand space.
 ]
 
 { #category : #accessing }
 CompoundQuery >> proxyType [
-	^primaryQuery proxyType
+	^primaryQuery proxyType.
 ]
 
 { #category : #accessing }
 CompoundQuery >> proxyType: aClass [	
 	"We currently ignore proxy types and use the ones from our main query."
-	^self
+	^self.
 ]
 
 { #category : #accessing }
@@ -196,7 +192,7 @@ CompoundQuery >> readFromDatabaseWithParameters: anArray [
 	answerStream := self rowsFromDatabaseWithParameters: anArray.
 	^self readsOneObject
 		ifTrue: [result := answerStream next. answerStream release. result]
-		ifFalse: [self resultCollectionFor: answerStream]
+		ifFalse: [self resultCollectionFor: answerStream].
 ]
 
 { #category : #accessing }
@@ -206,12 +202,12 @@ CompoundQuery >> requiresDistinct [
 
 { #category : #accessing }
 CompoundQuery >> requiresDistinct: aBoolean [
-	requiresDistinct := aBoolean
+	requiresDistinct := aBoolean.
 ]
 
 { #category : #accessing }
 CompoundQuery >> resultClass [
-	^primaryQuery resultClass
+	^primaryQuery resultClass.
 ]
 
 { #category : #'sql generation' }
@@ -246,14 +242,14 @@ CompoundQuery >> rewriteSetOperationUsing: aSelector [
 		mainExpression := RelationExpression new outerJoin: false; relation: #AND; leftChild: q whereClause; rightChild: expression.
 		q whereClause: mainExpression.
 		newQuery AND: [:each | each perform: aSelector with: q]].
-	^newQuery
+	^newQuery.
 ]
 
 { #category : #executing }
 CompoundQuery >> rowsFromDatabaseWithParameters: anArray [
 	^session accessor
 		executeCommand: (self sqlWith: anArray)
-		returnCursor: true
+		returnCursor: true.
 ]
 
 { #category : #accessing }
@@ -268,19 +264,19 @@ CompoundQuery >> shortCircuitEmptyReturn: parameters [
 
 { #category : #accessing }
 CompoundQuery >> shouldRefresh [
-	^primaryQuery shouldRefresh
+	^primaryQuery shouldRefresh.
 ]
 
 { #category : #accessing }
 CompoundQuery >> shouldRefresh: aBoolean [
 	"We currently ignore sets of this, and use the value from our primary query."
-	^self
+	^self.
 ]
 
 { #category : #printing }
 CompoundQuery >> sqlString [
 	"Mostly for debugging"
-	^(self sqlWith: #()) sqlString
+	^(self sqlWith: #()) sqlString.
 ]
 
 { #category : #executing }
@@ -300,12 +296,12 @@ CompoundQuery >> sqlWith: aDictionary [
 
 { #category : #printing }
 CompoundQuery >> tablesToPrint [
-	^self queries first tablesToPrint
+	^self queries first tablesToPrint.
 ]
 
 { #category : #accessing }
 CompoundQuery >> tracing [
-	^primaryQuery tracing
+	^primaryQuery tracing.
 ]
 
 { #category : #'boolean operations' }
@@ -318,7 +314,7 @@ CompoundQuery >> unionAll: aQuery [
 		ifFalse:
 			[(CompoundQuery newUnionAll)
 				addQuery: self;
-				addQuery: aQuery]
+				addQuery: aQuery].
 ]
 
 { #category : #accessing }
