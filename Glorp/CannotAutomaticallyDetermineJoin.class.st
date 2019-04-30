@@ -15,7 +15,7 @@ Class {
 		'constraints',
 		'tables'
 	],
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #accessing }

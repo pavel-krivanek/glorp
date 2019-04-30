@@ -6,7 +6,7 @@ Implements firebird sequence generation by calling out to gen_id()
 Class {
 	#name : #FirebirdSequence,
 	#superclass : #NamedSequence,
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
 { #category : #public }
@@ -32,7 +32,7 @@ FirebirdSequence >> getSequenceValueFromDatabaseFor: aDatabaseField in: aDatabas
 ]
 
 { #category : #sequencing }
-FirebirdSequence >> postWriteAssignSequenceValueFor: aField in: aRow using: aSession [
+FirebirdSequence >> postWriteAssignSequenceValueFor: aField in: aRow using: anAccessor [
 ]
 
 { #category : #'As yet unclassified' }
@@ -56,7 +56,7 @@ FirebirdSequence >> reserveViaTableSelect: anInteger in: aSession for: aTable [
 	max - anInteger + 1 to: max do: [:i | self reservedNumbers add: i].
 ]
 
-{ #category : #SQL }
+{ #category : #'as yet unclassified' }
 FirebirdSequence >> tableSelectCommandFor: aTable in: aSession reserving: anInteger [
 	"Since tableSelectCommand was never nilled, a second pundle version reusing this sequence used to get an SQL string embedding the first's integer value.  If it was a version of a different pundle, its integer probably differed;  when a call to reserve e.g. 1233 returns a maximum got by reusing the prior version's call to reserve e.g. 85, the result is 1148 duplicate keys.  If #insertOnly was set,  replication failed on an illegal command.  If we reached one of the fix-up states where it was not, then our cache assured us we were updating and we happily overwrote e.g. the blob for a class definition with that for a method definition (as I experienced :-/).  As sequences are set in the descriptor system and reused, this persisted until the session was discarded or its system was revised.  We now check the integer."
 

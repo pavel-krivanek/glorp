@@ -5,7 +5,7 @@ Class {
 		'expression',
 		'compoundExpression'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

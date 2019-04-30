@@ -9,10 +9,10 @@ Class {
 		'existingObject',
 		'newObject'
 	],
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Core'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 DuplicatePrimaryKeyException class >> new: newObject existing: existingObject [
 	^self new
 		newObject: newObject;

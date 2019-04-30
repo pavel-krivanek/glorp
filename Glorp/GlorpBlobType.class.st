@@ -1,20 +1,10 @@
-"
-BLOB type
-
-Instance Variables
-	queryType:		<Object>
-
-queryType
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpBlobType,
 	#superclass : #GlorpDatabaseType,
 	#instVars : [
 		'queryType'
 	],
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #comparing }
@@ -28,12 +18,16 @@ GlorpBlobType >> = aType [
 
 { #category : #types }
 GlorpBlobType >> converterForStType: aClass [
-	self platform isPostgreSQLPlatform ifTrue: [
-		(aClass includesBehavior: String) ifTrue: [^self platform converterNamed: #stringToSQLString].
-		^self platform converterNamed: #byteArrayToSQLString].
-	self platform isOcelotPlatform ifTrue: [^self platform converterNamed: #blobDataToStream].
 	(aClass includesBehavior: String) ifTrue: [^self platform converterNamed: #byteArrayToString].
+	self platform isPostgreSQLPlatform ifTrue: [^self platform converterNamed: #byteArrayToSQLString].
+	self platform isOcelotPlatform ifTrue: [^self platform converterNamed: #blobDataToStream].
 	^self platform nullConverter
+]
+
+{ #category : #'exdi specific' }
+GlorpBlobType >> exdiType [
+	"Return a symbol that the VisualWorks EXDI uses to indicate the database type -- this is a symbol which is often the name of a Smalltalk class, but with variations for multiple db types that correspond to the same Smalltalk symbol. It also varies by Database. This is equivalent to the values returned by methods like #odbcConversion or #oracleConversion"
+	^#ByteArray.
 ]
 
 { #category : #comparing }

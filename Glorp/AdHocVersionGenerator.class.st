@@ -14,10 +14,10 @@ Class {
 		'block',
 		'numberOfArguments'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 AdHocVersionGenerator class >> block: aBlock [
 	^self new block: aBlock.
 ]

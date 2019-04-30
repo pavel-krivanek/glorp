@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpDictionaryMappingTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }
@@ -107,6 +107,22 @@ GlorpDictionaryMappingTest >> testDeleteSimpleTypeOneToMany [
 	self assert: publisher titles asSortedCollection = (session system examplePublisher1 titles copyWithout: 'Mastering ENVY/Developer') asSortedCollection.
 ]
 
+{ #category : #'tests-arbitrary object to object' }
+GlorpDictionaryMappingTest >> testObjectObjectOneToMany [
+	|  encyclopedias withAuthors first last |
+	encyclopedias := session system exampleEncyclopedias.
+	session modify: encyclopedias in: [].
+	session reset.
+	withAuthors := session readOneOf: GlorpEncyclopedia where: [:each | each id = 4].
+	self assert: withAuthors entriesByAuthor size = 2.
+	first := withAuthors entriesByAuthor keys asSortedCollection first.
+	last := withAuthors entriesByAuthor keys asSortedCollection last.
+	self assert: first name = 'Somebody'.
+	self assert: (withAuthors entriesByAuthor at: first) title = 'All About Ants'.
+	self assert: last name = 'Somebody Else'.
+	self assert: (withAuthors entriesByAuthor at: last) title = 'Computer Programming Languages'.
+]
+
 { #category : #tests }
 GlorpDictionaryMappingTest >> testQueryWithDictionaryType [
 
@@ -120,7 +136,7 @@ GlorpDictionaryMappingTest >> testQueryWithDictionaryType [
 	linkTableField := linkTable fieldNamed: 'ENCYC_ENTRY_ID'.
 	idField := entryTable fieldNamed: 'ID'.
 	query := Query read: GlorpEncyclopediaEntry.
-	query where: [:each | ((each getTable: linkTable) getField: linkTableField) = ((each getTable: entryTable) getField: idField)].
+	query whereClause: [:each | ((each getTable: linkTable) getField: linkTableField) = ((each getTable: entryTable) getField: idField)].
 	query retrieveDictionaryWithKey: [:each | (each getTable: linkTable) getField: refField] value: [:each | each].
 	dict := session execute: query.
 	self assert: dict class == Dictionary.
@@ -137,7 +153,7 @@ GlorpDictionaryMappingTest >> testReadWithAlsoFetch [
 	session reset.
 	query := Query read: GlorpEncyclopedia.
 	query orderBy: [:each | each name].
-	query alsoFetch: [:each | each entries asOuterJoin].
+	query alsoFetch: [:each | each entries beOuterJoin].
 	readBackEncyclopedias := session execute: query.
 	session accessor denyReads.
 	self verifyEncyclopedias: readBackEncyclopedias.
@@ -152,13 +168,16 @@ GlorpDictionaryMappingTest >> testReadWithRetrieve [
 	query := Query read: GlorpEncyclopedia.
 	query orderBy: [:each | each name].
 	query retrieve: [:each | each].
-	query retrieve: [:each | each entries asOuterJoin].
+	query retrieve: [:each | each entries beOuterJoin].
 	readBackEncyclopedias := session execute: query.
 	session accessor denyReads.
 	self assert: readBackEncyclopedias size = 6.
-	self verifyEncyclopedias: ((readBackEncyclopedias collect: [:each | each first]) asSet asSortedCollection: [:a :b | a name <= b name]).
-	readBackEncyclopedias do: [:eachArray |
-		eachArray last key isNil 
+	self verifyEncyclopedias:
+		((readBackEncyclopedias collect: [:each | each first])
+			asSet asSortedCollection: [:a :b | a name <= b name]).
+	readBackEncyclopedias do:
+		[:eachArray |
+		eachArray last key isNil
 			ifTrue: [self assert: eachArray first entries isEmpty]
 			ifFalse: [self assert: (eachArray first entries at: eachArray last key) = eachArray last value]].
 ]
@@ -385,14 +404,13 @@ GlorpDictionaryMappingTest >> testSimpleTypeOneToManyQueryingWithFilteredReads [
 
 { #category : #tests }
 GlorpDictionaryMappingTest >> testUpdate [
-
 	| encyclopedias canadian allEntryRows allLinkRows |
 	encyclopedias := session system exampleEncyclopedias.
 	session transact: [session register: encyclopedias].
 	session reset.
-	session accessor denyCommands: (Array with: DeleteCommand).
-	session inUnitOfWorkDo: [
-		| newEntry |
+	session accessor denyCommand: DeleteCommand.
+	session inUnitOfWorkDo:
+		[| newEntry |
 		canadian := session readOneOf: GlorpEncyclopedia where: [:each | each name like: 'The Ca%'].
 		newEntry := GlorpEncyclopediaEntry new
 			id: 'seven';

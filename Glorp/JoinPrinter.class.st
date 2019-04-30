@@ -16,24 +16,24 @@ Class {
 		'availableTables',
 		'query'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 JoinPrinter class >> for: aQuery [
-	^self new query: aQuery
+	^self new query: aQuery.
 ]
 
 { #category : #accessing }
 JoinPrinter >> allTables [
-	^query tablesToPrint
+	^query tablesToPrint.
 ]
 
 { #category : #printing }
 JoinPrinter >> nextJoin [
 	^joinsToProcess detect: [:eachJoinExpression |
 		eachJoinExpression tablesForANSIJoin anySatisfy: [:eachTable |
-			availableTables includes: eachTable]]
+			availableTables includes: eachTable]].
 ]
 
 { #category : #printing }
@@ -53,12 +53,12 @@ JoinPrinter >> printJoinsOn: aCommand [
 		joinsToProcess removeAll: allRelatedJoins.
 		allJoins add: (fullJoin->nextTable).
 		availableTables addAll: (next tablesForANSIJoin)].
-	allJoins size timesRepeat: [aCommand platform parenthesizeCommandsInCompoundQuery ifTrue: [aCommand nextPut: $(]].
+	allJoins size timesRepeat: [aCommand nextPut: $(].
 	aCommand nextPutAll: self rootTable sqlTableName.
 	allJoins do: [:each | 
 		each key printForANSIJoinTo: each value on: aCommand.
-		aCommand platform parenthesizeCommandsInCompoundQuery ifTrue: [aCommand nextPut: $)]].
-	self printLeftoverTablesOn: aCommand
+		aCommand nextPut: $)].
+	self printLeftoverTablesOn: aCommand.
 ]
 
 { #category : #printing }
@@ -72,22 +72,22 @@ JoinPrinter >> printLeftoverTablesOn: aCommand [
 		print: [:each | each sqlTableName]
 		on: aCommand
 		for: leftOverTables
-		separatedBy: ', '
+		separatedBy: ', '.
 ]
 
 { #category : #accessing }
 JoinPrinter >> query: aQuery [
 	query := aQuery.	
-	self setUp
+	self setUp.
 ]
 
 { #category : #accessing }
 JoinPrinter >> rootTable [
 	"Pick a table to start with"
-	^self allTables first
+	^self allTables first.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 JoinPrinter >> setUp [
-	availableTables := Set new
+	availableTables := Set new.
 ]

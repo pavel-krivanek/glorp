@@ -4,10 +4,10 @@ This represents a command with no additional syntax, basically just a stream. Us
 Class {
 	#name : #GlorpNullCommand,
 	#superclass : #DatabaseCommand,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
-{ #category : #'instance creation' }
+{ #category : #'As yet unclassified' }
 GlorpNullCommand class >> useBinding: aBoolean session: aSession [
 	^(self new)
 		useBinding: aBoolean;

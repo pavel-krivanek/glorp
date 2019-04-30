@@ -6,10 +6,10 @@ This is a select command whose SQL is given, rather than being generated from a 
 Class {
 	#name : #SQLStringSelectCommand,
 	#superclass : #QuerySelectCommand,
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'As yet unclassified' }
 SQLStringSelectCommand class >> sqlString: aString parameters: aDictionaryOrArray useBinding: aBoolean session: aSession [
 	^(self new)
 		setSQLString: aString;

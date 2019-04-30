@@ -5,7 +5,7 @@ Class {
 		'transaction',
 		'objects'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

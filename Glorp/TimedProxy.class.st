@@ -20,12 +20,12 @@ Class {
 		'timeToDie',
 		'association'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #accessing }
 TimedProxy >> class [
-	^TimedProxy
+	^TimedProxy.
 ]
 
 { #category : #accessing }
@@ -104,5 +104,5 @@ TimedProxy >> uninstantiate [
 
 { #category : #accessing }
 TimedProxy >> updateExpiryTime [
-	timeToDie := Time millisecondClockValue + (secondsToLive * 1000)
+	timeToDie := Time millisecondClockValue + (secondsToLive * 1000).
 ]

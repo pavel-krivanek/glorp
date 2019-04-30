@@ -14,7 +14,7 @@ Class {
 		'id',
 		'name'
 	],
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #comparing }

@@ -14,7 +14,7 @@ Class {
 		'attributeNames',
 		'readableMappings'
 	],
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #accessing }

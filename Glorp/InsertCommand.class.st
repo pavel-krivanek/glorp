@@ -57,20 +57,67 @@ InsertCommand >> bindingTypes [
 		ifFalse: [self singleRowBoundFields collect: [:each | each type]].
 ]
 
-{ #category : #accessing }
+{ #category : #executing }
+InsertCommand >> executeBoundInRoundTrip: anAccessor [
+	"An inserted row may have a column whose value is set by the server;  get it."
+
+	super executeBoundInRoundTrip: anAccessor.
+	self postWriteAssignSequencesUsing: anAccessor.
+]
+
+{ #category : #executing }
+InsertCommand >> executeUnboundInRoundTrip: anAccessor [
+	"An inserted row may have a column whose value is set by the server;  get it."
+
+	super executeUnboundInRoundTrip: anAccessor.
+	self postWriteAssignSequencesUsing: anAccessor.
+]
+
+{ #category : #executing }
+InsertCommand >> postWriteAssignSequencesUsing: anAccessor [
+	"The default insert command does not check whether it has an identity column (a column whose value is set by the server) and cannot recover the set value in the same round trip.  Instead we iterate over the row's fields and make a follow-up query if needed to get the value.  The default approach gets the value in a follow-up query and so uses the Accessor."
+
+	row postWriteAssignSequencesUsing: anAccessor.
+]
+
+{ #category : #executing }
 InsertCommand >> printSQL [
-	| iterations |
-	iterations := self shouldUseGroupWriting
-		ifTrue:
-			[self platform usesArrayBindingRatherThanGroupWriting
-				ifTrue: [1]
-				ifFalse: [allRows size]]
-		ifFalse: [1].
+	self printSQLForFirstRow: row.
+	self hasMultipleRows ifFalse: [^self].
+	(self useBinding and: [self platform usesArrayBindingToGroupWrite]) ifTrue: [^self].
+	2 to: self allRows size do:
+		[:i | self printSQLForNextRow: (allRows at: i)].
+]
+
+{ #category : #executing }
+InsertCommand >> printSQLForFirstRow: aRow [
+	| fields |
+	self nextPutAll: 'INSERT INTO '.
+	aRow table printSQLOn: self withParameters: #().
+	fields := self shouldUseGroupWriting
+		ifTrue: [self arrayBoundFields]
+		ifFalse: [aRow nonGeneratedFieldsWithValues].
+	self space; nextPut: $(.
 	GlorpHelper
-		do:
-			[:i | self basicPrintSQLFor: (i = 1 ifTrue: [row] ifFalse: [allRows at: i])]
-		for: (1 to: iterations)
-		separatedBy: [self nextPutAll: '; '].
+		do: [:each | self nextPutAll: (self platform nameForColumn: each name)]
+		for: fields
+		separatedBy: [self nextPut: $,].
+	self nextPut: $).
+	self nextPutAll: '  VALUES ('.
+	GlorpHelper
+		do: [:each | (self canBind: (aRow at: each ifAbsent: [nil]) to: each type)
+					ifTrue: [self nextPutBindMarkerIn: nil]
+					ifFalse: [aRow printValueOfField: each on: self]]
+		for: fields
+		separatedBy: [self nextPut: $,].
+	self nextPut: $).
+]
+
+{ #category : #executing }
+InsertCommand >> printSQLForNextRow: aRow [
+	self nextPut: $;.
+	self space.
+	self printSQLForFirstRow: aRow.
 ]
 
 { #category : #accessing }
@@ -81,5 +128,5 @@ InsertCommand >> singleRowBoundFields [
 
 { #category : #testing }
 InsertCommand >> supportsGroupWriting [
-	^true.
+	^true
 ]

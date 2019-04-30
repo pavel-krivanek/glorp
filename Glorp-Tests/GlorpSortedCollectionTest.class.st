@@ -1,5 +1,5 @@
 Class {
 	#name : #GlorpSortedCollectionTest,
 	#superclass : #GlorpTestCase,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }

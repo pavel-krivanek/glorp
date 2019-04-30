@@ -22,22 +22,22 @@ Class {
 		'realObjects',
 		'parameters'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 GlorpVirtualCollection class >> on: aClass in: aSession [
-	^self new on: aClass in: aSession
+	^self new on: aClass in: aSession.
 ]
 
 { #category : #private }
 GlorpVirtualCollection >> AND: aBlock [
-	query AND: aBlock
+	query AND: aBlock.
 ]
 
 { #category : #adding }
 GlorpVirtualCollection >> add: newObject [
-	self readOnlyError
+	self readOnlyError.
 ]
 
 { #category : #enumerating }
@@ -47,38 +47,38 @@ GlorpVirtualCollection >> collect: aBlock [
 
 { #category : #copying }
 GlorpVirtualCollection >> copy [
-	^self shallowCopy postCopy
+	^self shallowCopy postCopy.
 ]
 
 { #category : #copying }
 GlorpVirtualCollection >> copyAndGrowBy: anInteger [
 	"For VA compatibility"
-	^super glorpShallowCopy
+	^super glorpShallowCopy.
 ]
 
 { #category : #copying }
 GlorpVirtualCollection >> copyFrom: start to: stop [
-	^self realObjects copyFrom: start to: stop
+	^self realObjects copyFrom: start to: stop.
 ]
 
 { #category : #enumerating }
 GlorpVirtualCollection >> do: aBlock [
-	self realObjects do: aBlock
+	self realObjects do: aBlock.
 ]
 
 { #category : #accessing }
 GlorpVirtualCollection >> first [
-	^self realObjects first
+	^self realObjects first.
 ]
 
 { #category : #private }
 GlorpVirtualCollection >> getQuery [
-	^query
+	^query.
 ]
 
 { #category : #testing }
 GlorpVirtualCollection >> isEmpty [
-	^self realObjects isEmpty
+	^self realObjects isEmpty.
 ]
 
 { #category : #testing }
@@ -110,7 +110,7 @@ GlorpVirtualCollection >> parameters: aCollection [
 { #category : #copying }
 GlorpVirtualCollection >> postCopy [
 	query := query copy.
-	realObjects := nil
+	realObjects := nil.
 ]
 
 { #category : #printing }
@@ -119,7 +119,7 @@ GlorpVirtualCollection >> printOn: aStream [
 		ifTrue: [super printOn: aStream]
 		ifFalse:
 			[aStream nextPutAll: 'a virtual collection of '.
-			query notNil ifTrue: [aStream nextPutAll: query resultClass name]]
+			query notNil ifTrue: [aStream nextPutAll: query resultClass name]].
 ]
 
 { #category : #private }
@@ -135,32 +135,32 @@ GlorpVirtualCollection >> realObjects [
 
 { #category : #enumerating }
 GlorpVirtualCollection >> reject: aBlock [
-	^self copy AND: [:each | (aBlock value: each) not]
+	^self copy AND: [:each | (aBlock value: each) not].
 ]
 
 { #category : #removing }
 GlorpVirtualCollection >> remove: oldObject ifAbsent: anExceptionBlock [
-	self readOnlyError
+	self readOnlyError.
 ]
 
 { #category : #enumerating }
 GlorpVirtualCollection >> select: aBlock [
-	^self isInstantiated ifTrue: [self realObjects select: aBlock] ifFalse: [self copy AND: aBlock]
+	^self isInstantiated ifTrue: [self realObjects select: aBlock] ifFalse: [self copy AND: aBlock].
 ]
 
 { #category : #accessing }
 GlorpVirtualCollection >> setQuery: aQuery [
 	"Semi-private. Set the internal query"
-	query := aQuery
+	query := aQuery.
 ]
 
 { #category : #accessing }
 GlorpVirtualCollection >> setSession: aSession [
 	"Semi-private. Set the session"
-	session := aSession
+	session := aSession.
 ]
 
 { #category : #accessing }
 GlorpVirtualCollection >> size [
-	^self realObjects size
+	^self realObjects size.
 ]

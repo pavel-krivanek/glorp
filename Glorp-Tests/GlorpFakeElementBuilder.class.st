@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'value'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #accessing }

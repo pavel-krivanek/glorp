@@ -14,7 +14,7 @@ Class {
 		'system',
 		'session'
 	],
-	#category : 'Glorp-Tests-Database'
+	#category : #'Glorp-Tests-Database'
 }
 
 { #category : #resources }

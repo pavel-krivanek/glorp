@@ -8,7 +8,7 @@ Class {
 		'groupB',
 		'groupC'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

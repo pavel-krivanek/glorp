@@ -5,7 +5,7 @@ SQLiteProxy is different from a normal proxy in that its >>glorpTriggerProxyActi
 Class {
 	#name : #SQLite3Proxy,
 	#superclass : #Proxy,
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #accessing }
@@ -38,5 +38,5 @@ SQLite3Proxy >> glorpTriggerProxyAction: target [
 	action isNil ifTrue: [^self].
 	owner := action key.
 	block := action value.
-	^block value: owner value: target
+	^block value: owner value: target.
 ]

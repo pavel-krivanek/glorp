@@ -14,29 +14,29 @@ Class {
 		'name',
 		'fields'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseIndex class >> forField: aField [
 	^(self new initialize)
 		addField: aField;
 		yourself
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseIndex class >> forFields: aCollection [
 	^(self new)
 		addFields: aCollection;
 		yourself
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseIndex class >> new [
 	^super new initialize.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 DatabaseIndex >> addField: aField [
 	^fields add: aField
 ]
@@ -81,11 +81,22 @@ DatabaseIndex >> initialize [
 ]
 
 { #category : #comparing }
+DatabaseIndex >> isSimilarIndex: aDatabaseIndex [
+	"Validate that two indexes have exactly the same fields."
+
+	self fields size = aDatabaseIndex fields  size ifFalse: [^false].
+	self fields asSortedCollection with: aDatabaseIndex fields asSortedCollection do: [:a :b | (a isSimilarField: b) ifFalse: [^false]].
+	^true
+]
+
+{ #category : #comparing }
 DatabaseIndex >> isTheSameAs: aDatabaseIndex [
 	"Validate that two indexes are exactly the same. Most useful for testing purposes, rather than normal usage, which is why we don't just use the #= method."
+
 	self name asUppercase = aDatabaseIndex name asUppercase ifFalse: [^false].
+	self fields size = aDatabaseIndex fields size ifFalse: [^false].
 	self fields with: aDatabaseIndex fields  do: [:a :b | (a isTheSameAs: b) ifFalse: [^false]].	
-	^true.
+	^true
 ]
 
 { #category : #accessing }

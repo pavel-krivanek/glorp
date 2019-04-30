@@ -11,10 +11,10 @@ Class {
 	#instVars : [
 		'count'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #defaults }
 InMemorySequence class >> default [
 
 	^self new.

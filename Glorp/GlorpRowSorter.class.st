@@ -22,10 +22,10 @@ Class {
 		'items',
 		'childCache'
 	],
-	#category : 'Glorp-UnitOfWork'
+	#category : #'Glorp-UnitOfWork'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 GlorpRowSorter class >> new [
 	^super new initialize.
 ]

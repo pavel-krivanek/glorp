@@ -5,7 +5,7 @@ Class {
 		'inner',
 		'outer'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #accessing }

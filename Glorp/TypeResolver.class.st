@@ -21,7 +21,7 @@ Class {
 		'members',
 		'system'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #accessing }

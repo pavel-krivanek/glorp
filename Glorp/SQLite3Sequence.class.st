@@ -23,10 +23,19 @@ SQLite3Sequence >> name: aString [
 
 { #category : #sequencing }
 SQLite3Sequence >> postWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor [
-	
 	| value |
-	value := (anAccessor executeSQLString: 'SELECT last_insert_rowid()') first at: 1.
-	aDatabaseRow at: aDatabaseField put: value
+	value := anAccessor connection lastAutoIncrementValue asInteger.
+	^aDatabaseRow at: aDatabaseField put: value
+]
+
+{ #category : #sequencing }
+SQLite3Sequence >> postWriteAssignSequenceValueFor: aDatabaseField inRows: someDatabaseRows using: anAccessor [
+	| lastValue |
+	lastValue := anAccessor connection lastAutoIncrementValue asInteger.
+	someDatabaseRows reverseDo:
+		[:ithrow |
+		ithrow at: aDatabaseField put: lastValue.
+		lastValue := lastValue - 1].
 ]
 
 { #category : #sequencing }

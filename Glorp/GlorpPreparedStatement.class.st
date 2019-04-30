@@ -16,10 +16,10 @@ Class {
 		'statement',
 		'busy'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 GlorpPreparedStatement class >> new [
 	"Answer a newly created and initialized instance."
 

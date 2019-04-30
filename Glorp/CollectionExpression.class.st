@@ -6,7 +6,7 @@ We treat this as a relation, but with the special properties that when we conver
 Class {
 	#name : #CollectionExpression,
 	#superclass : #RelationExpression,
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #iterating }

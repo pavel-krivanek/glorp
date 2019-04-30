@@ -14,7 +14,7 @@ Class {
 		'id',
 		'time'
 	],
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #'as yet unclassified' }

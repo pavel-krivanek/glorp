@@ -14,15 +14,13 @@ Class {
 		'base',
 		'lookupKey'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 ParameterExpression class >> forField: aField basedOn: anObjectExpression [
 
-	^(self new) 
-		field: aField base: anObjectExpression; 
-		yourself
+	^self new field: aField base: anObjectExpression; yourself
 ]
 
 { #category : #preparing }
@@ -105,6 +103,11 @@ ParameterExpression >> getMapping: aMapping named: aSymbol [
 	aMapping mappedFields do: [:each |
 		expression := (each asGlorpExpressionOn: self) AND: expression].
 	^expression.
+]
+
+{ #category : #inspecting }
+ParameterExpression >> inspectorChildren [
+	^Array with: base
 ]
 
 { #category : #printing }

@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpTimedExpiryCacheTest,
 	#superclass : #GlorpCacheTest,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

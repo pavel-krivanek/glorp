@@ -1,17 +1,3 @@
-"
-Abstract superclass for string types
-
-Instance Variables
-	queryType:		<Object>
-	width:		<Object>
-
-queryType
-	- xxxxx
-
-width
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpAbstractStringType,
 	#superclass : #GlorpDatabaseType,
@@ -19,7 +5,7 @@ Class {
 		'width',
 		'queryType'
 	],
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #comparing }
@@ -39,6 +25,12 @@ GlorpAbstractStringType >> converterForStType: aClass [
 		(aClass includesBehavior: String) ifTrue: [^self platform converterNamed: #stringToString]].
 	(aClass includesBehavior: Integer) ifTrue: [^self platform converterNamed: #integerToString].
 	^super converterForStType: aClass.
+]
+
+{ #category : #'exdi specific' }
+GlorpAbstractStringType >> exdiType [
+	"Return a symbol that the VisualWorks EXDI uses to indicate the database type -- this is a symbol which is often the name of a Smalltalk class, but with variations for multiple db types that correspond to the same Smalltalk symbol. It also varies by Database. This is equivalent to the values returned by methods like #odbcConversion or #oracleConversion"
+	^#String.
 ]
 
 { #category : #testing }

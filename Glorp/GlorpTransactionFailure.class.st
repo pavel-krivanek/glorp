@@ -5,7 +5,7 @@ This is the exception we raise if we encounter a database error trying to commit
 Class {
 	#name : #GlorpTransactionFailure,
 	#superclass : #GlorpError,
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #accessing }

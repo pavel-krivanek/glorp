@@ -20,7 +20,7 @@ Class {
 	#instVars : [
 		'argumentTypes'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'As yet unclassified' }

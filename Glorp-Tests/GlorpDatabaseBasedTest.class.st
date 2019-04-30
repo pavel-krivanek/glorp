@@ -7,7 +7,7 @@ Class {
 	#category : 'Glorp-Tests-Database'
 }
 
-{ #category : #support }
+{ #category : #'*Glorp-Tests' }
 GlorpDatabaseBasedTest >> assert: aBrackettedString equalsIgnoringOuterBrackets: anotherString [
 	self assert: aBrackettedString =
 		(anotherString first = $(

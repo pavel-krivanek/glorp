@@ -14,7 +14,7 @@ Class {
 		'mappedClass',
 		'isAbstract'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #'instance creation' }

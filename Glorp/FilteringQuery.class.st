@@ -17,14 +17,14 @@ Class {
 		'filter',
 		'collectBlock'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 FilteringQuery class >> on: aCollection filter: aBlock [
-	^(self new)
+	^self new
 		collection: aCollection;
- 		filter: aBlock
+ 		filter: aBlock.
 ]
 
 { #category : #accessing }
@@ -34,7 +34,7 @@ FilteringQuery >> collectBlock [
 
 { #category : #accessing }
 FilteringQuery >> collectBlock: aBlock [
-	collectBlock:= aBlock
+	collectBlock:= aBlock.
 ]
 
 { #category : #accessing }
@@ -45,7 +45,7 @@ FilteringQuery >> collection [
 { #category : #accessing }
 FilteringQuery >> collection: aCollection [
 	aCollection class == GlorpVirtualCollection ifTrue: [collectionType := aCollection getQuery collectionType].
-	collection := aCollection
+	collection := aCollection.
 ]
 
 { #category : #executing }
@@ -69,7 +69,7 @@ FilteringQuery >> executeWithParameters: parameterArray in: aSession [
 	result := (self collectionTypesAgree: result) ifTrue: [result] ifFalse: [self resultCollectionFor: result readStream].
 	^self readsOneObject
 		ifTrue: [result detect: [:each | true] ifNone: [nil]]
-		ifFalse: [result]
+		ifFalse: [result].
 ]
 
 { #category : #accessing }
@@ -85,7 +85,7 @@ FilteringQuery >> filter: aBlock [
 { #category : #executing }
 FilteringQuery >> filterResultsForParameters: parameterArray [
 	| passing seen |
-	seen := Dialect newIdentitySet.
+	seen := IdentitySet new.
 	passing := collection
 		select:
 			[:each | 
@@ -97,7 +97,7 @@ FilteringQuery >> filterResultsForParameters: parameterArray [
 					[new := (seen includes: value) not.
 					new ifTrue: [seen add: value]].
 			passes and: [new]].
-	^passing
+	^passing.
 ]
 
 { #category : #accessing }
@@ -108,16 +108,16 @@ FilteringQuery >> resultClass [
 
 { #category : #testing }
 FilteringQuery >> shortCircuitEmptyReturn: parameters [
-	^false
+	^false.
 ]
 
 { #category : #executing }
 FilteringQuery >> transformsValues [
-	^collectBlock notNil
+	^collectBlock notNil.
 ]
 
 { #category : #executing }
 FilteringQuery >> valueFor: anObject [
 	collectBlock isNil ifTrue: [^anObject].
-	^collectBlock value: anObject
+	^collectBlock value: anObject.
 ]

@@ -4,6 +4,11 @@ Class {
 	#category : 'Glorp-Types'
 }
 
+{ #category : #'exdi specific' }
+GlorpPGTimestampWithTimeZoneType >> exdiType [
+	^#Timestamptz
+]
+
 { #category : #converting }
 GlorpPGTimestampWithTimeZoneType >> impliedSmalltalkType [
 	^Dialect timestampClass

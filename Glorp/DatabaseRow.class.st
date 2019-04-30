@@ -33,34 +33,34 @@ Class {
 		'missingFieldIndicator',
 		'emptySlot'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #private }
 DatabaseRow class >> emptySlot [
 	emptySlot == nil ifTrue: [emptySlot := Object new].
 	^emptySlot.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #private }
 DatabaseRow class >> missingFieldIndicator [
 	missingFieldIndicator == nil ifTrue: [missingFieldIndicator := Object new].
 	^missingFieldIndicator.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseRow class >> new [
 
 	^super new initialize.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseRow class >> newForTable: aTable [
 
 	^self new table: aTable.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseRow class >> newForTable: aTable withOwner: anObject [
 
 	^self new table: aTable; owner: anObject.
@@ -78,7 +78,7 @@ DatabaseRow >> at: aField [
 	^self at: aField ifAbsent: [self error: 'missing field'].
 ]
 
-{ #category : #private }
+{ #category : #'*Glorp' }
 DatabaseRow >> at: aField forcePut: aValue [ 
 	"Write the value. If there's a previous value, overwrite it. Use with extreme caution."
 	| wrapper |
@@ -105,7 +105,7 @@ DatabaseRow >> at: aField ifAbsentPut: absentBlock [
 		ifFalse: [^old contents].
 ]
 
-{ #category : #accessing }
+{ #category : #'*Glorp' }
 DatabaseRow >> at: aField put: aValue [ 
 	
 	"For generated fields, we expect the real value to be provided later by the database, so don't write a nil value"
@@ -352,7 +352,7 @@ DatabaseRow >> nonPrimaryKeyFields [
 	^result.
 ]
 
-{ #category : #accessing }
+{ #category : #'*Glorp' }
 DatabaseRow >> numberOfFields [
 	^contents
 		inject: 0
@@ -439,7 +439,7 @@ DatabaseRow >> printEqualityTemplateForField: aDatabaseField on: aCommand [
 	aCommand nextPutAll: ' = '.
 	bind := aCommand canBind: (self at: aDatabaseField ifAbsent: [nil]) to: aDatabaseField type.
 	bind
-		ifTrue: [aCommand nextPutAll: '?']
+		ifTrue: [aCommand nextPutBindMarkerIn: nil]
 		ifFalse: [self printValueOfField: aDatabaseField on: aCommand].
 ]
 
@@ -546,9 +546,18 @@ DatabaseRow >> shouldGenerateValueFor: aField in: aSession [
 	| isInsert |
 	aField isGenerated ifFalse: [^false].
 	aField type generatesOverExistingValues ifTrue: [^true].
+	"If nil is the value of a field that's not NULLable but has an (image) default, the preWriteAssignSequenceValueFor:in:using: is intended to write the default value instead of nil."
+	(self shouldMapNilToImDefaultValueFor: aField) ifTrue:[^true].
 	"For those that don't write over existing values, only update them if this is an insert. Otherwise we can't tell the difference between an empty column and one which we're just not updating in this unit of work. This requires the session, but the session may be nil - if so, default to true, because that usage is just for reserving sequence numbers, and it's better to err on the side of too many."
 	isInsert := aSession isNil ifTrue: [true] ifFalse: [aSession shouldInsert: self].
 	^isInsert and: [(self hasValueFor: aField) not].
+]
+
+{ #category : #sequencing }
+DatabaseRow >> shouldMapNilToImDefaultValueFor: aField [
+	| value |
+	value := self at: aField ifAbsent: [^false].
+	^value isNil and: [aField isNullable not and: [aField imDefaultValue notNil]]
 ]
 
 { #category : #accessing }
@@ -575,7 +584,7 @@ DatabaseRow >> table: aDatabaseTable [
 	contents atAllPut: self class emptySlot.
 ]
 
-{ #category : #api }
+{ #category : #'*Glorp' }
 DatabaseRow >> unifyField: eachSourceField withField: eachTargetField inRow: targetRow [
 	| sourceWrapper targetWrapper |
 	sourceWrapper := self wrapperAt: eachSourceField ifAbsent: [nil].

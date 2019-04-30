@@ -6,7 +6,7 @@ This is the same as the demo descriptor system, but with small modifications to 
 Class {
 	#name : #GlorpLinkTableAnywhereDescriptorSystem,
 	#superclass : #GlorpDemoDescriptorSystem,
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #'descriptors/bank' }

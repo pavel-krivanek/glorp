@@ -5,10 +5,10 @@ Class {
 		'cache',
 		'session'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #Accessing }
 GlorpCacheTest class >> resources [
 	^Array with: GlorpSessionResource
 ]

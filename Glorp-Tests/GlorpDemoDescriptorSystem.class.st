@@ -1200,13 +1200,13 @@ GlorpDemoDescriptorSystem >> tableForTREE_NODE_LINK: aTable [
 		to: ((self tableNamed: 'TREE_NODE') fieldNamed: 'ID')) "shouldCreateInDatabase: false".
 ]
 
-{ #category : #'test support' }
+{ #category : #'*Glorp-Tests' }
 GlorpDemoDescriptorSystem >> testIDLessThan5: aValue [
 	"A test method, used for conditional mapping tests"
 	^aValue < 5.
 ]
 
-{ #category : #'test support' }
+{ #category : #'*Glorp-Tests' }
 GlorpDemoDescriptorSystem >> testIDMoreThan5: aValue [
 	"A test method, used for conditional mapping tests"
 	^aValue > 5.

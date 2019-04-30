@@ -14,7 +14,7 @@ Class {
 		'object',
 		'expectedType'
 	],
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #accessing }

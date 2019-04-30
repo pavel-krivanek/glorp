@@ -21,7 +21,7 @@ Class {
 		'otherwiseCase',
 		'conditionalFieldMapping'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #mapping }

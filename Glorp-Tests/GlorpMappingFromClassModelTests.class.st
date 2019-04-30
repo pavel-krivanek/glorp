@@ -5,12 +5,12 @@ Class {
 		'system',
 		'platform'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #running }
 GlorpMappingFromClassModelTests >> setUp [
-	platform := PostgreSQLPlatform new.
+	platform := PostgresSocketPlatform new.
 	system := DynamicDescriptorSystem forPlatform: platform
 ]
 

@@ -40,7 +40,7 @@ Class {
 	#classInstVars : [
 		'validateDescriptorSystem'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #utility }

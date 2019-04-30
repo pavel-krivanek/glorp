@@ -14,8 +14,14 @@ Class {
 		'query',
 		'localBase'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
+
+{ #category : #preparing }
+SubSelectExpression >> addBoundExpressionsIn: aCommand [
+	self query prepare.
+	self query addBoundExpressionsIn: aCommand.
+]
 
 { #category : #preparing }
 SubSelectExpression >> addBoundExpressionsIn: aCommand to: boundExpressions [
@@ -23,18 +29,12 @@ SubSelectExpression >> addBoundExpressionsIn: aCommand to: boundExpressions [
 	self query addBoundExpressionsIn: aCommand to: boundExpressions.
 ]
 
-{ #category : #preparing }
-SubSelectExpression >> condensePrimaryKeyComparison [
-	"Relies on this having been called after the children are condensed. If the child has had its reference to our base condensed away, then we aren't necessary, the comparison is at the same level and no longer needs a subselect"
-	^leftChild queryLevelBaseExpression == rightChild queryLevelBaseExpression ifTrue: [rightChild] ifFalse: [self].
-]
-
 { #category : #accessing }
 SubSelectExpression >> descriptor [
 	^self leftChild descriptor.
 ]
 
-{ #category : #accessing }
+{ #category : #'*Glorp' }
 SubSelectExpression >> initializeQuery [
 	query := Query
 		read: localBase descriptor describedClass
@@ -65,6 +65,7 @@ SubSelectExpression >> printSQLOn: aStream withParameters: aDictionary [
 	toPrint := relation = #noneSatisfy: ifTrue: ['NOT EXISTS ('] ifFalse: [' EXISTS ('].
 	aStream nextPutAll: toPrint.
 	command := self query sqlWith: aDictionary.
+	command boundExpressions: aStream boundExpressions.
 	aStream nextPutAll: command sqlString.
 	aStream nextPutAll: ')'.
 ]

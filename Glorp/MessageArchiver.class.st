@@ -18,7 +18,7 @@ Class {
 		'myReceiver',
 		'query'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'as yet unclassified' }
@@ -33,7 +33,7 @@ MessageArchiver class >> receiver: aMessageCollector selector: aSymbol arguments
 	^self new
 		receiver: aMessageCollector
 		selector: aSymbol
-		arguments: aCollection
+		arguments: aCollection.
 ]
 
 { #category : #doesNotUnderstand }
@@ -42,7 +42,7 @@ MessageArchiver >> = anObject [
 	^MessageArchiver 
 		receiver: self
 		selector: #= 
-		arguments: (Array with: anObject)
+		arguments: (Array with: anObject).
 ]
 
 { #category : #'expression creation' }
@@ -55,7 +55,7 @@ MessageArchiver >> asGlorpExpressionOn: aBaseExpression [
 	| arguments |
 	myReceiver == nil ifTrue: [^query isNil ifTrue: [aBaseExpression] ifFalse: [query baseExpression]].
 	arguments := myArguments collect: [:each | each asGlorpExpressionOn: aBaseExpression].
-	^self sendMessageTo: (myReceiver asGlorpExpressionOn: aBaseExpression) withArguments: arguments
+	^self sendMessageTo: (myReceiver asGlorpExpressionOn: aBaseExpression) withArguments: arguments.
 ]
 
 { #category : #'expression creation' }
@@ -80,12 +80,12 @@ MessageArchiver >> asGlorpExpressionOn: aBaseExpression basedOn: aMessageArchive
 			asGlorpExpressionOn: aBaseExpression
 			basedOn: aMessageArchiver
 			withUltimateBase: ultimateBaseExpression)
-		withArguments: arguments
+		withArguments: arguments.
 ]
 
 { #category : #debugging }
 MessageArchiver >> asText [
-	^self basicPrintString asText
+	^self basicPrintString asText.
 ]
 
 { #category : #doesNotUnderstand }
@@ -93,7 +93,7 @@ MessageArchiver >> basicDoesNotUnderstand: aMessage [
 	"Invoke this to avoid infinite recursion in the case of internal errors. We want a dialect-independent way of getting a walkback window, so we'll invoke it against a different object"
 
 
-	(Array with: self) doesNotUnderstand: aMessage
+	(Array with: self) doesNotUnderstand: aMessage.
 ]
 
 { #category : #doesNotUnderstand }
@@ -106,7 +106,7 @@ MessageArchiver >> basicDoesNotUnderstand: sel args: args [
 { #category : #debugging }
 MessageArchiver >> basicPrintString [
 
-	^self printString
+	^self printString.
 ]
 
 { #category : #debugging }
@@ -146,7 +146,7 @@ MessageArchiver >> doesNotUnderstand: aMessage [
 		ifTrue: 
 			[^self get: aMessage arguments first
 				withArguments: (aMessage arguments copyFrom: 2 to: aMessage arguments size)].
-	^self get: sel withArguments: aMessage arguments
+	^self get: sel withArguments: aMessage arguments.
 ]
 
 { #category : #doesNotUnderstand }
@@ -164,7 +164,7 @@ MessageArchiver >> doesNotUnderstand: sel args: args [
 MessageArchiver >> get: aSymbol [ 
 	^MessageArchiver receiver: self
 		selector: aSymbol
-		arguments: #()
+		arguments: #().
 ]
 
 { #category : #'expression protocol' }
@@ -177,7 +177,7 @@ MessageArchiver >> get: aSymbol withArguments: anArray [
 		ifFalse: [each]].
 	^MessageArchiver receiver: self
 		selector: aSymbol
-		arguments: arguments
+		arguments: arguments.
 ]
 
 { #category : #'expression protocol' }
@@ -186,19 +186,19 @@ MessageArchiver >> getMapping: aMapping named: aString [
 	^MessageArchiverForGetMapping
 		receiver: self
 		selector: aString
-		arguments: (Array with: aMapping with: aString)
+		arguments: (Array with: aMapping with: aString).
 ]
 
 { #category : #testing }
 MessageArchiver >> glorpIsBlock [
-	^false
+	^false.
 ]
 
 { #category : #debugging }
 MessageArchiver >> halt [
 	"Support this so that we can debug inside query blocks. For portability, send it to a different object so that we don't have to care how halt is implemented"
 
-	(Array with: self) halt
+	(Array with: self) halt.
 ]
 
 { #category : #'as yet unclassified' }
@@ -208,9 +208,14 @@ MessageArchiver >> hash [
 
 { #category : #debugging }
 MessageArchiver >> inspect [
+
 	"Not exactly the intended semantics, but should be portable"
-	
-	(Array with: self) inspect
+	(Array with: self) inspect.
+]
+
+{ #category : #'As yet unclassified' }
+MessageArchiver >> inspectorClasses [
+	^Array with: (Dialect smalltalkAt: 'Tools.Trippy.BasicInspector')
 ]
 
 { #category : #debugging }
@@ -238,14 +243,14 @@ MessageArchiver >> os_Equal: anObject [
 { #category : #debugging }
 MessageArchiver >> printOn: aStream [
 
-	aStream nextPutAll: self printString
+	aStream nextPutAll: self printString.
 ]
 
 { #category : #debugging }
 MessageArchiver >> printString [
 
 	"Hard-code this for maximum dialect portability"
-	^'a MessageArchiver'
+	^'a MessageArchiver'.
 ]
 
 { #category : #debugging }
@@ -256,12 +261,12 @@ MessageArchiver >> printStringLimitedTo: anInteger [
 
 { #category : #'private/accessing' }
 MessageArchiver >> privateGlorpQuery [
-	^query
+	^query.
 ]
 
 { #category : #'private/accessing' }
 MessageArchiver >> privateGlorpQuery: aQuery [
-	query := aQuery
+	query := aQuery.
 ]
 
 { #category : #'private/accessing' }
@@ -281,12 +286,12 @@ MessageArchiver >> receiver: aMessageCollector selector: aSymbol arguments: aCol
 
 	myReceiver := aMessageCollector.
 	mySelector := aSymbol.
-	myArguments := aCollection
+	myArguments := aCollection.
 ]
 
 { #category : #'expression creation' }
 MessageArchiver >> sendMessageTo: anExpression withArguments: arguments [
 	"Build our node by sending our message to anExpression"
 
-	^anExpression get: mySelector withArguments: arguments
+	^anExpression get: mySelector withArguments: arguments.
 ]

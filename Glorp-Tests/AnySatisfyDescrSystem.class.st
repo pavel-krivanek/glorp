@@ -5,7 +5,7 @@ This is a system for testing nested #anySatisfy: blocks.
 Class {
 	#name : #AnySatisfyDescrSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #accessing }

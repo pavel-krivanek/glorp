@@ -22,20 +22,20 @@ Class {
 		'done',
 		'startTime'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Core'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'As yet unclassified' }
 TimedProxyReaper class >> delay: seconds [
 	^self new delay: seconds
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'As yet unclassified' }
 TimedProxyReaper class >> delay: seconds maximumWork: milliseconds [
 	^self new delay: seconds; maximumWork: milliseconds
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'As yet unclassified' }
 TimedProxyReaper class >> new [
 	^super new initialize
 ]

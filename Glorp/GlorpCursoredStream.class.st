@@ -28,53 +28,36 @@ Class {
 		'rawPeekBuffer',
 		'statement'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 GlorpCursoredStream class >> on: aStream [
-	^self basicNew cursor: aStream
+	^self basicNew cursor: aStream.
 ]
 
 { #category : #'instance creation' }
 GlorpCursoredStream class >> on: aStream accessor: aDatabaseAccessor [
 	^(self on: aStream)
-		databaseAccessor: aDatabaseAccessor
+		databaseAccessor: aDatabaseAccessor.
 ]
 
 { #category : #'instance creation' }
 GlorpCursoredStream class >> on: aStream for: aCommand [
 	^(self on: aStream)
-		command: aCommand
+		command: aCommand.
 ]
 
 { #category : #'instance creation' }
 GlorpCursoredStream class >> on: aStream for: aCommand accessor: aDatabaseAccessor [
 	^(self on: aStream)
 		command: aCommand;
-		databaseAccessor: aDatabaseAccessor
+		databaseAccessor: aDatabaseAccessor.
 ]
 
 { #category : #testing }
 GlorpCursoredStream >> accessor [
-	^databaseAccessor
-]
-
-{ #category : #testing }
-GlorpCursoredStream >> atEnd [
-	"Release ourselves fairly aggressively when we hit the end"
-	| accessor |
-	peekBuffer isNil ifFalse: [^false].
-	rawPeekBuffer isNil ifFalse: [^false].
-	cursor isNil ifTrue: [^true].
-	"For test purposes, fabricate an accessor if we don't have one, it's not really needed for a non-db stream"
-	accessor := self accessor isNil ifTrue: [DatabaseAccessor new] ifFalse: [self accessor].
-	^([accessor isCursorAtEnd: cursor] on: Dialect error do: [:ex | databaseAccessor handleError: ex for: command])
-		ifTrue:
-			[self release.
-			true]
-		ifFalse: [	"We have to do this, because VA won't answer true to atEnd until we've read past end"
-			self rawPeek isNil].
+	^databaseAccessor.
 ]
 
 { #category : #'building objects' }
@@ -96,7 +79,7 @@ GlorpCursoredStream >> buildObjectsForRow: aRow [
 	^self buildersThatReturnResults size = 1
 		ifTrue: [self buildersThatReturnResults first returnValueIn: self]
 		ifFalse:
-			[self buildersThatReturnResults collect: [:each | each returnValueIn: self]]
+			[self buildersThatReturnResults collect: [:each | each returnValueIn: self]].
 ]
 
 { #category : #'building objects' }
@@ -131,7 +114,7 @@ GlorpCursoredStream >> collectionTypeFor: aCollectionType [
 
 	aCollectionType class == GlorpDictionaryDescription ifFalse: [^aCollectionType].
 	self buildersThatReturnResults size = 1 ifTrue: [^aCollectionType].
-	^Array
+	^Array.
 ]
 
 { #category : #accessing }
@@ -146,7 +129,7 @@ GlorpCursoredStream >> command: aDatabaseCommand [
 	aDatabaseCommand query isNil ifTrue: [^self].
 	databaseAccessor := aDatabaseCommand query session accessor.
 	builders := self query copyOfBuilders.
-	builders do: [:each | each cursor: self]
+	builders do: [:each | each cursor: self].
 ]
 
 { #category : #accessing }
@@ -196,12 +179,12 @@ GlorpCursoredStream >> do: aBlock [
 
 { #category : #'building objects' }
 GlorpCursoredStream >> elementBuilderFor: anExpression [ 
-	^builders detect: [:each | each expression == anExpression] ifNone: [nil]
+	^builders detect: [:each | each expression == anExpression] ifNone: [nil].
 ]
 
 { #category : #accessing }
 GlorpCursoredStream >> flush [
-	^self
+	^self.
 ]
 
 { #category : #'building objects' }
@@ -219,12 +202,12 @@ GlorpCursoredStream >> initialize [
 
 { #category : #testing }
 GlorpCursoredStream >> isReadable [
-	^true
+	^true.
 ]
 
 { #category : #testing }
 GlorpCursoredStream >> isWritable [
-	^false
+	^false.
 ]
 
 { #category : #accessing }
@@ -238,7 +221,7 @@ GlorpCursoredStream >> newCollectionOfSize: aSize for: aCollectionType [
 	"Make sure that we can reasonably return aCollectionType. If not, default to something we can"
 	| theType |
 	theType := self collectionTypeFor: aCollectionType.
-	^theType isBehavior ifTrue: [theType new: aSize] ifFalse: [theType copyEmpty: aSize]
+	^theType isBehavior ifTrue: [theType new: aSize] ifFalse: [theType copyEmpty: aSize].
 ]
 
 { #category : #accessing }
@@ -259,8 +242,11 @@ GlorpCursoredStream >> next [
 
 { #category : #accessing }
 GlorpCursoredStream >> next: anInteger [
-
-	^super next: anInteger
+	| result |
+	Dialect isObjectStudio ifFalse: [^super next: anInteger].
+	result := OrderedCollection new: anInteger.
+	anInteger timesRepeat: [result add: self next].
+	^result.
 ]
 
 { #category : #'building objects' }
@@ -289,19 +275,19 @@ GlorpCursoredStream >> nextObjectFrom: aRow [
 	objects := self buildObjectsForRow: aRow.
 	self mightHaveDuplicateRows ifFalse: [
 		self registerInstances.
-		^objects]
+		^objects].
 ]
 
 { #category : #accessing }
 GlorpCursoredStream >> nextPut: anObject [
-	self shouldNotImplement
+	self shouldNotImplement.
 ]
 
 { #category : #'building objects' }
 GlorpCursoredStream >> objectBuilderFor: anExpression [ 
 	"Return the builder for this expression, but only those that directly build compound objects. Most importantly, exclude dictionary builders"
 	^builders detect: [:each | 
-		each buildsObjects and: [each expression == anExpression]] ifNone: [nil]
+		each buildsObjects and: [each expression == anExpression]] ifNone: [nil].
 ]
 
 { #category : #accessing }
@@ -313,7 +299,7 @@ GlorpCursoredStream >> peek [
 
 { #category : #accessing }
 GlorpCursoredStream >> privateGetBuilders [
-	^builders
+	^builders.
 ]
 
 { #category : #accessing }
@@ -324,14 +310,6 @@ GlorpCursoredStream >> query [
 
 { #category : #accessing }
 GlorpCursoredStream >> query: x [
-]
-
-{ #category : #private }
-GlorpCursoredStream >> rawPeek [
-	"Peek at the underlying rows, but don't build objects"
-	rawPeekBuffer isNil ifFalse: [^rawPeekBuffer].
-	rawPeekBuffer := cursor next.
-	^rawPeekBuffer.
 ]
 
 { #category : #'building objects' }
@@ -377,22 +355,22 @@ GlorpCursoredStream >> rows [
 	rows := cursor upToEnd.
 	self releaseCursor.
 	cursor := rows readStream.
-	^rows
+	^rows.
 ]
 
 { #category : #accessing }
 GlorpCursoredStream >> session [
-	^self query isNil ifTrue: [nil] ifFalse: [self query session]
+	^self query isNil ifTrue: [nil] ifFalse: [self query session].
 ]
 
 { #category : #accessing }
 GlorpCursoredStream >> statement [
-	^statement
+	^statement.
 ]
 
 { #category : #accessing }
 GlorpCursoredStream >> statement: aGlorpPreparedStatement [
-	statement := aGlorpPreparedStatement
+	statement := aGlorpPreparedStatement.
 ]
 
 { #category : #accessing }
@@ -405,4 +383,11 @@ GlorpCursoredStream >> upToEnd [
 			nextValue := self next.
 			nextValue == nil ifFalse: [	result nextPut: nextValue]].
 	^result contents
+]
+
+{ #category : #accessing }
+GlorpCursoredStream >> upToEndOfResultSet [
+	"If our statement has multiple result sets, we must use this call, not #upToEnd, to avoid the aggressive releasing of the cursor in #atEnd which would lose any remaining result sets.  This reads the current result set and advances the underlying cursor to the next result set.  (N.B. 'the next result set' does not necessarily mean the return of the next statement;  in a sequence of statements, some may return result sets while others return #noAnswerStream and these will be skipped.)  The cursor is released as part of reading the last result set."
+
+	^self accessor upToEndOfResultSet: self
 ]

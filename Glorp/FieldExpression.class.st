@@ -17,15 +17,13 @@ Class {
 		'base',
 		'alias'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 FieldExpression class >> forField: aField basedOn: anObjectExpression [
 
-	^(self new) 
-		field: aField base: anObjectExpression; 
-		yourself
+	^self new field: aField base: anObjectExpression; yourself
 ]
 
 { #category : #accessing }
@@ -131,6 +129,11 @@ FieldExpression >> hasField [
 { #category : #accessing }
 FieldExpression >> impliedSmalltalkType [
 	^self field impliedSmalltalkType.
+]
+
+{ #category : #inspecting }
+FieldExpression >> inspectorChildren [
+	^Array with: base
 ]
 
 { #category : #mapping }

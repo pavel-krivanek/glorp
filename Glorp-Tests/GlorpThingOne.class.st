@@ -14,7 +14,7 @@ Class {
 		'id',
 		'name'
 	],
-	#category : 'Glorp-Tests-CollectionTypeModels'
+	#category : #'Glorp-Tests-CollectionTypeModels'
 }
 
 { #category : #'*Glorp-Tests' }

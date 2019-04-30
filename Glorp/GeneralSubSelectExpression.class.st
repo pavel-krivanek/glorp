@@ -15,13 +15,20 @@ Class {
 		'query',
 		'base'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 GeneralSubSelectExpression class >> basedOn: anExpression [
 	"The defining characteristic of a general subselect is that it doesn't care what it's based on. The base is just a convenient place to hang an independent expression. So make sure we're built on a true base, which won't print confusing stuff for us"
-	^self new base: anExpression ultimateBaseExpression
+	^self new base: anExpression ultimateBaseExpression.
+]
+
+{ #category : #preparing }
+GeneralSubSelectExpression >> addBoundExpressionsIn: aCommand [
+	self query session: aCommand query session.
+	self query prepare.
+	self query addBoundExpressionsIn: aCommand
 ]
 
 { #category : #preparing }
@@ -123,11 +130,12 @@ GeneralSubSelectExpression >> printOnlySelfOn: aStream [
 ]
 
 { #category : #printing }
-GeneralSubSelectExpression >> printSQLOn: aStream withParameters: aDictionary [ 
+GeneralSubSelectExpression >> printSQLOn: aStream withParameters: aDictionary [
 	| command |
 	aStream nextPutAll: '('.
 	self query session: aStream query session.
 	command := self query sqlWith: aDictionary.
+	command boundExpressions: aStream boundExpressions.
 	aStream nextPutAll: command sqlString.
 	aStream nextPutAll: ')'.
 ]

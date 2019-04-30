@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'unitOfWork'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

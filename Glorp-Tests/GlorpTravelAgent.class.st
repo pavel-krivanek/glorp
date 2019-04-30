@@ -16,7 +16,7 @@ Class {
 		'name',
 		'agency'
 	],
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #accessing }

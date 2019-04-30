@@ -1,21 +1,16 @@
-"
-Var binary type
-
-Instance Variables
-	width:		<Object>
-
-width
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpVarBinaryType,
 	#superclass : #GlorpDatabaseType,
 	#instVars : [
 		'width'
 	],
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
+
+{ #category : #'exdi specific' }
+GlorpVarBinaryType >> exdiType [
+	^#ByteArray.
+]
 
 { #category : #testing }
 GlorpVarBinaryType >> hasParameters [

@@ -28,15 +28,15 @@ Class {
 		'readsOneObject',
 		'grouping'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 Query class >> count: aClass [
-	^self count: aClass where: nil
+	^self count: aClass where: nil.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> count: aClass where: anExpression [
 	| query |
 	query := self readOneOf: aClass where: anExpression.
@@ -47,78 +47,78 @@ Query class >> count: aClass where: anExpression [
 { #category : #'instance creation' }
 Query class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> read: aClass [
 	^self read: aClass where: nil
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> read: aClass where: anExpression [
 	"Backward-compatibility, since we changed the class name."
 
 	^SimpleQuery read: aClass where: anExpression
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> readManyOf: aClass [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:).
 	^self read: aClass
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> readManyOf: aClass where: anExpression [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'. 
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: anExpression
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> readOneOf: aClass [
 	^SimpleQuery readOneOf: aClass.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> readOneOf: aClass where: anExpression [
 	^SimpleQuery readOneOf: aClass where: anExpression.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> returningManyOf: aClass [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:).
 	^self read: aClass
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> returningManyOf: aClass where: anExpression [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: anExpression
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> returningOneOf: aClass [
 	"Backward-compatibility, since we changed the class name."
 	"returningOneOf: is a synonym of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:).
 	^self readOneOf: aClass.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Query class >> returningOneOf: aClass where: anExpression [
 	"Backward-compatibility, since we changed the class name."
 	"returningOneOf: is a synonym of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:where:).
 	^self readOneOf: aClass where: anExpression
 ]
 
@@ -131,12 +131,12 @@ Query >> collectionType [
 
 { #category : #accessing }
 Query >> collectionType: aClass [
-	collectionType := aClass
+	collectionType := aClass.
 ]
 
 { #category : #copying }
 Query >> copy [
-	^self shallowCopy postCopy
+	^self shallowCopy postCopy.
 ]
 
 { #category : #copying }
@@ -146,18 +146,18 @@ Query >> copyAttributesTo: newQuery [
 	newQuery expectedRows: self expectedRows.
 	newQuery collectionType: self collectionType.
 	newQuery readsOneObject: self readsOneObject.
-	newQuery maximumLobSizeToRetrieveDirectly: self maximumLobSizeToRetrieveDirectly
+	newQuery maximumLobSizeToRetrieveDirectly: self maximumLobSizeToRetrieveDirectly.
 ]
 
 { #category : #executing }
 Query >> executeIn: aSession [
 
-	^self executeWithParameters:#() in: aSession
+	^self executeWithParameters:#() in: aSession.
 ]
 
 { #category : #executing }
 Query >> executeWithParameters: parameterArray in: aSession [ 
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #accessing }
@@ -165,7 +165,7 @@ Query >> expectedRows [
 	"How many rows do we think it's likely this query will bring back. Used for tweaking things like block factor"
 	^expectedRows isNil
 		ifTrue: [expectedRows := self readsOneObject ifTrue: [1] ifFalse: [100]]
-		ifFalse: [expectedRows]
+		ifFalse: [expectedRows].
 ]
 
 { #category : #accessing }
@@ -188,7 +188,7 @@ Query >> expressionBlockFor: anOrderingCriteria [
 	"otherwise, we assume it's a collection of symbols, the only other valid case"
 	anOrderingCriteria do: [:each | each isSymbol ifFalse: [self error: 'invalid ordering criteria']].
 	^[:each | anOrderingCriteria inject: each into: [:sum :eachExpression |
-		sum perform: eachExpression]]
+		sum perform: eachExpression]].
 ]
 
 { #category : #ordering }
@@ -200,7 +200,6 @@ Query >> groupBy [
 
 { #category : #ordering }
 Query >> groupBy: aBlock [
-
 	grouping isNil
 		ifTrue: [grouping := Array with: aBlock]
 		ifFalse: [grouping := grouping , (Array with: aBlock)].
@@ -222,11 +221,11 @@ Query >> hasOrdering [
 	^self ordering notNil
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialize }
 Query >> initialize [
 
 	prepared := false.
-	maximumLobSizeToRetrieveDirectly := 32768
+	maximumLobSizeToRetrieveDirectly := 32768.
 ]
 
 { #category : #accessing }
@@ -236,43 +235,41 @@ Query >> maximumLobSizeToRetrieveDirectly [
 
 { #category : #accessing }
 Query >> maximumLobSizeToRetrieveDirectly: anInteger [
-	maximumLobSizeToRetrieveDirectly := anInteger
+	maximumLobSizeToRetrieveDirectly := anInteger.
 ]
 
 { #category : #ordering }
 Query >> orderBy: aBlock [
 	ordering isNil 
 		ifTrue: [ordering := Array with: aBlock]
-		ifFalse: [ordering := ordering , (Array with: aBlock)]
+		ifFalse: [ordering := ordering , (Array with: aBlock)].
 ]
 
 { #category : #ordering }
 Query >> ordering [
-	^ordering
+	^ordering.
 ]
 
 { #category : #accessing }
 Query >> platform [
-	^session system platform
+	^session system platform.
 ]
 
 { #category : #copying }
 Query >> postCopy [
 
-	prepared := false
+	prepared := false.
 ]
 
 { #category : #'sql generation' }
 Query >> printCompoundSelectAliasesOn: aStream [
-	^self
+	^self.
 ]
 
 { #category : #'sql generation' }
 Query >> printGroupingOn: aStream [
-	grouping isNil
-		ifTrue: [ ^ self ].
+	grouping isNil ifTrue: [^self].
 	aStream nextPutAll: ' GROUP BY '.
-
 	GlorpHelper
 		do: [:each |
 			each
@@ -329,19 +326,19 @@ Query >> resultCollectionFor: aCursoredStream [
 	results nextPutAll: aCursoredStream upToEnd.
 	finalAnswer := results contents.
 	session register: finalAnswer.
-	^finalAnswer
+	^finalAnswer.
 ]
 
 { #category : #'specifying retrievals' }
 Query >> retrieveDictionaryWithKey: keyExpression value: valueExpression [
 
-	self collectionType: (GlorpDictionaryDescription new keyExpression: keyExpression; valueExpression: valueExpression)
+	self collectionType: (GlorpDictionaryDescription new keyExpression: keyExpression; valueExpression: valueExpression).
 ]
 
 { #category : #'specifying retrievals' }
 Query >> returnsDictionary [
 
-	^collectionType class == GlorpDictionaryDescription
+	^collectionType class == GlorpDictionaryDescription.
 ]
 
 { #category : #'sql generation' }
@@ -371,10 +368,10 @@ Query >> setGrouping: aCollection [
 
 { #category : #ordering }
 Query >> setOrdering: aCollection [
-	ordering := aCollection
+	ordering := aCollection.
 ]
 
 { #category : #testing }
 Query >> shortCircuitEmptyReturn: parameters [
-	^false
+	^false.
 ]

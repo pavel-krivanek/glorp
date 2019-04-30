@@ -1,10 +1,7 @@
-"
-Integer type
-"
 Class {
 	#name : #GlorpIntegerType,
 	#superclass : #GlorpAbstractIntegerType,
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #comparing }

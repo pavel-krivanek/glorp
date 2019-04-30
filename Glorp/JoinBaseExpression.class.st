@@ -6,7 +6,7 @@ However, this means that when we're trying to rebuild this expression and fit it
 Class {
 	#name : #JoinBaseExpression,
 	#superclass : #BaseExpression,
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #preparing }

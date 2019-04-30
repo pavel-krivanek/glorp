@@ -16,65 +16,65 @@ Class {
 		'hasValue',
 		'containedBy'
 	],
-	#category : 'Glorp-UnitOfWork'
+	#category : #'Glorp-UnitOfWork'
 }
 
 { #category : #public }
 FieldValueWrapper class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #accessing }
 FieldValueWrapper >> allInnerWrappers [
-	^#()
+	^#().
 ]
 
 { #category : #accessing }
 FieldValueWrapper >> basicContents [
 	"Return the un-transformed contents"
-	^self contents
+	^self contents.
 ]
 
 { #category : #public }
 FieldValueWrapper >> containedBy [
 
-	^containedBy
+	^containedBy.
 ]
 
 { #category : #unifying }
 FieldValueWrapper >> containsWrapper: aFieldValueWrapper [
-	^self == aFieldValueWrapper
+	^self == aFieldValueWrapper.
 ]
 
 { #category : #public }
 FieldValueWrapper >> contents [
 
-	^contents
+	^contents.
 ]
 
 { #category : #public }
 FieldValueWrapper >> contents: anObject [
 
 	(hasValue and: [contents ~= anObject]) ifTrue: [self error: 'Inconsistent values in field'].
-	self privateSetContents: anObject
+	self privateSetContents: anObject.
 ]
 
 { #category : #public }
 FieldValueWrapper >> hasValue [
 
-	^hasValue
+	^hasValue.
 ]
 
 { #category : #public }
 FieldValueWrapper >> initialize [
 
-	hasValue := false
+	hasValue := false.
 ]
 
 { #category : #accessing }
 FieldValueWrapper >> innerWrapper [
-	^self
+	^self.
 ]
 
 { #category : #containing }
@@ -94,7 +94,7 @@ FieldValueWrapper >> isNowContainedBy: aRow and: aField [
 	thisFieldsEntries isNil ifTrue: [
 		thisFieldsEntries := containedBy at: aField ifAbsentPut: [shortCircuit := true. (IdentitySet new: 2) add: aRow; yourself]].
 	shortCircuit ifTrue: [^self].
-	(thisFieldsEntries includes: aRow) ifFalse: [thisFieldsEntries add: aRow]
+	(thisFieldsEntries includes: aRow) ifFalse: [thisFieldsEntries add: aRow].
 ]
 
 { #category : #public }
@@ -104,13 +104,13 @@ FieldValueWrapper >> printOn: aStream [
 		nextPutAll: '<<'.
 	self hasValue ifTrue: [aStream print: self contents].
 	aStream
-		nextPutAll: '>>'
+		nextPutAll: '>>'.
 ]
 
 { #category : #public }
 FieldValueWrapper >> privateSetContents: anObject [
 	contents := anObject.
-	hasValue := true
+	hasValue := true.
 ]
 
 { #category : #unifying }
@@ -118,7 +118,7 @@ FieldValueWrapper >> replaceWith: aFieldValueWrapper [
 	containedBy isNil ifTrue: [^nil].
 	containedBy
 		keysAndValuesDo:
-			[:eachField :eachListOfRows | eachListOfRows do: [:eachRow | eachRow wrapperAt: eachField put: aFieldValueWrapper]]
+			[:eachField :eachListOfRows | eachListOfRows do: [:eachRow | eachRow wrapperAt: eachField put: aFieldValueWrapper]].
 ]
 
 { #category : #unifying }
@@ -129,5 +129,5 @@ FieldValueWrapper >> unifyWith: targetWrapper [
 	self hasValue ifFalse: [^self replaceWith: targetWrapper].
 	self contents = targetWrapper contents
 		ifFalse: [self error: 'Conflicting values in rows'].
-	targetWrapper replaceWith: self
+	targetWrapper replaceWith: self.
 ]

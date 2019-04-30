@@ -5,7 +5,7 @@ Test deleting objects with ordered links to others.  If the link table were to h
 Class {
 	#name : #GlorpOrderedDeleteTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : 'Glorp-Tests-Database'
+	#category : #'Glorp-Tests-Database'
 }
 
 { #category : #running }

@@ -43,15 +43,15 @@ Class {
 		'characterEncoding'
 	],
 	#classVars : [
-		'UseBindingIfSupported'
+		'DatabasePlatform'
 	],
 	#classInstVars : [
 		'converterRepository'
 	],
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #constants }
 DatabasePlatform class >> allReservedWords [
 
 	| words |
@@ -60,38 +60,25 @@ DatabasePlatform class >> allReservedWords [
 	^words
 ]
 
-{ #category : #'as yet unclassified' }
-DatabasePlatform class >> createLoginFromConnectionDictionary: aDict [ 
-	self subclassResponsibility
+{ #category : #accessing }
+DatabasePlatform class >> kind [
+	"Answer a string showing representing the type of DMBS for which the receiver provides services.  Return nil if the class is abstract, not itself usable to connect to a database.  The kind symbol is also be used to sort lists of platform classes."
+
+	^nil
 ]
 
-{ #category : #eoglorp }
-DatabasePlatform class >> loginWithConnectionDictionary: aDict [ 
-	| platformClass |
-	platformClass := self allSubclasses
-				detect: [:cls | cls understandsConnectionDictionary: aDict].
-	^ platformClass isNil
-		ifFalse: [platformClass createLoginFromConnectionDictionary: aDict] ifTrue: [nil]
-]
-
-{ #category : #'as yet unclassified' }
+{ #category : #constants }
 DatabasePlatform class >> reservedWords [
 	
 	^Set new.
 ]
 
-{ #category : #'as yet unclassified' }
-DatabasePlatform class >> understandsConnectionDictionary: aDict [
-
-	^false
-]
-
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 DatabasePlatform class >> useBindingByDefault [
 	^true
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 DatabasePlatform class >> useBindingIfSupported [
 	"If I am nil (the default), each platform that supportsBinding lazily initializes to its defaultUseBinding value.  If I have a value, I force lazy initialization of each platform that supportsBinding to my value.  Normally, a value is set only for specific testing purposes."
 
@@ -99,7 +86,7 @@ DatabasePlatform class >> useBindingIfSupported [
 	^UseBindingIfSupported
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 DatabasePlatform class >> useBindingIfSupported: aBooleanOrNil [
 	"If I am nil (the default), each platform that supportsBinding lazily initializes to its defaultUseBinding value.  If I have a value, I force lazy initialization of each platform that supportsBinding to my value.  Normally, a value is set only for specific testing purposes."
 
@@ -117,7 +104,7 @@ DatabasePlatform >> asTimestamp: anObject for: aType [
 	anObject isNil ifTrue: [^nil].
 	^anObject class = Time
 		ifTrue: [Dialect newTimestampFromDate: Date today time: anObject]
-		ifFalse: [anObject asDateAndTime].
+		ifFalse: [anObject asTimestamp].
 ]
 
 { #category : #constants }
@@ -138,7 +125,8 @@ DatabasePlatform >> batchWriteStatementTerminatorString [
 { #category : #binding }
 DatabasePlatform >> bindingsForGroupWritingFor: aCommand [
 	"Return the bindings array for a group write. This can be in different formats, depending on the database and perhaps the mechanism in place."
-	self subclassResponsibility.
+
+	^self subclassResponsibility
 ]
 
 { #category : #types }
@@ -218,8 +206,9 @@ DatabasePlatform >> byteArrayToStringConverter [
 
 { #category : #testing }
 DatabasePlatform >> canBind: aValue to: aType [
-	(Dialect unbindableClassNames includes: aValue class name) ifTrue: [^false].
-	^true.
+	"Return true if this platform can bind the value to a bind marker in the SQL instead of writing the value in the SQL.  For a subclass that usesArrayBindingToGroupWrite, this must remain true for all values (or usesArrayBindingToGroupWrite must become false for commands whose rows include unbindable values)."
+
+	^true
 ]
 
 { #category : #testing }
@@ -260,8 +249,6 @@ DatabasePlatform >> capitalWritingOfSQLCommands [
 
 { #category : #constants }
 DatabasePlatform >> capitalWritingOfTableName [
-	"^<Boolean>"
-
 	^true
 ]
 
@@ -294,12 +281,12 @@ DatabasePlatform >> characterEncoding: anEncodingName [
 
 { #category : #constants }
 DatabasePlatform >> charactersThatNeedEscaping [
-	^#($' )
+	^#($')
 ]
 
 { #category : #types }
 DatabasePlatform >> clob [
-	^self typeNamed: #blob ifAbsentPut: [GlorpClobType new].
+	^self typeNamed: #clob ifAbsentPut: [GlorpClobType new].
 ]
 
 { #category : #constants }
@@ -311,8 +298,9 @@ DatabasePlatform >> columnNameSeparatorString [
 
 { #category : #'database-specific' }
 DatabasePlatform >> compoundOperationFor: aSymbol [
-	"Return the platform specific version of a compound statement symbol"
-	^aSymbol.
+	"Return the platform specific version of a compound statement symbol."
+
+	^aSymbol
 ]
 
 { #category : #'conversion-boolean' }
@@ -359,8 +347,7 @@ DatabasePlatform >> convertByteArrayToSQLString: aByteArray for: aType [
 
 { #category : #'conversion-strings' }
 DatabasePlatform >> convertByteArrayToString: aByteArray for: aType [
-	
-	^aByteArray ifNotNil: [ aByteArray asString ]
+	^aByteArray asString.
 ]
 
 { #category : #'conversion-boolean' }
@@ -378,7 +365,7 @@ DatabasePlatform >> convertIntegerToBoolean: anInteger for: aType [
 
 { #category : #'conversion-strings' }
 DatabasePlatform >> convertStringToByteArray: aString for: aType [
-	^aString ifNotNil:  [aString asByteArray]
+	^aString asByteArray.
 ]
 
 { #category : #'conversion-boolean' }
@@ -421,11 +408,11 @@ DatabasePlatform >> convertToNumber: aNumber for: aType [
 	| exponent result |
 	aNumber isNil ifTrue: [^nil].
 	aType precision isNil ifTrue: [^aNumber].
-	(Dialect doesPrecisionOf: aNumber equal: aType precision) ifTrue: [^aNumber].
-	exponent := Dialect
-		coerceToDoublePrecisionFloat: (10 raisedToInteger: aType precision).
+	aType scale isNil ifTrue: [^aNumber].
+	(Dialect isScaleOf: aNumber lessThanOrEqualTo: aType scale) ifTrue: [^aNumber].
+	exponent := Dialect coerceToDoublePrecisionFloat: (10 raisedToInteger: aType precision).
 	result := (aNumber * exponent) rounded / exponent.
-	^aNumber isInteger ifTrue: [result rounded] ifFalse: [result].
+	^aNumber isInteger ifTrue: [result rounded] ifFalse: [result]
 ]
 
 { #category : #'conversion-boolean' }
@@ -463,7 +450,7 @@ DatabasePlatform >> converters [
 DatabasePlatform >> createAddColumnStatementFor: aField [
 	| stream |
 	stream := WriteStream on: String new.
-	stream 
+	stream
 		nextPutAll: 'ALTER TABLE';
 		space.
 	self printDDLTableNameFor: aField table on: stream.
@@ -472,8 +459,7 @@ DatabasePlatform >> createAddColumnStatementFor: aField [
 		nextPutAll: ' ADD ';
 		nextPutAll: self startColumnAddString.
 	self  printColumn: aField on: stream.
-	stream nextPutAll: self  endColumnAddString.
-		
+	stream nextPutAll: self endColumnAddString.
 	^stream contents
 ]
 
@@ -592,25 +578,23 @@ DatabasePlatform >> createAlterColumnStatementSetNotNull: aField [
 { #category : #'services constraints' }
 DatabasePlatform >> createConstraintAddStatement:  aConstraint [
 	| sqlStatementStream |
-	self supportsAlterTableForConstraints ifFalse: [^''].
+	self supportsConstraints ifFalse: [^''].
 	aConstraint shouldCreateInDatabase ifFalse: [^''].
-	self supportsConstraints
-			ifTrue: [sqlStatementStream := WriteStream on: String new.
-					sqlStatementStream
-						nextPutAll:  'ALTER TABLE';
-						space.
-					self printDDLTableNameFor: aConstraint table on: sqlStatementStream.
-					(aConstraint creationStringFor: self)
-						do: [ :each | sqlStatementStream nextPutAll: ' ADD ', each.]
-						separatedBy: [sqlStatementStream nextPut: $,].
-					^sqlStatementStream contents].
-	^String new
+	sqlStatementStream := WriteStream on: String new.
+	sqlStatementStream
+		nextPutAll:  'ALTER TABLE';
+		space.
+	self printDDLTableNameFor: aConstraint table on: sqlStatementStream.
+	(aConstraint creationStringFor: self)
+		do: [ :each | sqlStatementStream nextPutAll: ' ADD ', each.]
+		separatedBy: [sqlStatementStream nextPut: $,].
+	^sqlStatementStream contents
 ]
 
 { #category : #'services constraints' }
 DatabasePlatform >> createConstraintDropStatement: aConstraint [
 	| aStream |
-	self supportsAlterTableForConstraints ifFalse: [^''].
+	self supportsConstraints ifFalse: [^''].
 	aConstraint shouldCreateInDatabase ifFalse: [^''].
 	aStream := WriteStream on: (String new: 50).
 	aStream nextPutAll: 'ALTER TABLE '.
@@ -749,7 +733,7 @@ DatabasePlatform >> createTableIndexStatementStringsFor: aGLORPDatabaseTable [
 
 { #category : #'services tables' }
 DatabasePlatform >> createTableStatementStringFor: aGLORPDatabaseTable [ 
-	"^<String> This method returns a string which can be used to create a database table ..."
+	"This method returns a string which can be used to create a database table ..."
 
 	| sqlStatementStream tmpString |
 	tmpString := 'create table'.
@@ -897,6 +881,11 @@ DatabasePlatform >> escapeFor: aCharacter [
 	^String with: $\ with: aCharacter.
 ]
 
+{ #category : #'exdi specific' }
+DatabasePlatform >> exdiTypeForDates [
+	^#Date.
+]
+
 { #category : #functions }
 DatabasePlatform >> functions [
 	functions isNil ifTrue: [self initializeFunctions].
@@ -940,6 +929,14 @@ DatabasePlatform >> initializeTypes [
 	types := nil.
 ]
 
+{ #category : #commands }
+DatabasePlatform >> insertCommandForRows: aCollectionOfDatabaseRows binding: aBoolean session: aSession [
+	^InsertCommand
+		forRows: aCollectionOfDatabaseRows
+		useBinding: aBoolean
+		session: aSession
+]
+
 { #category : #types }
 DatabasePlatform >> int [
 	^self integer.
@@ -965,6 +962,7 @@ DatabasePlatform >> int8 [
 
 { #category : #types }
 DatabasePlatform >> integer [
+
 	^self typeNamed: #integer ifAbsentPut: [GlorpIntegerType new].
 ]
 
@@ -1042,6 +1040,12 @@ DatabasePlatform >> isSQLite3Platform [
 	^false
 ]
 
+{ #category : #testing }
+DatabasePlatform >> isUDBCSQLite3Platform [
+
+^ false
+]
+
 { #category : #constants }
 DatabasePlatform >> maxSQLBufferLength [
 	"^<Integer> I return the maximum length of a sql command stream"
@@ -1058,8 +1062,6 @@ DatabasePlatform >> maximumLengthOfColumnName [
 
 { #category : #constants }
 DatabasePlatform >> maximumLengthOfTableName [
-	"^<Integer> I return the max. length of a table name"
-
 	^18
 ]
 
@@ -1070,9 +1072,10 @@ DatabasePlatform >> maximumQueryValueSize [
 ]
 
 { #category : #binding }
-DatabasePlatform >> maximumSizeToGroupWriteFor: aCollectionOfDatabaseRows [
-	"If we are going to group write, how many rows of this collection should we do it for at once"
-	^aCollectionOfDatabaseRows size.
+DatabasePlatform >> maximumSizeToGroupWriteFor: aRowBasedCommand [
+	"If we are going to group write, how many rows of this command should we do it for at once."
+
+	^aRowBasedCommand allRows size
 ]
 
 { #category : #testing }
@@ -1228,6 +1231,11 @@ DatabasePlatform >> parenthesizeCommandsInCompoundQuery [
 	^true
 ]
 
+{ #category : #constants }
+DatabasePlatform >> parenthesizeCommandsInCompoundQuery: aQuery [
+	^true
+]
+
 { #category : #login }
 DatabasePlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
 	"Database servers and clients have configuration parameters.  We may need to read or set them."
@@ -1241,10 +1249,7 @@ DatabasePlatform >> postfixTableNameBeforeDeleting [
 
 { #category : #'general services' }
 DatabasePlatform >> predefinedKeywords [
-	"
-		^<OrderdCollection of: String> This method returns a list of preserved keyword, which should
-		not be used in database-, table or column names or any othe names in the platform system
-	"
+	"Return a list of preserved keywords (strings), which should not be used in database-, table or column names or any othe names in the platform system."
 
 	^OrderedCollection new
 ]
@@ -1295,28 +1300,24 @@ DatabasePlatform >> printBoolean: aBoolean for: aType [
 
 { #category : #'services columns' }
 DatabasePlatform >> printColumn: eachGlorpDatabaseField on: sqlStatementStream [
-	"Print the column specification for the CREATE TABLE statement.
-	Don't show a default value for serial columns, since their semanitics are different."
+	"Print the column specification for the CREATE TABLE statement.  Don't show a default value for serial columns, since their semaitics are different."
 
 	sqlStatementStream
 		nextPutAll: (self nameForColumn: eachGlorpDatabaseField name);
 		space;
 		nextPutAll: eachGlorpDatabaseField typeString;
 		space;
-		nextPutAll: 
-				(eachGlorpDatabaseField type isSerial
+		nextPutAll: (eachGlorpDatabaseField type isSerial
 					ifTrue: ['']
-					ifFalse: [self sqlTextForDEFAULT: eachGlorpDatabaseField defaultValue]);
+					ifFalse: [self sqlTextForDEFAULT: eachGlorpDatabaseField dbDefaultValue]);
 		space;
-		nextPutAll:
-				(eachGlorpDatabaseField isNullable
-						ifTrue: [self sqlTextForNULLAttributeConstraint]
-						ifFalse: [self sqlTextForNOTNULLAttributeConstraint]);
+		nextPutAll: (eachGlorpDatabaseField isNullable
+					ifTrue: [self sqlTextForNULLAttributeConstraint]
+					ifFalse: [self sqlTextForNOTNULLAttributeConstraint]);
 		space;
-		nextPutAll:
-				(eachGlorpDatabaseField isUnique
-						ifTrue: [self sqlTextForUNIQUEAttributeConstraint]
-						ifFalse: [self sqlTextForNOTUNIQUEAttributeConstraint]).
+		nextPutAll: (eachGlorpDatabaseField isUnique
+					ifTrue: [self sqlTextForUNIQUEAttributeConstraint]
+					ifFalse: [self sqlTextForNOTUNIQUEAttributeConstraint]).
 ]
 
 { #category : #'services columns' }
@@ -1593,7 +1594,6 @@ DatabasePlatform >> printTime: aTimestamp isoFormatOn: stream milliseconds: aBoo
 	stream nextPut: $:.
 	stream nextPutAll: (GlorpDatabaseType padToTwoDigits: aTimestamp seconds).
 	aBoolean ifFalse: [^self].
-	Dialect supportsMillisecondsInTimes ifFalse: [ ^self ].
 	ms := aTimestamp milliseconds.
 	ms = 0 ifTrue: [^self].
 	stream nextPut: $..
@@ -1673,8 +1673,7 @@ DatabasePlatform >> readTimeFromStream: aStream for: aType [
 				millisecondAccumulator nextPut: aStream next].
 			milliseconds := millisecondAccumulator contents asNumber]
 		ifFalse: [milliseconds := 0].
-	timeZoneOffset := aStream upToEnd.
-	timeZoneOffset := Number readFrom: timeZoneOffset ifFail: [ 0 ].
+	timeZoneOffset := aStream upToEnd asNumber.
 	^Dialect newTimeWithHours: hours minutes: minutes seconds: seconds milliseconds: milliseconds.
 	"^Dialect addSeconds: (timeZoneOffset * -1* 60 * 60) to: aTime."
 ]
@@ -1694,7 +1693,7 @@ DatabasePlatform >> readTimestamp: anObject for: aType [
 			[| stream |
 			stream := ReadStream on: anObject.
 			^self readTimestampFromStream: stream for: aType].
-	^anObject asDateAndTime.
+	^anObject asTimestamp.
 ]
 
 { #category : #'conversion-times' }
@@ -1715,7 +1714,8 @@ DatabasePlatform >> readTimestampFromStream: aStream for: aType [
 				millisecondAccumulator nextPut: aStream next].
 			milliseconds := millisecondAccumulator contents asNumber]
 		ifFalse: [milliseconds := 0].
-	timeZoneOffset := Number readFrom: aStream upToEnd ifFail: [ 0 ].
+	timeZoneOffset := aStream upToEnd asNumber.
+	timeZoneOffset isNil ifTrue: [timeZoneOffset := 0].
 	timeZoneOffset := timeZoneOffset * 60 * 60.
 	^Dialect 
 		newTimestampWithYears: years
@@ -1885,8 +1885,7 @@ DatabasePlatform >> sqlTextForBeginTransaction [
 
 { #category : #constants }
 DatabasePlatform >> sqlTextForDEFAULT: defaultValue [
-	"^<String>. Answer the column DEFAULT clause as a string with the given value.
-	This is used in CREATE TABLE statements as part of each column specification."
+	"Answer the column DEFAULT clause as a string with the given value.  This is used in CREATE TABLE statements as part of each column specification."
 	
 	| strm |
 	^defaultValue
@@ -2038,10 +2037,22 @@ DatabasePlatform >> supportsCaseInsensitiveLike [
 	^false.
 ]
 
-{ #category : #constants }
+{ #category : #testing }
+DatabasePlatform >> supportsCompositeKeyArgsForOperand: aSymbol [
+	"Do we support rows, not just single values, in comparisons:  do we allow expressions like
+		 (t1.NAME, t1.USER_ID) IN (SELECT s1t1.NAME, s1t1.USER_ID FROM ... )
+and/or
+		 (t1.NAME, t1.USER_ID) = (SELECT s1t1.NAME, s1t1.USER_ID FROM ... LIMIT 1)
+in where clauses.  The trio of comparison operator symbols #= #<> and #IN are the only ones for which this matters at the moment;  see the guard in #rewriteEquality."
+
+	^false
+]
+
+{ #category : #testing }
 DatabasePlatform >> supportsConstraints [
-	"Return true if we support integrity constraints. That is, foreign key, primary key or unique constraints."
-	^true.
+	"Ideally, this method would be called supportsAddDropConstraintStatements.  It returns true if we support constraints, and specifically constraint add or drop statements.  If a platfiorm supports integrity constraints, i.e. foreign key, primary key or unique constraints, but does not support add or drop statements (e.g. they must be in the table create or column add statements) then it must return false to this method and override its callers as appropriate - see e.g. SQLitePlatform."
+
+	^true
 ]
 
 { #category : #testing }
@@ -2059,8 +2070,19 @@ DatabasePlatform >> supportsDecimalsOnAllNumerics [
 
 { #category : #testing }
 DatabasePlatform >> supportsGroupWritingFor: aCommand [
-	"Return true if this platform can do array binding or an equivalent for this command"
-	^false.
+	"Return true if this platform can send multiple rows to the server in a single round trip, whether by sending multiple semi-colon-separated commands, or by sending multiple comma-separated values with a single command, or by binding an array of values to a single command.  When overriding this method in subclasses, consider whether groups of rows can be written to that platform both bound and unbound, or only in one of these states.  If the subclass returns true to #usesIdentityColumns, consider whether groups of rows can be written to a table that includes an identity column (i.e. one whose values are server-generated ids), or only to tables that do not.
+	In cases where the platform has chosen the command subclass (i.e. the InsertCommand subclass), the command, not the platform, can be asked if it e.g. supportsGroupWritingValues, since the platform must support it for a command that does to have been instantiated.
+	This can only be called on a command created in #commandForHomogeneousRows:.  That creation sets this command's useBinding to be the same as its session's platform's useBinding, which is this platform.  Hence we need only check the platform's binding in subclasses where that is relevant."
+
+	^false
+]
+
+{ #category : #testing }
+DatabasePlatform >> supportsGroupWritingValues [
+	"Return true if we support multiple rows in a single INSERT statement, like this:
+	INSERT INTO table (id, city, state) VALUES (1, 'Boston', 'MA'), (2, 'New York',  'NY'), (3, 'San Francisco', 'CA')."
+
+	^false
 ]
 
 { #category : #testing }
@@ -2100,6 +2122,13 @@ DatabasePlatform >> supportsOffset [
 { #category : #testing }
 DatabasePlatform >> supportsRowCount [
 	^true.
+]
+
+{ #category : #testing }
+DatabasePlatform >> supportsRowCountFor: aRowBasedCommand [
+	"The parameter can be a RowBasedCommand or a QueryDeleteCommand, almost always the former."
+
+	^true
 ]
 
 { #category : #testing }
@@ -2244,7 +2273,7 @@ DatabasePlatform >> toTimestamp: anObject for: aType [
 	anObject isNil ifTrue: [^nil].
 	anObject class = Dialect timestampClass ifTrue: [^anObject].
 	anObject isInteger ifTrue: [^anObject].
-	^anObject asDateAndTime
+	^anObject asTimestamp
 ]
 
 { #category : #'conversion-strings' }
@@ -2283,15 +2312,19 @@ DatabasePlatform >> typeNamed: aSymbol ifAbsentPut: aBlock [
 
 { #category : #types }
 DatabasePlatform >> typeWithDatabaseName: aString characterWidth: aNumber [
-	"Return our type which matches the database name for the type. Assumes all variable width fields are strings right now."
+	"Return our type which matches the database name for the type.  If we have no parameters, reuse the instance we hold to save space;  if we have, return a copy, since callers may set values in it, though here we only set the width if present."
+
 	| baseType matchingTypes simpleTypes |
 	matchingTypes := self typesWithValues values asArray select: [:each | each typeName asLowercase = aString asLowercase].
-	matchingTypes isEmpty ifTrue: [
-		Transcript cr; show: 'Cannot find type ', aString, ' using integer instead.'. matchingTypes := Array with: self integer].
+	matchingTypes isEmpty ifTrue:
+		[Transcript cr; show: 'Cannot find type ', aString, ' using integer instead.'.
+		^self integer].
 	"We may get generated and non-generated both matching, e.g. inMemorySequence and int. Prefer the non-generated."
 	simpleTypes := matchingTypes reject: [:each | each isGenerated].
 	baseType := simpleTypes isEmpty ifTrue: [matchingTypes first] ifFalse: [simpleTypes first].
-	^baseType hasWidth ifTrue: [baseType copy width: aNumber] ifFalse: [baseType].
+	baseType hasParameters ifTrue: [baseType := baseType copy].
+	baseType hasWidth ifTrue: [baseType width: aNumber].
+	^baseType
 ]
 
 { #category : #types }
@@ -2371,8 +2404,17 @@ DatabasePlatform >> usesArrayBindingRatherThanGrouping [
 ]
 
 { #category : #testing }
+DatabasePlatform >> usesArrayBindingToGroupWrite [
+	"Return true if we use array binding for bound grouped writes rather than printing the SQL multiple times.  Only applies if we support grouped writes.  Requires that #canBind:to: be true for all values."
+
+	^false
+]
+
+{ #category : #testing }
 DatabasePlatform >> usesIdentityColumns [
-	^false.
+	"When a row is inserted into a table with a serial-type column, some servers post-assign the id value, i.e. the id is a _result_ of inserting a row and so cannot easily be known beforehand.  Glorp needs to know such ids to maintain the map between an object and row(s) written for it.  This can complicate group-writing insert statements:  if the table has a serial type and the platform uses identity columns, either a post-insert query to discover the ids must be wrapped into a grouped insert, or individual inserts, immediately succeeded by post-insert query for the id, are needed.  See #postWriteAssignSequencesUsing: versus #preWriteAssignSequencesUsing: and their call chain."
+
+	^false
 ]
 
 { #category : #testing }
@@ -2454,9 +2496,14 @@ DatabasePlatform >> versionFieldFor: aType [
 
 { #category : #accessing }
 DatabasePlatform >> vwConnectionClass [
-	^self isODBCPlatform 
-			ifTrue: [self vwODBCConnectionClass]
-			ifFalse: [self vwEXDIConnectionClass]
+	^self isODBCPlatform
+		ifTrue: [self vwODBCConnectionClass]
+		ifFalse: [self vwEXDIConnectionClass]
+]
+
+{ #category : #accessing }
+DatabasePlatform >> vwEXDIConnectionClass [
+	^self subclassResponsibility
 ]
 
 { #category : #accessing }
@@ -2466,8 +2513,15 @@ DatabasePlatform >> vwODBCConnectionClass [
 	'ODBCThreadedConnection' asQualifiedReference ifDefinedDo:
 		[:class | ^class].
 	'ODBCConnection' asQualifiedReference ifDefinedDo:
-		[:class | ^class].		
+		[:class | ^class].	
 	^'ODBCThreadedConnection' asQualifiedReference valueIfUndefinedLoadFrom: 'ODBCThapiEXDI'
+]
+
+{ #category : #'database-specific' }
+DatabasePlatform >> withRecursive [
+	"Return the platform-specific version of the keyword(s) that precede a recursive common table expression."
+
+	^'WITH'
 ]
 
 { #category : #'services constraints' }

@@ -16,7 +16,7 @@ Class {
 		'constantValue',
 		'valueIsSession'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #accessing }

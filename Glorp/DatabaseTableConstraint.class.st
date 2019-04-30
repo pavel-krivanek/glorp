@@ -11,17 +11,17 @@ Class {
 		'shouldCreateInDatabase',
 		'fields'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseTableConstraint class >> forTable: aDatabaseTable [
 	^self new
 		forTable: aDatabaseTable;
 		yourself
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseTableConstraint class >> new [
 	^super new initialize.
 ]

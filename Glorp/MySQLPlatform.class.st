@@ -5,9 +5,9 @@ Class {
 	#name : #MySQLPlatform,
 	#superclass : #DatabasePlatform,
 	#instVars : [
-		'engine'
+		'supportsGroupWritingValues'
 	],
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
 
 { #category : #'as yet unclassified' }
@@ -18,7 +18,12 @@ MySQLPlatform class >> createLoginFromConnectionDictionary: aDict [
 	self error: 'Subclass responsibility stub not reimplemented'
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
+MySQLPlatform class >> kind [
+	^'MySQL Native Driver'
+]
+
+{ #category : #constants }
 MySQLPlatform class >> reservedWords [
 	^#('accessible' 'add' 'all' 'alter' 'analyze' 'and' 'as' 'asc' 'asensitive' 'before' 'between' 'bigint' 'binary' 'blob' 'both' 'by' 'call' 'cascade' 'case' 'change' 'char' 'character' 'check' 'collate' 'column' 'condition' 'constraint' 'continue' 'convert' 'create' 'cross' 'current_date' 'current_time' 'current_timestamp' 'current_user' 'cursor' 'database' 'databases' 'day_hour' 'day_microsecond' 'day_minute' 'day_second' 'dec' 'decimal' 'declare' 'default' 'delayed' 'delete' 'desc' 'describe' 'deterministic' 'distinct' 'distinctrow' 'div' 'double' 'drop' 'dual' 'each' 'else' 'elseif' 'enclosed' 'escaped' 'exists' 'exit' 'explain' 'false' 'fetch' 'float' 'float4' 'float8' 'for' 'force' 'foreign' 'from' 'fulltext' 'grant' 'group' 'having' 'high_priority' 'hour_microsecond' 'hour_minute' 'hour_second' 'if' 'ignore' 'in' 'index' 'infile' 'inner' 'inout' 'insensitive' 'insert' 'int' 'int1' 'int2' 'int3' 'int4' 'int8' 'integer' 'interval' 'into' 'is' 'iterate' 'join' 'key' 'keys' 'kill' 'leading' 'leave' 'left' 'like' 'limit' 'linear' 'lines' 'load' 'localtime' 'localtimestamp' 'lock' 'long' 'longblob' 'longtext' 'loop' 'low_priority' 'master_ssl_verify_server_cert' 'match' 'mediumblob' 'mediumint' 'mediumtext' 'middleint' 'minute_microsecond' 'minute_second' 'mod' 'modifies' 'natural' 'no_write_to_binlog' 'not' 'null' 'numeric' 'on' 'optimize' 'option' 'optionally' 'or' 'order' 'out' 'outer' 'outfile' 'precision' 'primary' 'procedure' 'purge' 'range' 'read' 'read_write' 'reads' 'real' 'references' 'regexp' 'release' 'rename' 'repeat' 'replace' 'require' 'restrict' 'return' 'revoke' 'right' 'rlike' 'schema' 'schemas' 'second_microsecond' 'select' 'sensitive' 'separator' 'set' 'show' 'smallint' 'spatial' 'specific' 'sql' 'sql_big_result' 'sql_calc_found_rows' 'sql_small_result' 'sqlexception' 'sqlstate' 'sqlwarning' 'ssl' 'starting' 'straight_join' 'table' 'terminated' 'then' 'tinyblob' 'tinyint' 'tinytext' 'to' 'trailing' 'trigger' 'true' 'undo' 'union' 'unique' 'unlock' 'unsigned' 'update' 'usage' 'use' 'using' 'utc_date' 'utc_time' 'utc_timestamp' 'values' 'varbinary' 'varchar' 'varcharacter' 'varying' 'when' 'where' 'while' 'with' 'write' 'xor' 'year_month' 'zerofill') asSet.
 ]
@@ -190,7 +195,6 @@ MySQLPlatform >> float8 [
 MySQLPlatform >> initializeFunctions [
 	super initializeFunctions.
 	functions at: #regexMatches: put: (InfixFunction named: 'REGEXP').
-	functions at: #, put: (PrefixFunction named: 'CONCAT').
 ]
 
 { #category : #constants }
@@ -198,6 +202,19 @@ MySQLPlatform >> initializeReservedWords [
 	super initializeReservedWords.
 	reservedWords 
 		add: 'key'.
+]
+
+{ #category : #commands }
+MySQLPlatform >> insertCommandForRows: aCollectionOfDatabaseRows binding: aBoolean session: aSession [
+	"I cannot group ;-separated INSERT statements but (if I am new enough - version 5 or later) I can group ,-separated values following a single INSERT statement.  I answer true to usesIdentityColumns;  if I am writing to a serial type (an identity column), the server will assign the value(s) and I must use a command that knows how to retrieve and assign them."
+
+	^self supportsGroupWritingValues
+		ifFalse: [InsertCommand forRows: aCollectionOfDatabaseRows useBinding: aBoolean session: aSession]
+		ifTrue: [InsertIdentityColumnCommand
+				forRows: aCollectionOfDatabaseRows
+				useBinding: aBoolean
+				session: aSession
+				ifNoIdentityColumn: InsertMultiValuesCommand]
 ]
 
 { #category : #types }
@@ -251,6 +268,15 @@ MySQLPlatform >> nameForPrimaryKeyConstraintsWhenDropping [
 MySQLPlatform >> number [
 
 	^self typeNamed: #number ifAbsentPut: [GlorpNumericType new typeString: 'decimal'].
+]
+
+{ #category : #login }
+MySQLPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	"MySQL has been supporting group writing with the VALUES clause at least since version 5.0."
+
+	| dbmsMajorVersion |
+	dbmsMajorVersion := (aDatabaseAccessor connection dbmsVersion readStream upTo: $.) asNumber.
+	supportsGroupWritingValues := dbmsMajorVersion >= 5.
 ]
 
 { #category : #'conversion-times' }
@@ -370,13 +396,42 @@ MySQLPlatform >> supportsArithmeticOperatorsOnDates [
 
 { #category : #testing }
 MySQLPlatform >> supportsBinding [
-	^ true
+	"MySQL supports binding, although early versions didn't."
+	^true.
+]
+
+{ #category : #testing }
+MySQLPlatform >> supportsCompositeKeyArgsForOperand: aSymbol [
+	"In MySQL	
+		composite-row = subquery LIMIT 1
+passes but
+	composite-row IN subquery LIMIT 1
+fails with:
+	This version of MySQL doesn''t yet support ''LIMIT & IN/ALL/ANY/SOME subquery
+The first query does exactly the same uses LIMIT in a subquery but in the special case of 1 and =.  That means we can handle #readOneOf: cases but not general setting of #limit: with alsoFetch using IN.  For IN we must use the longhand solution: ANDed single-key queries."
+
+	^aSymbol ~~ #IN	"We assume aSymbol can only be #IN or #= or #<>"
 ]
 
 { #category : #testing }
 MySQLPlatform >> supportsDecimalsOnAllNumerics [
 	"Return true if a general 'numeric' type will allow numbers after the decimal place"
 	^false.
+]
+
+{ #category : #testing }
+MySQLPlatform >> supportsGroupWritingFor: aCommand [
+	"MySQL does not support batched statements, i.e. cannot do INSERT ...; INSERT ...; INSERT... , but since version 5.0 it does support value sequences, i.e. it can do INSERT INTO table (id, c) VALUES (1,'1'), (2,'2'), (3,'3')."
+
+	^aCommand supportsGroupWriting and: [aCommand supportsGroupWritingValues]
+]
+
+{ #category : #testing }
+MySQLPlatform >> supportsGroupWritingValues [
+	"Return true if we support multiple rows in a single INSERT statement, like this:
+	INSERT INTO table (id, city, state) VALUES (1, 'Boston', 'MA'), (2, 'New York',  'NY'), (3, 'San Francisco', 'CA')."
+
+	^supportsGroupWritingValues ifNil: [false]
 ]
 
 { #category : #testing }
@@ -457,6 +512,11 @@ MySQLPlatform >> usesPrimaryKeyUniqueConstraintNames [
 { #category : #types }
 MySQLPlatform >> varchar [
 	^self typeNamed: #varchar ifAbsentPut: [GlorpVarCharType new].
+]
+
+{ #category : #accessing }
+MySQLPlatform >> vwEXDIConnectionClass [
+	^'MySQLConnection' asQualifiedReference valueIfUndefinedLoadFrom: 'MySQLEXDI'
 ]
 
 { #category : #'services constraints' }

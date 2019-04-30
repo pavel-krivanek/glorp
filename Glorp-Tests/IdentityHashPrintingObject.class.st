@@ -5,7 +5,7 @@ This is just an object we can easily identify by identity, used for transaction 
 Class {
 	#name : #IdentityHashPrintingObject,
 	#superclass : #Object,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #printing }

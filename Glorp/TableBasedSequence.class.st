@@ -12,10 +12,10 @@ Class {
 	#instVars : [
 		'sequenceTableName'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #defaults }
 TableBasedSequence class >> default [
 
 	^self new sequenceTableName: 'SEQUENCE'.

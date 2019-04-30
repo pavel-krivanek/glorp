@@ -14,7 +14,7 @@ Class {
 		'name',
 		'agents'
 	],
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #comparing }

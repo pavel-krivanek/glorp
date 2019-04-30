@@ -12,10 +12,10 @@ Class {
 	#instVars : [
 		'readBlock'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 AdHocProxy class >> readBlock: aZeroArgumentBlock [
 
 	^self new glorpReadBlock: aZeroArgumentBlock

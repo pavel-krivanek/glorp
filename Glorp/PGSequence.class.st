@@ -7,7 +7,7 @@ Class {
 	#category : 'Glorp-Database'
 }
 
-{ #category : #private }
+{ #category : #'as yet unclassified' }
 PGSequence >> backupReserveCommand: anInteger in: aSession [
 	| stream command |
 	stream := WriteStream on: (String new: 200).
@@ -57,7 +57,7 @@ PGSequence >> reserveViaBackupMechanism: anInteger in: aSession [
 	self reservedNumbers addAll: row.
 ]
 
-{ #category : #SQL }
+{ #category : #'as yet unclassified' }
 PGSequence >> tableSelectCommandFor: aTable in: aSession reserving: anInteger [
 	| stream |
 	(tableSelectCommand notNil and: [tableSelectCommand parameters includes: anInteger]) ifFalse:

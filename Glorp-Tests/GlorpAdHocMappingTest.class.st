@@ -9,7 +9,7 @@ Class {
 		'money',
 		'rowMap'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #tests }

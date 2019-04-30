@@ -14,13 +14,13 @@ Class {
 		'keyExpression',
 		'valueExpression'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
 GlorpDictionaryDescription >> copyEmpty: anInteger [
 	"Masquerade as a instance of a collection :-)"
-	^Dictionary new: anInteger
+	^Dictionary new: anInteger.
 ]
 
 { #category : #accessing }
@@ -36,13 +36,13 @@ GlorpDictionaryDescription >> keyExpression: anExpression [
 { #category : #'instance creation' }
 GlorpDictionaryDescription >> new [
 	"Masquerade as a class"
-	^Dictionary new
+	^Dictionary new.
 ]
 
 { #category : #'instance creation' }
 GlorpDictionaryDescription >> new: anInteger [
 	"Masquerade as a class"
-	^Dictionary new: anInteger
+	^Dictionary new: anInteger.
 ]
 
 { #category : #accessing }

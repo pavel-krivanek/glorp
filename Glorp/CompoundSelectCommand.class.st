@@ -10,7 +10,7 @@ Class {
 	#instVars : [
 		'commands'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Core'
 }
 
 { #category : #accessing }
@@ -54,11 +54,11 @@ CompoundSelectCommand >> parameters: aDictionary [
 	commands := nil.
 ]
 
-{ #category : #accessing }
+{ #category : #executing }
 CompoundSelectCommand >> printSQL [
 	"Access doesn't like parenthesies around the first in a group of compound commands."
 
-	| skipFirst |
+	| skipFirst printParentheses |
 	self requiresWrapperQuery
 		ifTrue: [
 			self nextPutAll: 'SELECT '.
@@ -67,13 +67,16 @@ CompoundSelectCommand >> printSQL [
 			self nextPutAll: '* FROM '.
 			self platform supportsAliasInCompoundQuery ifTrue: [self nextPut: $( ]].
 	skipFirst := self platform parenthesizeAllButFirstCommandInCompoundQuery.
+	printParentheses := self platform parenthesizeCommandsInCompoundQuery: query.
+	self findBoundExpressions.
 	GlorpHelper
-		do: 
+		do:
 			[:each |
-			(self platform parenthesizeCommandsInCompoundQuery and: [skipFirst not])
+			each boundExpressions: self boundExpressions.
+			(printParentheses and: [skipFirst not])
 				ifTrue: [self nextPut: $(].
 			self nextPutAll: each sqlString.
-			(self platform parenthesizeCommandsInCompoundQuery and: [skipFirst not])
+			(printParentheses and: [skipFirst not])
 				ifTrue: [self nextPut: $)].
 			skipFirst := false]
 		for: self commands

@@ -1,10 +1,7 @@
-"
-Time with TimeZone type for Postgress
-"
 Class {
 	#name : #GlorpPGTimeWithTimeZoneType,
 	#superclass : #GlorpDatabaseType,
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #'converting-times' }
@@ -12,6 +9,11 @@ GlorpPGTimeWithTimeZoneType >> converterForStType: aClass [
 	"Convert as though we were a regular time field, since our Smalltalk object has no time zone information."
 
 	^self platform converterNamed: #time.
+]
+
+{ #category : #'exdi specific' }
+GlorpPGTimeWithTimeZoneType >> exdiType [
+	^#Timetz
 ]
 
 { #category : #converting }

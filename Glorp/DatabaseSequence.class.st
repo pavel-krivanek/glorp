@@ -17,15 +17,15 @@ Class {
 	#instVars : [
 		'reservedNumbers'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseSequence class >> named: aString [
 	^self new name: aString.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseSequence class >> new [
 
 	^super new initialize.

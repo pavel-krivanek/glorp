@@ -3,8 +3,8 @@ MySQL clobs come back from the driver as binary data, so we need to make a subcl
 "
 Class {
 	#name : #GlorpMySQLClobType,
-	#superclass : #GlorpBlobType,
-	#category : 'Glorp-Types'
+	#superclass : #GlorpClobType,
+	#category : #'Glorp-Types'
 }
 
 { #category : #'as yet unclassified' }

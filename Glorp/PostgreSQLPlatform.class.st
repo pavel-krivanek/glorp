@@ -4,8 +4,13 @@ This is a platform for the socket protocol 2 API of the PostgreSQL database.
 Class {
 	#name : #PostgreSQLPlatform,
 	#superclass : #PostgresPlatform,
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
+
+{ #category : #accessing }
+PostgreSQLPlatform class >> kind [
+	^'Postgres via old Socket I/F'
+]
 
 { #category : #testing }
 PostgreSQLPlatform class >> useBindingByDefault [
@@ -240,11 +245,26 @@ PostgreSQLPlatform >> numeric [
 
 { #category : #'conversion-strings' }
 PostgreSQLPlatform >> printBlob: aByteArray on: aStream for: aType [
-
+	| encoderStream base64String |
 	aByteArray isNil ifTrue: [^aStream nextPutAll: 'NULL'].
-	self hexPrintBlob: aByteArray on: aStream for: aType
+	Dialect isSqueak ifTrue: [^self squeakPrintBlob: aByteArray on: aStream for: aType].
 
-
+	base64String := String new: (aByteArray size * 3/2) rounded.
+	encoderStream := Dialect	"briefly set the encoderStream to its class"
+		smalltalkAt: #Base64EncodingWriteStream
+		ifAbsent: [nil].
+	encoderStream isNil
+		ifTrue:	"VisualWorks base:  set the encoder's lineLength to ensure no line breaks added to base64 string."
+			[encoderStream := (base64String withEncoding: 'Base64') writeStream.
+			encoderStream encoder  lineLength: aByteArray size * 3.
+			encoderStream nextPutAll: aByteArray; close.
+			aStream nextPutAll: encoderStream encodedContents printString]
+		ifFalse:
+			[encoderStream := encoderStream on: base64String.
+			encoderStream disableLineBreaks.
+			encoderStream nextPutAll: aByteArray.
+			encoderStream close.
+			aStream nextPutAll: encoderStream contents printString].
 ]
 
 { #category : #'conversion-times' }
@@ -449,4 +469,9 @@ PostgreSQLPlatform >> usesArrayBindingRatherThanGrouping [
 { #category : #types }
 PostgreSQLPlatform >> varchar [
 	^self typeNamed: #varchar ifAbsentPut: [GlorpVarCharType new typeName: 'character varying'].
+]
+
+{ #category : #accessing }
+PostgreSQLPlatform >> vwEXDIConnectionClass [
+	^'PostgreSQLEXDIConnection' asQualifiedReference valueIfUndefinedLoadFrom: 'PostgreSQLEXDI'
 ]

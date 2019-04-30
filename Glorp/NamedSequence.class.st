@@ -20,7 +20,7 @@ Class {
 		'tableSelectCommand',
 		'schema'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
 { #category : #SQL }

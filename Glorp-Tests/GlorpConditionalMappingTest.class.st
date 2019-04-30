@@ -13,7 +13,7 @@ Class {
 		'mapping3',
 		'newMapping'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

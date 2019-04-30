@@ -18,7 +18,7 @@ Class {
 		'dateOwing',
 		'comments'
 	],
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #testing }

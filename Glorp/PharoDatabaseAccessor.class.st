@@ -22,7 +22,7 @@ Class {
 	#classVars : [
 		'DefaultDriver'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Core'
 }
 
 { #category : #configuration }

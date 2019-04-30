@@ -15,33 +15,29 @@ Class {
 	#name : #Login,
 	#superclass : #Object,
 	#instVars : [
-		'encodingStrategy',
 		'database',
 		'username',
 		'password',
 		'connectString',
 		'name',
 		'schema',
-		'databaseName',
-		'host',
-		'port',
 		'secure'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Login class >> new [
 	^super new initialize.
 ]
 
 { #category : #accessing }
 Login >> = aLogin [ 
-	^self class == aLogin class and: 
-			[self name = aLogin name and: 
-					[self database class = aLogin database class and: 
-							[self username = aLogin username and: 
-									[self connectString = aLogin connectString]]]]
+	^self class == aLogin class 
+		and: [self database class = aLogin database class 
+		and: [self username = aLogin username 
+		and: [self connectString = aLogin connectString
+		and: [self schema = aLogin schema]]]]
 ]
 
 { #category : #converting }
@@ -140,10 +136,11 @@ Login >> host: aHost [
 
 { #category : #'initialize-release' }
 Login >> initialize [
-	"My schema supplies the schema to my accessor, to its session and to that session's descriptor system.  Since a DatabaseTable's schema is initialized to the empty string, not nil (and that of a StoreLogin must never be nil), initialize to the empty string here, so that calling code need not check for nil."
+	"My schema supplies the schema to my accessor, to its session and to that session's descriptor system.  Since a DatabaseTable's schema is initialized to the empty string, not nil (and that of a StoreLogin must never be nil), initialize to the empty string here, so that calling code need not check for nil.
+	Initialize secure to true, so that only if the creating code then explicitly resets it to false will the login keep the password in the image beyond the point of first use."
 
 	schema := ''.
-	secure := false
+	secure := true.
 ]
 
 { #category : #accessing }
@@ -199,6 +196,16 @@ Login >> port: aPort [
 	port := aPort.
 ]
 
+{ #category : #login }
+Login >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	self database postLoginInitializeFromAccessor: aDatabaseAccessor.
+]
+
+{ #category : #login }
+Login >> preLoginInitializeFromAccessor: anAccessor [
+	anAccessor connection initializeFromLogin: self.
+]
+
 { #category : #printing }
 Login >> printOn: aStream [
 
@@ -247,4 +254,9 @@ Login >> username [
 { #category : #accessing }
 Login >> username: aString [ 
 	username := aString
+]
+
+{ #category : #'session creation' }
+Login >> vwConnectionClass [
+	^self database vwConnectionClass
 ]

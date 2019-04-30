@@ -25,7 +25,7 @@ Class {
 		'tableAliases',
 		'fieldAliases'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'api-aggregates' }
@@ -34,22 +34,22 @@ ObjectExpression >> aggregate: anExpression as: aggregateFunctionName [
 	^self aggregate: anExpression as: aggregateFunctionName where: nil.
 ]
 
-{ #category : #'api-aggregates' }
+{ #category : #'*Glorp' }
 ObjectExpression >> aggregate: anExpression as: aggregateFunctionName where: whereExpression [
-	"Make a subselect of the expression that is our argument, returning an aggregated value. e.g.
-session read: GlorpCustomer where: 	[:each |  
-	(each aggregate: eachCust accounts as: #countStar where: [:acct | acct price > 1000]]) = 1].
-	This is the most general form of aggregation convenience method, and everything else is implemented in terms of it"
+	"This is the most general form of aggregation convenience method, and other aggregations, e.g. sqlCount, are implemented in terms of it.  This method creates a subselect out of the expression that is our argument (anExpression), returning an aggregation expression based on it.  For example,
+	session read: GlorpCustomer where:
+		[:each | (each aggregate: each accounts as: #countStar where: [:acct | acct price > 1000]) = 1].
+would find all customers who had exactly one account whose value exceeded 1000."
 
 	| q expression next objectExpression retrievalExpression basicExpression |
 	"We may be passed an expression corresponding to either a field, or to a full object, depending on the aggregate function. In either case, build backwards from the first full object"
-	objectExpression := anExpression mapping isRelationship 
+	objectExpression := anExpression mapping isRelationship
 		ifTrue: [anExpression] ifFalse: [anExpression base].
 	q := Query read: objectExpression referenceClass.
 	expression := q baseExpression.
 	next := objectExpression.
-	[next base isNil] whileFalse: [
-		expression := next mapping addPhantomMappingExpressionOn: expression.
+	[next base isNil or: [next class == SubSelectBaseExpression]] whileFalse:
+		[expression := next mapping addPhantomMappingExpressionOn: expression.
 		next := next base].
 	"We have to force construct the equality expression, because we don't want 'self' rebuilt onto the other base"
 	expression := RelationExpression new outerJoin: false; relation: #=; leftChild: expression; rightChild: self.
@@ -58,8 +58,8 @@ session read: GlorpCustomer where: 	[:each |
 	basicExpression := anExpression rebuildOn: q baseExpression startingFrom: objectExpression.
 	retrievalExpression := (basicExpression get: aggregateFunctionName asGlorpExpression value).
 	q retrieve: retrievalExpression.
-	whereExpression == nil ifFalse: [
-		q AND: (whereExpression asGlorpExpressionOn: basicExpression)].
+	whereExpression == nil ifFalse:
+		[q AND: (whereExpression asGlorpExpressionOn: basicExpression)].
 	^q asGlorpExpressionOn: self ultimateBaseExpression.
 ]
 
@@ -75,24 +75,22 @@ ObjectExpression >> aliasTable: aDatabaseTable to: aString [
 
 { #category : #fields }
 ObjectExpression >> aliasedTableFor: aDatabaseTable [ 
-	tableAliases isNil ifTrue: [^aDatabaseTable].
+	self hasTableAliases ifFalse: [^aDatabaseTable].
 	aDatabaseTable isAliased ifTrue: [^aDatabaseTable].
-	^tableAliases 
-		at: aDatabaseTable 
-		ifAbsent: [
-			(self tables includes: aDatabaseTable) 	
+	^tableAliases
+		at: aDatabaseTable
+		ifAbsent:
+			[(self tables includes: aDatabaseTable)	
 				ifTrue: [self error: 'Bug. Expression has only partially aliased tables']
-				ifFalse: [
-					| tableExpression |
-					tableExpression := self mappingExpressions at: aDatabaseTable ifAbsent: [nil].
-					tableExpression isNil 
-						ifTrue: [aDatabaseTable]
-						ifFalse: [tableExpression aliasedTableFor: aDatabaseTable]]].
+				ifFalse: [(self mappingExpressions
+							at: aDatabaseTable
+							ifAbsent: [^aDatabaseTable])
+								aliasedTableFor: aDatabaseTable]]
 ]
 
 { #category : #fields }
-ObjectExpression >> aliasedTableFor: aDatabaseTable  ifAbsent: aBlock [
-	tableAliases isNil ifTrue: [^aBlock value].
+ObjectExpression >> aliasedTableFor: aDatabaseTable ifAbsent: aBlock [
+	self hasTableAliases ifFalse: [^aBlock value].
 	aDatabaseTable isAliased ifTrue: [^aDatabaseTable].
 	^tableAliases at: aDatabaseTable ifAbsent: [aBlock value].
 ]
@@ -142,17 +140,25 @@ ObjectExpression >> asTimestamp [
 
 { #category : #preparing }
 ObjectExpression >> assignTableAliasesStartingAt: anInteger prefix: aString [
-	| tableNumber prefix |
+	"Very rarely, my tableAliases' instance may be shared with another expression that has already populated it with tables, but not necessarily with all of mine.  I therefore iterate over my tables, ensuring all are aliased, regardless of whether I already have some aliases."
+
+	| myTables tableNumber prefix |
 	self controlsTables ifFalse: [^anInteger].
-	self hasTableAliases ifTrue: [^anInteger].
+	(myTables := self tables) isEmpty ifTrue: [^anInteger].
 	tableNumber := anInteger.
 	prefix := aString isNil ifTrue: ['t'] ifFalse: [aString].
-	self tables
-		do:
-			[:each | 
-			self aliasTable: each to: prefix , tableNumber printString.
-			tableNumber := tableNumber + 1].
-	^tableNumber.
+	tableAliases isNil ifTrue:
+		[tableAliases := IdentityDictionary new: myTables size].
+	myTables do:
+		[:each |
+		tableAliases at: each ifAbsentPut:
+			[| newTable | newTable := each copy.
+			newTable parent: each.
+			newTable schema: ''.
+			newTable name: prefix , tableNumber printString.
+			tableNumber := tableNumber + 1.
+			newTable]].
+	^tableNumber		"incremented if any tables were aliased, still equal to anInteger if not"
 ]
 
 { #category : #'api-aggregates' }
@@ -186,7 +192,7 @@ session read: GlorpCustomer where: 	[:each |  (each count: [:eachCust | eachCust
 	^self aggregate: anExpression as: #countStar where: filterExpression.
 ]
 
-{ #category : #'api-aggregates' }
+{ #category : #'*Glorp' }
 ObjectExpression >> existenceCheck: anExpression as: functionName [
 	"Make a subselect of the expression that is our argument, returning it wrapped in either an exists or a not exists, e.g. 
 	session read: GlorpCustomer where: 	[:each |  
@@ -360,7 +366,13 @@ ObjectExpression >> hasProvidedAdditionalExpressions [
 
 { #category : #testing }
 ObjectExpression >> hasTableAliases [
-	^tableAliases notNil
+	"I test for notEmpty as well as notNil since (very rarely) my tableAliases instance may have been preemptively initialized to the same instance as another expression (see the comment in #privateTableAliases:)."
+
+	^tableAliases notNil and: [tableAliases notEmpty]
+
+"In theory, another expression could populate a shared instance with tables, but not with mine, and I could then be sent this method before I was sent #assignTableAliasesStartingAt:prefix:.  In practice, all expressions in a SimpleQuery assign at the same time in #assignTableAliases and there is no sharing of a tableAlias instance beyond the confines of a SimpleQuery.  Against the very unlikely event that future refactoring ever altered that, I record here that I tested
+	^tableAliases notNil and: [tableAliases includesKey: self table]
+This only tests for my main table since tableAliases are set only in #assignTableAliasesStartingAt:prefix: and that does them all if it does any (and it will not set them if I do not controlTables, so we need not consider that).  For now, I rate such a test as overcautious;  given Glorp's the order of processing, it suffices to check [tableAliases notEmpty]."
 ]
 
 { #category : #internal }
@@ -445,6 +457,13 @@ ObjectExpression >> printTableAliasesOn: aStream [
 			[aStream nextPutAll: ' '.
 			tableAliases keysAndValuesDo: [:eachKey :eachValue | 
 				aStream nextPutAll: eachKey name, '->', eachValue name , ' ']]
+]
+
+{ #category : #'private/accessing' }
+ObjectExpression >> privateTableAliases: anIdentityDictionary [
+	"Table aliases are lazily initialized when populated.  Use this setter (to bypass that lazy initialization) when an expression prompts the adding of other expressions (during Glorp's internal query rewriting - users are not expected to do this) that need to share its alias list (so that later, when the alis list is computed for a query, they will use the same name (e.g. t2 or s1t1) for a table, not create their own clashing names)."
+
+	tableAliases := anIdentityDictionary.
 ]
 
 { #category : #api }
@@ -546,8 +565,6 @@ ObjectExpression >> table [
 
 { #category : #accessing }
 ObjectExpression >> tableAliases [
-	tableAliases isNil ifTrue: [
-		tableAliases := IdentityDictionary new: 3].
 	^tableAliases
 ]
 
@@ -574,5 +591,7 @@ ObjectExpression >> twoArgumentSpecialSelectors [
 
 { #category : #internal }
 ObjectExpression >> zeroArgumentSpecialSelectors [
-	^#(#asOuterJoin #sqlCount #sqlSum #sqlMin #sqlMax #sqlAverage #sqlAvg #isEmpty #notEmpty #asDate #asTimestamp #bePhantom).
+	"In 8.2, #asOuterJoin is deprecated;  when it is removed in 9.0, remove its symbol from here."
+
+	^#(#beOuterJoin #bePhantom #sqlCount #sqlSum #sqlMin #sqlMax #sqlAverage #sqlAvg #isEmpty #notEmpty #asDate #asTimestamp #asOuterJoin)
 ]

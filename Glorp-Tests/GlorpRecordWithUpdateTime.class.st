@@ -17,7 +17,7 @@ Class {
 		'updateTime',
 		'updateSomeOtherThing'
 	],
-	#category : 'Glorp-Tests-Models'
+	#category : #'Glorp-Tests-Models'
 }
 
 { #category : #accessing }

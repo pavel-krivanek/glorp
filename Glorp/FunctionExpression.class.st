@@ -23,18 +23,18 @@ Class {
 	#classInstVars : [
 		'functions'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
-{ #category : #accessing }
+{ #category : #private }
 FunctionExpression class >> basicFunctions [
-	functions isNil ifTrue: [functions := self createBasicFunctionsFor: nil].
-	^functions.
+	functions isNil ifTrue: [functions := self createBasicFunctionsFor: DatabasePlatform new].
+	^functions
 ]
 
-{ #category : #setup }
-FunctionExpression class >> createBasicFunctionsFor: anObject [
-	| exists notExists defaultFunctions |
+{ #category : #private }
+FunctionExpression class >> createBasicFunctionsFor: aDatabasePlatform [
+	| defaultFunctions |
 	defaultFunctions := IdentityDictionary new.
 	defaultFunctions
 		at: #descending put: (PostfixFunction named: 'DESC');
@@ -49,34 +49,21 @@ FunctionExpression class >> createBasicFunctionsFor: anObject [
 		at: #, put: (InfixFunction named: '||');
 		at: #countStar put: (StandaloneFunction named: 'COUNT(*)');
 		at: #count put: (PrefixFunction named: 'COUNT');
-		at: #similarTo: put: (InfixFunction named: 'LIKE');
 		at: #between:and: put: (InfixFunction named: #('BETWEEN' 'AND'));
-		at: #isNil
-			put:
-				((RelationExpression new)
+		at: #isNil put: ((RelationExpression new)
 						relation: #=;
 						rightChild: nil asGlorpExpression);
-		at: #notNil
-			put:
-				((RelationExpression new)
+		at: #notNil put: ((RelationExpression new)
 						relation: #<>;
 						rightChild: nil asGlorpExpression);
-		at: #isNIL
-			put:
-				((RelationExpression new)
+		at: #isNIL put: ((RelationExpression new)
 						relation: #=;
 						rightChild: nil asGlorpExpression);
-		at: #notNIL
-			put:
-				((RelationExpression new)
+		at: #notNIL put: ((RelationExpression new)
 						relation: #<>;
 						rightChild: nil asGlorpExpression).
-	exists := InfixFunction named: 'EXISTS'.
-	anObject isNil ifFalse: [exists type: anObject boolean].
-	defaultFunctions at: #exists: put: exists.
-	notExists := InfixFunction named: 'NOT EXISTS'.
-	anObject isNil ifFalse: [notExists type: anObject boolean].
-	defaultFunctions at: #notExists: put: notExists.
+	defaultFunctions at: #exists: put: ((InfixFunction named: 'EXISTS') type: aDatabasePlatform boolean).
+	defaultFunctions at: #notExists: put: ((InfixFunction named: 'NOT EXISTS') type: aDatabasePlatform boolean).
 
 	defaultFunctions
 		at: #asUppercase put: (PrefixFunction named: 'UPPER');
@@ -84,8 +71,13 @@ FunctionExpression class >> createBasicFunctionsFor: anObject [
 		at: #replace:with: put: (PrefixFunction named: 'REPLACE');
 		at: #cast: put: ((Cast named: 'CAST') separator: ' AS ');
 		at: #copyFrom:to: put: (SubstringFunction named: 'SUBSTR').
+"		at: #+ put: (InfixFunction named: '+');
+		at: #- put: (InfixFunction named: '-');
+		at: #/ put: (InfixFunction named: '/');
+		at: #* put: (InfixFunction named: '*')."
+	defaultFunctions at: #length put: ((PrefixFunction named: 'LENGTH') type: aDatabasePlatform integer).
 
-	^defaultFunctions.
+	^defaultFunctions
 ]
 
 { #category : #'instance creation' }
@@ -93,7 +85,7 @@ FunctionExpression class >> for: aSymbol withArguments: anArray basedOn: anExpre
 	| base system |
 	base := anExpression ultimateBaseExpression.
 	system := base isNil ifTrue: [nil] ifFalse: [base system].	
-	^self for: aSymbol withArguments: anArray basedOn: anExpression system: system
+	^self for: aSymbol withArguments: anArray basedOn: anExpression system: system.
 ]
 
 { #category : #'instance creation' }
@@ -106,10 +98,10 @@ FunctionExpression class >> for: aSymbol withArguments: anArray basedOn: anExpre
 		createFor: anArray
 		withBase: anExpression
 		symbol: aSymbol.
-	^newFunction
+	^newFunction.
 ]
 
-{ #category : #initializing }
+{ #category : #private }
 FunctionExpression class >> initialize [
 
 	self resetFunctions.
@@ -119,13 +111,13 @@ FunctionExpression class >> initialize [
 FunctionExpression class >> named: aString [
 	"Used for creating template instances only"
 
-	^self new function: aString
+	^self new function: aString.
 ]
 
 { #category : #private }
 FunctionExpression class >> resetFunctions [
 	"self resetFunctions"
-	functions := nil
+	functions := nil.
 ]
 
 { #category : #accessing }
@@ -226,13 +218,13 @@ FunctionExpression >> createFor: arguments [
 ]
 
 { #category : #copying }
-FunctionExpression >> createFor: anArray withBase: anExpression symbol: aSymbol [
+FunctionExpression >> createFor: arguments withBase: anExpression symbol: aSymbol [
 	| new |
 	new := self copy.
 	new base: anExpression.
 	new symbol: aSymbol.
 	new type: type.
-	new arguments: anArray.
+	new arguments: arguments.
 	^new.
 ]
 

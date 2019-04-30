@@ -24,14 +24,14 @@ Class {
 		'outerJoin',
 		'owningMapping'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 Join class >> from: aField to: anotherField [
 
 	^self new
-		addSource: aField target: anotherField
+		addSource: aField target: anotherField.
 ]
 
 { #category : #'instance creation' }
@@ -40,7 +40,7 @@ from: from2Field to: to2Field [
 
 	^self new
 		addSource: from1Field target: to1Field;
-		addSource: from2Field target: to2Field
+		addSource: from2Field target: to2Field.
 ]
 
 { #category : #'instance creation' }
@@ -51,7 +51,7 @@ from: from3Field to: to3Field [
 	^self new
 		addSource: from1Field target: to1Field;
 		addSource: from2Field target: to2Field;
-		addSource: from3Field target: to3Field
+		addSource: from3Field target: to3Field.
 ]
 
 { #category : #'instance creation' }
@@ -79,20 +79,20 @@ from: from5Field to: to5Field [
 		addSource: from2Field target: to2Field;
 		addSource: from3Field target: to3Field;		
 		addSource: from4Field target: to4Field;
-		addSource: from5Field target: to5Field
+		addSource: from5Field target: to5Field.
 ]
 
 { #category : #'instance creation' }
 Join class >> fromAll: sourceFields toAll: targetFields [
 
 	^self new
-		sourceFields: sourceFields targetFields: targetFields
+		sourceFields: sourceFields targetFields: targetFields.
 ]
 
 { #category : #'instance creation' }
 Join class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #converting }
@@ -114,7 +114,7 @@ Join >> = aJoin [
 	^true.
 ]
 
-{ #category : #api }
+{ #category : #'*Glorp' }
 Join >> addSource: aField target: anotherField [ 
 	| value targetValue |
 	value := (self isConstant: aField) 
@@ -124,9 +124,9 @@ Join >> addSource: aField target: anotherField [
 	targetValue := anotherField class == SimpleQuery
 		ifTrue: [anotherField asGlorpExpressionOn: base] 
 		ifFalse: [anotherField].
-	(self isConstant: targetValue) ifTrue: [
-		self error: 'You are attempting to set a constant value as the target of a relationship. I suspect you want to set it on the source instead. Either that or you''re trying to use a field name where a field object is required.'].
-	targets add: targetValue
+	((self isConstant: targetValue) and: [(Dialect isBlock: targetValue) not]) ifTrue:
+		[self error: 'You are attempting to set a constant value as the target of a relationship. I suspect you want to set it on the source instead. Either that or you''re trying to use a field name where a field object is required.'].
+	targets add: targetValue.
 ]
 
 { #category : #preparing }
@@ -255,7 +255,10 @@ Join >> asGlorpExpressionOn: aBaseExpression [
 
 { #category : #api }
 Join >> asOuterJoin [
-	^self copy beOuterJoin.
+	"This has always been correctly implemented (see the comment in its polymorph MappingExpression>>asOuterJoin), but appears to have no callers, and no reason why it should not be inlined in any caller.  Unless callers appear, it will be renoved when its polymorph is removed."
+
+	self deprecated: #(#version '8.2' #sunset '9.0' #use #beOuterJoin).
+	^self copy beOuterJoin
 ]
 
 { #category : #accessing }
@@ -270,15 +273,17 @@ Join >> base: aBaseExpression [
 
 { #category : #api }
 Join >> beOuterJoin [
+	"If you want the table you're joining to to be optional, this must be set."
+
 	outerJoin := true.
 ]
 
-{ #category : #preparing }
+{ #category : #'*Glorp' }
 Join >> condenseBooleanEquality [
 	^self.
 ]
 
-{ #category : #preparing }
+{ #category : #'*Glorp' }
 Join >> condenseBooleanEqualityExpressions [
 	^self.
 ]
@@ -337,10 +342,11 @@ Join >> inverseJoin [
 
 { #category : #converting }
 Join >> isConstant: aTarget [
-	"The target can be either a constant (which gets turned into a ConstantExpression) or (usually) a DatabaseField, representing a parameter to the query"
+	"The target can be either a constant (which gets turned into a ConstantExpression) or (usually) a DatabaseField, representing a parameter to the query.  However it could be a subselect (which would return false)."
+
 	(aTarget class == DatabaseField) ifTrue: [^false].
-	(aTarget isGlorpExpression and: [aTarget isConstantExpression not]) ifTrue: [^false].
-	^true.
+	^aTarget isGlorpExpression not
+		or: [aTarget isConstantExpression]
 ]
 
 { #category : #testing }
@@ -363,7 +369,7 @@ Join >> isOuterJoin [
 	^outerJoin.
 ]
 
-{ #category : #api }
+{ #category : #'*Glorp' }
 Join >> mapFromSource: sourceObject andTarget: targetObject intoRowsIn: aRowMap [
 	(sourceObject isNil or: [targetObject isNil]) ifTrue: [^self].
 	1
@@ -431,8 +437,7 @@ Join >> owningMapping: aMapping [
 ]
 
 { #category : #preparing }
-Join >> prepareIn: aQuery [ 
-	"Do nothing."
+Join >> prepareIn: aQuery [
 	aQuery whereClause: (self asGeneralGlorpExpression).
 	aQuery whereClause prepareIn: aQuery.
 ]
@@ -538,7 +543,7 @@ Join >> replacing: aTable withEquivalenceFrom: aJoin [
 	^self class fromAll: newSources toAll: newTargets.
 ]
 
-{ #category : #preparing }
+{ #category : #'*Glorp' }
 Join >> rewriteEquality [
 	^self.
 ]
@@ -554,10 +559,11 @@ Join >> shortCircuitOnNullComparison: parameters [
 
 { #category : #converting }
 Join >> sourceExpressionFor: source [
-	
-	^((self isConstant: source) or: [source isMappable not]) "This might be a subselect"
-		ifTrue: [source]
-		ifFalse: [base getParameter: source].
+	"The source might be a subselect, hence the isMappable check."
+
+	^((self isConstant: source) or: [source isMappable not])
+		ifTrue: [source asGlorpExpressionOn: base]
+		ifFalse: [base getParameter: source]
 ]
 
 { #category : #initialize }
@@ -576,13 +582,12 @@ Join >> sourceForTarget: aField [
 ]
 
 { #category : #converting }
-Join >> targetExpressionFor: eachTarget [ 
+Join >> targetExpressionFor: eachTarget [
 	^(self isConstant: eachTarget)
 		ifTrue: [eachTarget]
-		ifFalse: [
-			eachTarget isGlorpExpression 
-			ifTrue: [eachTarget] 
-			ifFalse: [(base getTable: eachTarget table) getField: eachTarget]].
+		ifFalse: [eachTarget isGlorpExpression
+				ifTrue: [eachTarget asGlorpExpressionOn: base]
+				ifFalse: [(base getTable: eachTarget table) getField: eachTarget]].
 ]
 
 { #category : #preparing }

@@ -15,26 +15,30 @@ Class {
 		'subCaches',
 		'session'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Core'
 }
 
-{ #category : #'*Glorp' }
-CacheManager class >> forSession: aSession [ 
-	^self new session: aSession.
+{ #category : #'instance creation' }
+CacheManager class >> forSession: aSession [
+	"A CacheManager must have a session;  use an UnmanagedCache, not a CacheManager, if there is a single class and no session."
+
+	^self new session: aSession
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 CacheManager class >> new [
+	"A CacheManager must have a session;  use an UnmanagedCache if there is a single class and no session."
 
-	^super new initialize.
+	^super new initialize
 ]
 
 { #category : #adding }
 CacheManager >> at: aKey insert: anObject [
+	"Return the object in the cache, whoch may be the parameter or may be its cached equivalent."
 
 	| subCache |
 	subCache := self cacheForClass: anObject class.
-	subCache at: aKey ifAbsentPut: [anObject].
+	^subCache at: aKey ifAbsentPut: [anObject]
 ]
 
 { #category : #'private/caching' }
@@ -48,10 +52,11 @@ CacheManager >> cacheFor: anObject [
 		ifFalse: [self cacheForClass: nonMetaClass].
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #'initialize/release' }
 CacheManager >> cacheForClass: aClass [
-	^subCaches at: aClass
-		ifAbsentPut: [self makeCacheFor: aClass]
+	"the call of makeCacheFor: will put it in the cache, obviating need for at:ifAbsentPut: here - indeed, it can be dangerous if two hash values colide."
+	
+	^subCaches at: aClass ifAbsent: [self makeCacheFor: aClass]
 ]
 
 { #category : #querying }
@@ -147,10 +152,16 @@ CacheManager >> lookupClass: aClass key: aKey ifAbsentPut: failBlock [
 ]
 
 { #category : #'initialize/release' }
-CacheManager >> makeCacheFor: aClass [ 
+CacheManager >> makeCacheFor: aClass [
+	"If I am called, we already know that aClass does not key an existing cache.  However, if aClass is not its own rootClass then a shared rootClass cache may already be keyed by the rootClass (and one or more other classes sharing that root class).  So we get the existing or new cache, key it by aClass (definitely needed) and key it by the rootClass if also needed."
+
 	| rootClass cache |
-	rootClass := session isNil ifTrue: [aClass] ifFalse: [session lookupRootClassFor: aClass].
-	cache := subCaches at: rootClass ifAbsentPut: [ Cache newFor: rootClass in: self ].
+	rootClass := session lookupRootClassFor: aClass.
+	cache := rootClass == aClass
+		ifTrue: [Cache newFor: rootClass in: self]
+		ifFalse: [subCaches
+				at: rootClass
+				ifAbsentPut: [Cache newFor: rootClass in: self]].
 	subCaches at: aClass put: cache.
 	^cache
 ]

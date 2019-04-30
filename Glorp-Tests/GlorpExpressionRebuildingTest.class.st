@@ -6,7 +6,7 @@ Class {
 		'newBase',
 		'rebuilt'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

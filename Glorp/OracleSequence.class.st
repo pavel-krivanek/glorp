@@ -16,7 +16,7 @@ Class {
 		'sequenceIncrement',
 		'accessProtect'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
 { #category : #testing }
@@ -24,7 +24,7 @@ OracleSequence >> alwaysGetFromDb [
 	^sequenceIncrement = 1
 ]
 
-{ #category : #private }
+{ #category : #'as yet unclassified' }
 OracleSequence >> backupReserveCommand: anInteger in: aSession [
 	| command stream |
 	stream := WriteStream on: (String new: 200).
@@ -59,7 +59,8 @@ OracleSequence >> initialize [
 	super initialize.
 	count := 0.
 	sequenceIncrement := 1.
-	accessProtect := Semaphore forMutualExclusion
+	"This seems to hang on the semaphore in ObjectStudio. Fake around it"
+	accessProtect := Dialect isObjectStudio ifTrue: [nil] ifFalse: [Semaphore forMutualExclusion].
 ]
 
 { #category : #accessing }
@@ -124,7 +125,7 @@ OracleSequence >> sequenceIncrement: aNumber [
 	sequenceIncrement := aNumber
 ]
 
-{ #category : #SQL }
+{ #category : #'as yet unclassified' }
 OracleSequence >> tableSelectCommandFor: aTable in: aSession reserving: anInteger [
 	| stream |
 	(tableSelectCommand notNil and: [tableSelectCommand parameters includes: anInteger]) ifFalse:

@@ -4,5 +4,5 @@ This class represents package information for the GlorpTests package, for system
 Class {
 	#name : #GlorpTestsPackage,
 	#superclass : #Object,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }

@@ -1,15 +1,3 @@
-"
-Instance Variables
-	precision:		<Object>
-	scale:		<Object>
-
-precision
-	- xxxxx
-
-scale
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpNumericType,
 	#superclass : #GlorpAbstractNumericType,
@@ -17,7 +5,7 @@ Class {
 		'precision',
 		'scale'
 	],
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #comparing }
@@ -35,6 +23,14 @@ GlorpNumericType >> = aType [
 GlorpNumericType >> converterForStType: aClass [
 	(aClass includesBehavior: Boolean) ifTrue: [^self platform converterNamed: #booleanToInteger].
 	^self platform converterNamed: #numberToNumber.
+]
+
+{ #category : #'exdi specific' }
+GlorpNumericType >> exdiType [
+	"Return a symbol that the VisualWorks EXDI uses to indicate the database type -- this is a symbol which is often the name of a Smalltalk class, but with variations for multiple db types that correspond to the same Smalltalk symbol. It also varies by Database. This is equivalent to the values returned by methods like #odbcConversion or #oracleConversion"
+
+	"Can we do better than this??"
+	^#FixedPoint
 ]
 
 { #category : #testing }

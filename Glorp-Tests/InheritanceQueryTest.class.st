@@ -1,7 +1,7 @@
 Class {
 	#name : #InheritanceQueryTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #'utility - inner queries' }
@@ -35,8 +35,8 @@ InheritanceQueryTest >> queryForSuccessor [
 { #category : #running }
 InheritanceQueryTest >> setUp [
 	super setUp.
-	system := TESTDescriptorSystem forPlatform: session platform.
-	session system: system.
+	system := TESTDescriptorSystem forPlatform: session platform.	
+	session system: system
 ]
 
 { #category : #running }

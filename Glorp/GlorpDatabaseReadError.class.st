@@ -16,7 +16,7 @@ Class {
 		'databaseError',
 		'accessor'
 	],
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'*Glorp' }

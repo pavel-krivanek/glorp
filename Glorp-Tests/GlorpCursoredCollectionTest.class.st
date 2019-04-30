@@ -5,10 +5,10 @@ Class {
 		'session',
 		'stream'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpCursoredCollectionTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]

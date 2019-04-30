@@ -8,10 +8,10 @@ Class {
 		'session',
 		'newQuery'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpQueryCopyingTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]

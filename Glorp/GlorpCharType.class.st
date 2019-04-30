@@ -1,10 +1,7 @@
-"
-Character type
-"
 Class {
 	#name : #GlorpCharType,
 	#superclass : #GlorpAbstractStringType,
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #initialize }

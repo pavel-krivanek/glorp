@@ -5,10 +5,10 @@ Class {
 		'session',
 		'allEmployees'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpFilteredInheritanceTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource with: GlorpSessionResource
 ]

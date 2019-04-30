@@ -15,7 +15,7 @@ Class {
 		'separator',
 		'argumentModifierBlock'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #accessing }

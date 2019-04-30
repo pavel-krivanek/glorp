@@ -14,10 +14,10 @@ Instance Variables
 Class {
 	#name : #DB2Sequence,
 	#superclass : #OracleSequence,
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #private }
+{ #category : #'as yet unclassified' }
 DB2Sequence >> backupReserveCommand: anInteger in: aSession [
 	"syscat.tables is a public view of all the tables.
 	Don't bind the number in the fetch first nn clause."
@@ -55,7 +55,7 @@ DB2Sequence >> nextSequenceNumberSelectString [
 	^'SELECT NEXT VALUE FOR ' , self qualifiedName , ' FROM SYSIBM.SYSDUMMY1'
 ]
 
-{ #category : #SQL }
+{ #category : #'as yet unclassified' }
 DB2Sequence >> tableSelectCommandFor: aTable in: aSession reserving: anInteger [
 	"Don't bind the number in the fetch first nn clause."
 	| stream |

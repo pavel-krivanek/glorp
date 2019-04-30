@@ -6,7 +6,7 @@ It doesn't work yet, since printing of constants doesn't like having functions i
 Class {
 	#name : #Cast,
 	#superclass : #PrefixFunction,
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
@@ -14,7 +14,7 @@ Cast class >> value: anObject as: aDatabaseType [
 	self error: 'this is work in progress, you probably shouldn''t use it yet'.
 	(anObject isNil or: [anObject isGlorpExpression and: [anObject isConstantExpression and: [anObject value isNil]]])
 		ifTrue: [^anObject].
-	^self new base: anObject asGlorpExpression; arguments: (Array with: aDatabaseType asGlorpExpression)
+	^self new base: anObject asGlorpExpression; arguments: (Array with: aDatabaseType asGlorpExpression).
 ]
 
 { #category : #'initialize-release' }

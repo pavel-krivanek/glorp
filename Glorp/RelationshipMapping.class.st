@@ -34,7 +34,7 @@ Class {
 		'linkFields',
 		'proxyAction'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #mapping }

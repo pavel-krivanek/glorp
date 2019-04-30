@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'resultField'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #accessing }

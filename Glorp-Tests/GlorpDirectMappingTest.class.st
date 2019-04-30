@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'mapping'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

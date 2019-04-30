@@ -18,7 +18,7 @@ The intent of this license is not to change the meaning of the prior license but
 Class {
 	#name : #GlorpLicense,
 	#superclass : #Object,
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Core'
 }
 
 { #category : #license }

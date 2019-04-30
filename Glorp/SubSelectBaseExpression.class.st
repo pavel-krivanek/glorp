@@ -12,12 +12,12 @@ Class {
 	#instVars : [
 		'trueBase'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 SubSelectBaseExpression class >> on: aBaseExpression [
-	^self new trueBase: aBaseExpression
+	^self new trueBase: aBaseExpression.
 ]
 
 { #category : #accessing }
@@ -94,7 +94,7 @@ SubSelectBaseExpression >> representsDerivedObject [
 
 { #category : #accessing }
 SubSelectBaseExpression >> table [
-	^self trueBase table
+	^self trueBase table.
 ]
 
 { #category : #accessing }

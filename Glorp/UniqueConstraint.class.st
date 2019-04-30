@@ -9,10 +9,10 @@ Instance Variables:
 Class {
 	#name : #UniqueConstraint,
 	#superclass : #DatabaseTableConstraint,
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 UniqueConstraint class >> forTable: aTable fields: aCollectionOfFields [
 
 	| instance |
@@ -59,10 +59,10 @@ UniqueConstraint >> isUniqueConstraint [
 
 { #category : #testing }
 UniqueConstraint >> matchesUniqueConstraint: aConstraint [
-	
 	name asUppercase = aConstraint name asUppercase ifFalse: [^false].
-	self fields size ~= aConstraint fields size ifTrue: [^false].
-	self fields with: aConstraint fields do: [:each :other | (each matchesField: other) ifFalse: [^false]].
+	self fields size = aConstraint fields size ifFalse: [^false].
+	self fields with: aConstraint fields do:
+		[:each :other | (each matchesField: other) ifFalse: [^false]].
 	^true
 ]
 

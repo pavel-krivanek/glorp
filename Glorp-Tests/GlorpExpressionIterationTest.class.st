@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpExpressionIterationTest,
 	#superclass : #GlorpTestCase,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #tests }

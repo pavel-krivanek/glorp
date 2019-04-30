@@ -4,7 +4,7 @@ Ensure that warning/error messages are raised by invalid acts in dictionary mapp
 Class {
 	#name : #GlorpDictionaryMappingErrorTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

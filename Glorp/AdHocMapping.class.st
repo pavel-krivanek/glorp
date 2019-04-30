@@ -18,7 +18,7 @@ Class {
 		'mappedFields',
 		'shouldProxy'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #'instance creation' }

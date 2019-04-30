@@ -14,7 +14,7 @@ Class {
 		'c1',
 		'c2'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

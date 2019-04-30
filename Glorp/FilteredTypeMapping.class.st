@@ -16,7 +16,7 @@ Class {
 		'key',
 		'keyDictionary'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #'instance creation' }

@@ -31,16 +31,16 @@ Class {
 		'replacementSubSelect',
 		'uniqueConstraints'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseTable class >> named: aString [
 
 	^self new name: aString.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseTable class >> new [
 
 	^super new initialize.
@@ -136,8 +136,7 @@ DatabaseTable >> addForeignKeyFrom: sourceField to: targetField suffixExpression
 
 { #category : #deprecated }
 DatabaseTable >> addForeignKeyFrom: sourceField toField: targetField [
-
-	self deprecated: 'Use #addForeignKeyFrom:to: instead'.	
+	self deprecated: #(#version '8.0' #sunset '8.1' #use #addForeignKeyFrom:to:).
 	^self addForeignKeyFrom: sourceField to: targetField
 ]
 
@@ -213,12 +212,12 @@ DatabaseTable >> allSequences [
 
 { #category : #fields }
 DatabaseTable >> createFieldNamed: aString type: dbType [
+	"If there's already a field of this name, raise an error.  If we do not find one, make a new one, add it to me and return it."
 
-	| existingField |
-	existingField := fields detect: [:each | each name = aString] ifNone: [nil].
-	(existingField notNil)
-	ifTrue: [self error: 'field ', aString, ' already exists'].
-	^self addField: (DatabaseField named: aString type: dbType)
+	fields
+		detect: [:each | each name = aString]
+		ifNone: [^self addField: (DatabaseField named: aString type: dbType)].
+	self error: 'field ', aString, ' already exists'.
 ]
 
 { #category : #accessing }
@@ -251,11 +250,9 @@ DatabaseTable >> dropForeignKeyConstraintsFromAccessor: aDatabaseAccessor [
 		do: [:each | aDatabaseAccessor dropConstraint: each]
 ]
 
-{ #category : #'create/delete in db' }
+{ #category : #obsolete }
 DatabaseTable >> dropFromAccessor: aDatabaseAccessor [
-	aDatabaseAccessor platform supportsConstraints
-		ifTrue: [self dropPrimaryKeyConstraintsFromAccessor: aDatabaseAccessor].
-	aDatabaseAccessor dropTableNamed: self name.
+	aDatabaseAccessor dropTable: self  ifError: [].
 ]
 
 { #category : #obsolete }
@@ -371,13 +368,13 @@ DatabaseTable >> hasFieldNamed: aString [
 	^(self fieldNamed: aString ifAbsent: [nil] caseSensitive: false) notNil.
 ]
 
-{ #category : #testing }
+{ #category : #'as yet unclassified' }
 DatabaseTable >> hasForeignKeyConstraintMatching: aConstraint [
 	^self foreignKeyConstraints
 		anySatisfy: [:each | (each matchesForeignKeyConstraint: aConstraint)].
 ]
 
-{ #category : #testing }
+{ #category : #'as yet unclassified' }
 DatabaseTable >> hasForeignKeyConstraintTheSameAs: aConstraint [
 
 	^self foreignKeyConstraints anySatisfy: [:each | (each isTheSameAs: aConstraint)].
@@ -414,7 +411,7 @@ DatabaseTable >> hasPrimaryKeyConstraints [
 	^self primaryKeyFields isEmpty not.
 ]
 
-{ #category : #testing }
+{ #category : #'as yet unclassified' }
 DatabaseTable >> hasUniqueConstraintMatching: aConstraint [
 	
 	^self uniqueConstraints anySatisfy: [:each | each matchesUniqueConstraint: aConstraint]
@@ -431,8 +428,8 @@ DatabaseTable >> imaginaryReplacementName [
 	stream := WriteStream on: (String new: 100).
 	stream nextPut: $(.
 	stream nextPutAll: (replacementSubSelect sqlWith: #()) sqlString.
-	stream nextPutAll: ') '.
-	^stream contents.
+	stream nextPut: $); space.
+	^stream contents
 ]
 
 { #category : #indexes }
@@ -701,6 +698,35 @@ DatabaseTable >> sequences [
 	sequences := OrderedCollection new: 2.
 	self primaryKeyFields do: [:each | each type hasSequence ifTrue: [sequences add: each type sequence]].
 	^sequences.
+]
+
+{ #category : #initialize }
+DatabaseTable >> setSchemaAndNamesCaseFromTable: aDatabaseTable onPlatform: aDatabasePlatform [
+	"Initialize this table with case-matching names from aDatabaseTable when their spelling is otherwise identical.  On MySQL, we must do more:  MySQL will not match a constraints if the requested name is not the same including case, although (like other platforms), it will not allow two constraints differing only in case.  Thus we must take the constraint names of the database table if they match our up to case, but not exactly.
+	As we have in any case gone wrong if I and the parameter are not a lot alike, we do not bother to check whether two constraints whose names match up to case also satisfy #isSimilarForeignKeyConstraint: - we assume it is so."
+
+	| dbFkcNames dbUcNames |
+	self
+		name: aDatabaseTable name;		"caller ensures it must already be the same up to case"
+		schema: aDatabaseTable schema.
+	aDatabasePlatform isMySQLPlatform ifFalse: [^self].
+	dbFkcNames := aDatabaseTable foreignKeyConstraints collect: [:each | each name].
+	self foreignKeyConstraints do:
+		[:aConstraint || matchedName |
+		matchedName := dbFkcNames
+			detect: [:each | each asUppercase = aConstraint name asUppercase]
+			ifNone: [nil].
+		(matchedName isNil or: [matchedName = aConstraint name])
+		"or: [aConstraint isSimilarForeignKeyConstraint: aDatabaseTableForeignKeyConstraint) not]"
+			ifFalse: [aConstraint name: matchedName]].
+	dbUcNames := aDatabaseTable uniqueConstraints collect: [:each | each name].
+	self uniqueConstraints do:
+		[:aConstraint || matchedName |
+		matchedName := dbUcNames
+			detect: [:each | each asUppercase = aConstraint name asUppercase]
+			ifNone: [nil].
+		(matchedName isNil or: [matchedName = aConstraint name])
+			ifFalse: [aConstraint name: matchedName]].
 ]
 
 { #category : #accessing }

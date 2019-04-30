@@ -5,7 +5,7 @@ Class {
 		'mapping',
 		'person'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

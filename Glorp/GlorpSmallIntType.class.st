@@ -1,10 +1,7 @@
-"
-Small int type 
-"
 Class {
 	#name : #GlorpSmallIntType,
 	#superclass : #GlorpAbstractIntegerType,
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #initialize }

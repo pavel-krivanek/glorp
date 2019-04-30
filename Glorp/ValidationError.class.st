@@ -6,7 +6,7 @@ ValidationError is a superclass for all errors that are raise while validating a
 Class {
 	#name : #ValidationError,
 	#superclass : #GlorpError,
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'*Glorp' }

@@ -14,13 +14,13 @@ Class {
 		'value',
 		'alias'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 ConstantExpression class >> for: anObject [
 
-	^self new value: anObject
+	^self new value: anObject.
 ]
 
 { #category : #accessing }
@@ -89,7 +89,7 @@ ConstantExpression >> isConstantExpression [
 	^true.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #mapping }
 ConstantExpression >> mappedFields [
 	^Array with: self.
 ]
@@ -129,9 +129,9 @@ ConstantExpression >> rebuildOn: aBaseExpression startingFrom: anExpression with
 	^self.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 ConstantExpression >> table [
-	^nil.
+	^nil
 ]
 
 { #category : #accessing }
@@ -159,7 +159,7 @@ ConstantExpression >> valueInBuilder: aBuilder [
 	^value.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #mapping }
 ConstantExpression >> valueInBuilder: aBuilder as: anExpression [
 	^value.
 ]

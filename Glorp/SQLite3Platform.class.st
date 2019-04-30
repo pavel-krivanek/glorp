@@ -32,10 +32,18 @@ My int* and float*/double type methods that define Glorp types for SQLite confor
 Class {
 	#name : #SQLite3Platform,
 	#superclass : #DatabasePlatform,
-	#category : 'Glorp-Platforms'
+	#instVars : [
+		'supportsGroupWritingValues'
+	],
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
+SQLite3Platform class >> kind [
+	^'SQLite3'
+]
+
+{ #category : #constants }
 SQLite3Platform class >> reservedWords [
 
 	^#('abort' 'action' 'add' 'after' 'all' 'alter' 'analyze' 'and' 'as' 'asc' 'attach' 'autoincrement' 'before' 'begin' 'between' 'by' 'cascade' 'case' 'cast' 'check' 'collate' 'column' 'commit' 'conflict' 'constraint' 'create' 'cross' 'current_date' 'current_time' 'current_timestamp' 'database' 'default' 'deferrable' 'deferred' 'delete' 'desc' 'detach' 'distinct' 'drop' 'each' 'else' 'end' 'escape' 'except' 'exclusive' 'exists' 'explain' 'fail' 'for' 'foreign' 'from' 'full' 'glob' 'group' 'having' 'if' 'ignore' 'immediate' 'in' 'index' 'indexed' 'initially' 'inner' 'insert' 'instead' 'intersect' 'into' 'is' 'isnull' 'join' 'key' 'left' 'like' 'limit' 'match' 'natural' 'no' 'not' 'notnull' 'null' 'of' 'offset' 'on' 'or' 'order' 'outer' 'plan' 'pragma' 'primary' 'query' 'raise' 'references' 'regexp' 'reindex' 'release' 'rename' 'replace' 'restrict' 'right' 'rollback' 'row' 'savepoint' 'select' 'set' 'table' 'temp' 'temporary' 'then' 'to' 'transaction' 'trigger' 'union' 'unique' 'update' 'using' 'vacuum' 'values' 'view' 'virtual' 'when' 'where')
@@ -52,6 +60,14 @@ SQLite3Platform >> bindingsForGroupWritingFor: aCommand [
 	"Return the bindings array for a group write. This can be in different formats, depending on the database and perhaps the mechanism in place."
 
 	^aCommand batchStatementBindings
+]
+
+{ #category : #constants }
+SQLite3Platform >> canBind: aValue to: aType [
+	"See #supportsVariableSizedNumerics comment."
+
+	(Dialect isVisualWorks and: [aValue class == Dialect fixedPointClass]) ifTrue: [^false].
+	^super canBind: aValue to: aType
 ]
 
 { #category : #types }
@@ -72,7 +88,7 @@ SQLite3Platform >> convertIntegerToBoolean: anInteger for: aType [
 
 { #category : #'services tables' }
 SQLite3Platform >> createTableStatementStringFor: aGLORPDatabaseTable [ 
-	"^<String> This method returns a string which can be used to create a database table ..."
+	"This method returns a string which can be used to create a database table ..."
 
 	| sqlStatementStream tmpString fkeys |
 	tmpString := 'create table'.
@@ -172,6 +188,19 @@ SQLite3Platform >> initializeReservedWords [
 	super initializeReservedWords.
 ]
 
+{ #category : #commands }
+SQLite3Platform >> insertCommandForRows: aCollectionOfDatabaseRows binding: aBoolean session: aSession [
+	"I cannot group ;-separated INSERT statements but (if I am new enough - version 3.7.11 or later) I can group ,-separated values following a single INSERT statement.  I answer true to usesIdentityColumns;  if I am writing to a serial type (an identity column), the server will assign the value(s) and I must use a command that knows how to retrieve and assign them."
+
+	^self supportsGroupWritingValues
+		ifFalse: [InsertCommand forRows: aCollectionOfDatabaseRows useBinding: aBoolean session: aSession]
+		ifTrue: [InsertIdentityColumnCommand
+				forRows: aCollectionOfDatabaseRows
+				useBinding: aBoolean
+				session: aSession
+				ifNoIdentityColumn: InsertMultiValuesCommand]
+]
+
 { #category : #types }
 SQLite3Platform >> int2 [
 	^self smallint.
@@ -199,6 +228,19 @@ SQLite3Platform >> maximumLengthOfTableName [
 	^128
 ]
 
+{ #category : #binding }
+SQLite3Platform >> maximumSizeToGroupWriteFor: aRowBasedCommand [
+	"SQLite does not allow more than 500 rows in a single trip, so cap the super call to that.  However it also limits the number of bound values in a single trip, so reduce the maximum further if needed.  We use 999 because that is the (bizarre! - why not 1000) maximum number of bound values in most implementations;  0.3.13 on Mac is at least one exception where 5000 is the (more sensible) limit."
+
+	| unboundLimit |
+	unboundLimit := 500 min: (super maximumSizeToGroupWriteFor: aRowBasedCommand).
+	^aRowBasedCommand useBinding
+		ifFalse: [unboundLimit]
+		ifTrue: [unboundLimit min: 999 // aRowBasedCommand arrayBoundFields size]
+
+"The line above can underestimate the possible rows (equally, can overestimate the number of bound values):  see #batchStatementBindings for how the number of arrayBoundFields maps to the overall number of bound values.  However it seems the most efficient way to get a maximum."
+]
+
 { #category : #types }
 SQLite3Platform >> numeric [
 
@@ -213,6 +255,28 @@ SQLite3Platform >> nvarchar [
 { #category : #constants }
 SQLite3Platform >> parenthesizeCommandsInCompoundQuery [
 	^false
+]
+
+{ #category : #constants }
+SQLite3Platform >> parenthesizeCommandsInCompoundQuery: aQuery [
+
+	^(aQuery isUnionAll or: [(aQuery isIntersect) or: [aQuery isMinus ]]) not
+]
+
+{ #category : #login }
+SQLite3Platform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	"SQLite has been supporting group writing with the VALUES clause since version '3.7.11' inclusive."
+
+	| strm major minor least |
+	strm := aDatabaseAccessor connection dbmsVersion readStream.
+	major := (strm upTo: $.) asNumber.
+	major = 3 ifFalse:
+		[^supportsGroupWritingValues := major > 3].
+	minor := (strm upTo: $.) asNumber.
+	minor = 7 ifFalse:
+		[^supportsGroupWritingValues := minor > 7].
+	least := (strm upTo: $.) asNumber.
+	supportsGroupWritingValues := least >= 11.
 ]
 
 { #category : #'conversion-times' }
@@ -290,7 +354,7 @@ SQLite3Platform >> printTimestamp: aTimestampString on: stream for: aType [
 
 	aTimestampString isNil ifTrue: [stream nextPutAll: 'NULL'. ^self].
 	"The next line is checking code and can be dropped when SQLite is sufficiently tested."
-	aTimestampString class = Dialect timestampClass ifTrue: [self error: 'SQLite does not support timestamp types;  this should have been a String'].
+	aTimestampString class = Timestamp ifTrue: [self error: 'SQLite does not support timestamp types;  this should have been a String'].
 	stream nextPut: $'.
 	stream nextPutAll: aTimestampString.
 	stream nextPut: $'.
@@ -307,9 +371,8 @@ In the general case, there is no algorithmic way to convert subselect limits and
 	| subQueries |
 	subQueries := aQuery queries.
 	(subQueries allSatisfy: [:each | each limit = aQuery limit and: [each offset = aQuery offset]])
-"		ifFalse: [	just carry on and let it fail - don't hide the problem	]"
-		ifTrue:
-			[1 to: subQueries size - 1 do:
+"		ifFalse: [just carry on and let it fail - don't hide the problem]"
+		ifTrue: [1 to: subQueries size - 1 do:
 				[:index | (subQueries at: index) limit: nil; offset: nil]].
 ]
 
@@ -352,10 +415,10 @@ SQLite3Platform >> supportsAuthentication [
 { #category : #testing }
 SQLite3Platform >> supportsBinding [
 	"Return true if this platform supports binding parameters rather than printing them as strings into the SQL statement"
-	^false.
+	^true.
 ]
 
-{ #category : #constants }
+{ #category : #testing }
 SQLite3Platform >> supportsConstraints [
 	"Return false, because this platform does not support constraint add or drop statements.
 	However, foreign key constraints can be created as part of the create table statement.
@@ -363,6 +426,21 @@ SQLite3Platform >> supportsConstraints [
 	the table. (Eg., ALTER TABLE ADD COLUMN ...)."
 
 	^false
+]
+
+{ #category : #testing }
+SQLite3Platform >> supportsGroupWritingFor: aCommand [
+	"SQLite does not support batched statements, i.e. cannot do INSERT ...; INSERT ...; INSERT... , but since version 3.7.11 it does support value sequences, i.e. it can do INSERT INTO table (id, c) VALUES (1,'1'), (2,'2'), (3,'3')."
+
+	^aCommand supportsGroupWriting and: [aCommand supportsGroupWritingValues]
+]
+
+{ #category : #testing }
+SQLite3Platform >> supportsGroupWritingValues [
+	"Return true if we support multiple rows in a single INSERT statement, like this:
+	INSERT INTO table (id, city, state) VALUES (1, 'Boston', 'MA'), (2, 'New York',  'NY'), (3, 'San Francisco', 'CA')."
+
+	^supportsGroupWritingValues ifNil: [false]
 ]
 
 { #category : #testing }
@@ -520,6 +598,11 @@ SQLite3Platform >> usesIdentityColumns [
 	^true.
 ]
 
+{ #category : #testing }
+SQLite3Platform >> usesLengthNotEndPosInSubstring [
+	^true
+]
+
 { #category : #constants }
 SQLite3Platform >> usesNullForEmptyStrings [
 	^ true
@@ -536,4 +619,9 @@ SQLite3Platform >> varbinary [
 { #category : #types }
 SQLite3Platform >> varchar [
 	^self text.
+]
+
+{ #category : #accessing }
+SQLite3Platform >> vwEXDIConnectionClass [
+	^'SQLite3Connection' asQualifiedReference valueIfUndefinedLoadFrom: 'SQLite3EXDI'
 ]

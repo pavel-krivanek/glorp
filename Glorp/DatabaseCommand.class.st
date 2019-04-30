@@ -29,10 +29,10 @@ Class {
 		'sqlString',
 		'session'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseCommand class >> new [
 	^super new initialize.
 ]
@@ -45,6 +45,11 @@ DatabaseCommand >> arrayBoundFields [
 { #category : #accessing }
 DatabaseCommand >> bindingTypes [
 	self subclassResponsibility.
+]
+
+{ #category : #accessing }
+DatabaseCommand >> bindingTypesForEXDI [
+	^self bindingTypes collect: [:each | each exdiType].
 ]
 
 { #category : #accessing }
@@ -126,6 +131,11 @@ DatabaseCommand >> nextPutAll: aString [
 	^stream nextPutAll: aString.
 ]
 
+{ #category : #executing }
+DatabaseCommand >> nextPutBindMarkerIn: aRelationExpressionOrNil [
+	self nextPut: $?.
+]
+
 { #category : #'stream behaviour' }
 DatabaseCommand >> nextPutString: aString [
 	^self nextPutAll: aString.
@@ -180,7 +190,7 @@ DatabaseCommand >> session: aGlorpSession [
 
 { #category : #testing }
 DatabaseCommand >> shouldUseGroupWriting [
-	^(self hasMultipleRows and: [self platform supportsGroupWritingFor: self])
+	^self hasMultipleRows and: [self platform supportsGroupWritingFor: self]
 ]
 
 { #category : #accessing }

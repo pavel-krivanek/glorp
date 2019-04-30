@@ -10,7 +10,7 @@ Class {
 		't3id',
 		'platform'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

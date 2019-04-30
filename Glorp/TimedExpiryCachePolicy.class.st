@@ -13,7 +13,7 @@ Class {
 	#instVars : [
 		'timeout'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Core'
 }
 
 { #category : #'wrap/unwrap' }
@@ -61,16 +61,6 @@ TimedExpiryCachePolicy >> timeout [
 { #category : #accessing }
 TimedExpiryCachePolicy >> timeout: seconds [
 	timeout := seconds
-]
-
-{ #category : #accessing }
-TimedExpiryCachePolicy >> timeoutSeconds [
-	^timeout
-]
-
-{ #category : #accessing }
-TimedExpiryCachePolicy >> timeoutSeconds: anInteger [
-	timeout := anInteger.
 ]
 
 { #category : #utility }

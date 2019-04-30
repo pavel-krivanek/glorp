@@ -34,7 +34,7 @@ Class {
 		'debugRead',
 		'debugWrite'
 	],
-	#category : 'Glorp-Mappings'
+	#category : #'Glorp-Mappings'
 }
 
 { #category : #'instance creation' }

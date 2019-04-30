@@ -1,10 +1,7 @@
-"
-Abstract numeric type
-"
 Class {
 	#name : #GlorpAbstractNumericType,
 	#superclass : #GlorpDatabaseType,
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #converting }

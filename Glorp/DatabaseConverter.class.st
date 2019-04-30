@@ -17,10 +17,10 @@ Class {
 	#instVars : [
 		'name'
 	],
-	#category : 'Glorp-Database'
+	#category : #'Glorp-Database'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 DatabaseConverter class >> new [
 
 	^super new initialize.

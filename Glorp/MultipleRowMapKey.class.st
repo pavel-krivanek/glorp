@@ -10,7 +10,7 @@ Class {
 	#category : 'Glorp-UnitOfWork'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 MultipleRowMapKey class >> new [
 	"Answer a newly created and initialized instance."
 
@@ -24,7 +24,7 @@ MultipleRowMapKey class >> with: key1 with: key2 with: key3 [
 		addKey: key1;
 		addKey: key2;
 		addKey: key3;
-		yourself
+		yourself.
 ]
 
 { #category : #'instance creation' }
@@ -32,7 +32,7 @@ MultipleRowMapKey class >> withAll: aCollection [
 	
 	^self new 
 		addAllKeys: aCollection;
-		yourself
+		yourself.
 ]
 
 { #category : #comparing }
@@ -43,17 +43,17 @@ MultipleRowMapKey >> = aRowMapKey [
 	"We can't rely on the order being the same because of the obscure but real case of two different related objects with the same identityHash"
 	aRowMapKey keys do: [:each |
 		(keys includes: each) ifFalse: [^false]].
-	^true
+	^true.
 ]
 
 { #category : #accessing }
 MultipleRowMapKey >> addAllKeys: aKeyCollection [
-	keys addAll: aKeyCollection
+	keys addAll: aKeyCollection.
 ]
 
 { #category : #accessing }
 MultipleRowMapKey >> addKey: aKey [
-	keys add: aKey
+	keys add: aKey.
 ]
 
 { #category : #adjusting }
@@ -62,7 +62,7 @@ MultipleRowMapKey >> adjustIn: aCorrespondenceMap [
 	| adjusted |
 	adjusted := self copy.
 	adjusted keys: (keys collect: [:each | aCorrespondenceMap at: each ifAbsent: [each]]).
-	^adjusted
+	^adjusted.
 ]
 
 { #category : #comparing }
@@ -73,22 +73,22 @@ MultipleRowMapKey >> hash [
 	hash := 0.
 	keys doWithIndex: [:each :index |
 		hash := hash bitXor: (each identityHash bitShift: increment * index)].
-	^hash
+	^hash.
 ]
 
 { #category : #'initialize-release' }
 MultipleRowMapKey >> initialize [
-	keys := (SortedCollection new: 4) sortBlock: self sortBlock
+	keys := (SortedCollection new: 4) sortBlock: self sortBlock.
 ]
 
 { #category : #accessing }
 MultipleRowMapKey >> keys [
-	^keys
+	^keys.
 ]
 
 { #category : #accessing }
 MultipleRowMapKey >> keys: aCollection [
-	keys := (aCollection asSortedCollection: self sortBlock)
+	keys := (aCollection asSortedCollection: self sortBlock).
 ]
 
 { #category : #printing }
@@ -96,7 +96,7 @@ MultipleRowMapKey >> printOn: aStream [
 	aStream nextPutAll: 'KEY('.
 	self hash printOn: aStream.
 	aStream nextPutAll: '):'.
-	keys printOn: aStream
+	keys printOn: aStream.
 ]
 
 { #category : #adjusting }
@@ -106,10 +106,10 @@ MultipleRowMapKey >> reverseAdjustIn: aRowMapForMementos [
 	adjusted := self copy.
 	adjusted keys: (keys collect: [:each | 
 		aRowMapForMementos reversedCorrespondenceMap at: each ifAbsent: [each]]).
-	^adjusted
+	^adjusted.
 ]
 
 { #category : #'initialize-release' }
 MultipleRowMapKey >> sortBlock [
-	^[:a :b | a identityHash <= b identityHash]
+	^[:a :b | a identityHash <= b identityHash].
 ]

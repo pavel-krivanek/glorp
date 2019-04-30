@@ -13,7 +13,7 @@ This class attempts to find the correct conversion function for the intended CAS
 Class {
 	#name : #AccessCast,
 	#superclass : #Cast,
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #functions }

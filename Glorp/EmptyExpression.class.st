@@ -14,12 +14,12 @@ Class {
 		'base',
 		'value'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }
 EmptyExpression class >> on: aValue [
-	^self new value: aValue
+	^self new value: aValue.
 ]
 
 { #category : #api }

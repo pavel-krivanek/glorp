@@ -5,7 +5,7 @@ Users can delete an object from their database and then create another object wi
 Class {
 	#name : #GlorpMatchDeleteInsertTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #running }

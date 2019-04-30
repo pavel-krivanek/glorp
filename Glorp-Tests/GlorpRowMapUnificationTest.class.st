@@ -14,7 +14,7 @@ Class {
 		'rowMap',
 		'platform'
 	],
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #support }

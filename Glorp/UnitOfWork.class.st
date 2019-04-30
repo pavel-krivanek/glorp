@@ -28,13 +28,13 @@ Class {
 		'commitPhase',
 		'deleting'
 	],
-	#category : 'Glorp-UnitOfWork'
+	#category : #'Glorp-UnitOfWork'
 }
 
 { #category : #'instance creation' }
 UnitOfWork class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #'begin/commit/abort' }
@@ -59,13 +59,13 @@ UnitOfWork >> addObject: eachObject toCacheKeyedBy: key [
 { #category : #'private/mapping' }
 UnitOfWork >> addToCommitPlan: aRow [
 	aRow shouldBeWritten ifFalse: [^self].
-	commitPlan add: aRow
+	commitPlan add: aRow.
 ]
 
 { #category : #'private/mapping' }
 UnitOfWork >> addToDeletePlan: aRow [
 	
-	deletePlan add: aRow
+	deletePlan add: aRow.
 ]
 
 { #category : #'private/mapping' }
@@ -92,7 +92,7 @@ UnitOfWork >> buildCommitPlan [
 					eachRow forDeletion 
 						ifTrue: [self addToDeletePlan: eachRow]
 						ifFalse: [self addToCommitPlan: eachRow]]].
-	self sortCommitPlanRows
+	self sortCommitPlanRows.
 ]
 
 { #category : #'begin/commit/abort' }
@@ -102,7 +102,7 @@ UnitOfWork >> commit [
 	succeeded
 		ifTrue: [self postCommit]
 		ifFalse:
-			[GlorpTransactionFailure signal]
+			[GlorpTransactionFailure signal].
 ]
 
 { #category : #deletion }
@@ -118,27 +118,30 @@ UnitOfWork >> computeCollectionDeletes [
 
 { #category : #deletion }
 UnitOfWork >> computeCollectionDeletesFor: aMapping inObject: anObject [
-	"Figure out which, if any, dependent objects we should delete based on changes to the corresponding collection in anObject"
-	| collection memento collectionMemento |
+	"If aMapping is exclusive and is to a collection, any objects removed from that collection during this transaction should be deleted.  We therefore compare the state of the collection at the start of the transaction to its current state (ignoring any uninstantiated proxies;  we filter the current and memento collections for these in separate iterations, not in a double iteration, as it is much faster)."
+
+	| memento currentObjects mementoObjects currentObjectSet |
 	aMapping isExclusive ifFalse: [^self].
 	aMapping attribute isCollectionAttribute ifFalse: [^self].
-	collection := aMapping getValueFrom: anObject.
-	collection := self session realObjectFor: collection ifNone: [^self].
-	(aMapping isValidTarget: collection) ifFalse: [^self].
+	currentObjects := self session
+		realObjectFor: (aMapping getValueFrom: anObject)
+		ifNone: [^self].
+	(aMapping isValidTarget: currentObjects) ifFalse: [^self].
 	memento := transaction mementoFor: anObject.
-	collectionMemento := transaction collectionMementoFor: (self session realObjectFor: (aMapping getValueFrom: memento)).
-	"OK, now we have the state of the original collection and the new collection, we can look for differences."
-	collectionMemento do: [:each |
-		| matching |
-		(each isGlorpProxy not or: [each isInstantiated]) ifTrue: [
-			matching := collection 
-				detect: [:eachElement | 
-					(eachElement isGlorpProxy not or: [eachElement isInstantiated])
-						and: [each yourSelf == eachElement yourSelf]]
-				ifNone: [nil].
-			matching == nil ifTrue: [session delete: each]
-		]
-	]
+	mementoObjects := transaction collectionMementoFor:
+		(self session realObjectFor: (aMapping getValueFrom: memento)).
+	"Now that we have the state of the new collection and the original collection, we can look for differences."
+	currentObjectSet := IdentitySet new: (currentObjects size * 4 // 3) + 1.
+	currentObjects isNil ifFalse:
+		[currentObjects do:
+			[:each |
+			(each isGlorpProxy not or: [each isInstantiated]) ifTrue:
+				[currentObjectSet add: each yourSelf]]].
+	mementoObjects do:
+		[:each |
+		(each isGlorpProxy not or: [each isInstantiated]) ifTrue:
+			[(currentObjectSet includes: each yourSelf)
+				ifFalse: [session delete: each]]].
 ]
 
 { #category : #accessing }
@@ -189,30 +192,30 @@ UnitOfWork >> createRowsForPartialWrites [
 	deletedObjects 
 		do: [:eachObject | session createDeleteRowsFor: eachObject in: registeredObjectsRowMap].
 	mementoObjectsRowMap := self createMementoRowMapFor: self mementoObjects.
-	rowMap := registeredObjectsRowMap differenceFrom: mementoObjectsRowMap
+	rowMap := registeredObjectsRowMap differenceFrom: mementoObjectsRowMap.
 ]
 
 { #category : #deletion }
 UnitOfWork >> delete: anObject [
 	(self isRegistered: anObject) ifFalse: [session registerForDelete: anObject].
 	deletedObjects add: anObject.
-	(session embeddedObjectsFor: anObject) do: [:each | self delete: each]
+	(session embeddedObjectsFor: anObject) do: [:each | self delete: each].
 ]
 
 { #category : #private }
 UnitOfWork >> deletedObjects [
-	^deletedObjects
+	^deletedObjects.
 ]
 
 { #category : #testing }
 UnitOfWork >> forcesUpdateFor: aDatabaseRow [
-	^linkRowsForUpdate notNil and: [linkRowsForUpdate includes: aDatabaseRow]
+	^linkRowsForUpdate notNil and: [linkRowsForUpdate includes: aDatabaseRow].
 ]
 
 { #category : #deletion }
 UnitOfWork >> hasPendingDeletions [
 
-	^deletedObjects isEmpty not
+	^deletedObjects isEmpty not.
 ]
 
 { #category : #initializing }
@@ -241,7 +244,7 @@ UnitOfWork >> instantiateIfRequiredFor: anObject mapping: eachMapping [
 	originalTarget := self originalValueFor: anObject mapping: mapping.
 	^instantiated or: [self
 		instantiateIfRequiredForReferenceChangedFrom: originalTarget
-		to: targetObject]
+		to: targetObject].
 ]
 
 { #category : #'private/mapping' }
@@ -263,7 +266,7 @@ UnitOfWork >> instantiateIfRequiredForDeletedObjectReferencing: targetObject fro
 					ifTrue: [
 						targetObject yourSelf.
 						^true]]].
-	^false
+	^false.
 ]
 
 { #category : #'private/mapping' }
@@ -271,7 +274,7 @@ UnitOfWork >> instantiateIfRequiredForNewObjectReferenceTo: targetObject [
 	"If it's a new object, then we always need to instantiate"
 	targetObject isGlorpProxy ifFalse: [^false].
 	targetObject getValue.
-	^true
+	^true.
 ]
 
 { #category : #'private/mapping' }
@@ -284,24 +287,24 @@ UnitOfWork >> instantiateIfRequiredForReferenceChangedFrom: originalTarget to: n
 	self notFilteringDeletesDo: [
 		originalTarget isGlorpProxy ifTrue: [wasProxy := true. originalTarget getValue].
 		newTarget isGlorpProxy ifTrue: [wasProxy := true. newTarget getValue]].
-	^wasProxy
+	^wasProxy.
 ]
 
 { #category : #testing }
 UnitOfWork >> isNewObject: anObject [ 
-	^self newObjects includes: anObject
+	^self newObjects includes: anObject.
 ]
 
 { #category : #registering }
 UnitOfWork >> isRegistered: anObject [
 
-	^transaction isRegistered: anObject
+	^transaction isRegistered: anObject.
 ]
 
 { #category : #'begin/commit/abort' }
 UnitOfWork >> mementoObjects [
 	"Warning: Excessive cleverness!!! The mementoObjects we want to iterate over are the values in the correspondenceMap dictionary. We were getting the values and returning them, but if all we need to do is iterate, then the dictionary itself works fine"
-	^self correspondenceMap
+	^self correspondenceMap.
 ]
 
 { #category : #accessing }
@@ -317,19 +320,19 @@ UnitOfWork >> notFilteringDeletesDo: aBlock [
 	| oldCommitPhase |
 	[oldCommitPhase := commitPhase.
 	commitPhase := #registering.
-	aBlock value] ensure: [commitPhase := oldCommitPhase]
+	aBlock value] ensure: [commitPhase := oldCommitPhase].
 ]
 
 { #category : #accessing }
 UnitOfWork >> numberOfRows [
-	^commitPlan size + deletePlan size
+	^commitPlan size + deletePlan size.
 ]
 
 { #category : #'private/mapping' }
 UnitOfWork >> originalValueFor: anObject mapping: eachMapping [
 	| memento |
 	memento := transaction undoMap at: anObject.
-	^eachMapping getValueFrom: memento
+	^eachMapping getValueFrom: memento.
 ]
 
 { #category : #'begin/commit/abort' }
@@ -349,7 +352,7 @@ UnitOfWork >> preCommit [
 	self buildCommitPlan.
 	commitPhase := nil.
 	self sendPreWriteNotification.
-	self validateRows
+	self validateRows.
 ]
 
 { #category : #private }
@@ -361,7 +364,7 @@ UnitOfWork >> privateGetRowMap [
 { #category : #private }
 UnitOfWork >> privateGetTransaction [
 
-	^transaction
+	^transaction.
 ]
 
 { #category : #'begin/commit/abort' }
@@ -388,7 +391,7 @@ UnitOfWork >> propagateDeletes [
 									(realSubObject notNil and: [(deletedObjects includes: realSubObject) not])
 										ifTrue:
 											[session delete: subObject.
-											deletionQueue add: realSubObject]]]]]
+											deletionQueue add: realSubObject]]]]].
 ]
 
 { #category : #'private/mapping' }
@@ -409,7 +412,7 @@ UnitOfWork >> register: anObject [
 	| realObject |
 	commitPhase == #building ifTrue: [self halt]. "Should not happen. Probably indicates that we're triggering proxies while firing the mappings"
 	realObject := transaction register: anObject.
-	self registerTransitiveClosureFrom: realObject
+	self registerTransitiveClosureFrom: realObject.
 ]
 
 { #category : #private }
@@ -425,7 +428,7 @@ UnitOfWork >> registerAsNew: anObject [
 UnitOfWork >> registerForDelete: anObject [ 
 	"Register anObject with intent to delete it."
 	[deleting add: anObject.
-	self register: anObject] ensure: [deleting remove: anObject ifAbsent: []]
+	self register: anObject] ensure: [deleting remove: anObject ifAbsent: []].
 ]
 
 { #category : #'begin/commit/abort' }
@@ -441,23 +444,27 @@ UnitOfWork >> registerTransitiveClosure [
 
 { #category : #'private/mapping' }
 UnitOfWork >> registerTransitiveClosureFrom: anObject [
-
 	| descriptor |
-	anObject glorpIsCollection ifTrue: [
-		anObject do: [:each | session register: each].
+	anObject glorpIsCollection ifTrue:
+		[anObject glorpIsDictionary
+			ifFalse: [anObject do: [:each | session register: each]]
+			ifTrue: [anObject keysAndValuesDo:
+					[:eachKey :eachValue |
+					session register: eachKey; register: eachValue]].
 		^self].
 
 	descriptor := session descriptorFor: anObject class.
 	descriptor isNil ifTrue: [^self].
-	descriptor mappings do: [:eachMapping |
-			self instantiateIfRequiredFor: anObject mapping: eachMapping].
-	descriptor referencedIndependentObjectsFrom: anObject do: [:eachObject |
-		session register: eachObject]
+	descriptor mappings do:
+		[:eachMapping |
+		self instantiateIfRequiredFor: anObject mapping: eachMapping].
+	descriptor referencedIndependentObjectsFrom: anObject do:
+		[:eachObject | session register: eachObject].
 ]
 
 { #category : #'begin/commit/abort' }
 UnitOfWork >> registeredObjects [
-	^self correspondenceMap keys asOrderedCollection
+	^self correspondenceMap keys
 ]
 
 { #category : #enumerating }
@@ -465,10 +472,10 @@ UnitOfWork >> registeredObjectsDo: aBlock [
 
 	transaction registeredObjectsDo: [:each |
 		(each glorpIsCollection or: [session hasDescriptorFor: each]) ifTrue: [
-			aBlock value: each]]
+			aBlock value: each]].
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 UnitOfWork >> reinitialize [
 
 	rowMap := RowMap new.
@@ -477,7 +484,7 @@ UnitOfWork >> reinitialize [
 	deleting := IdentitySet new.
 	commitPlan := OrderedCollection new.
 	deletePlan := OrderedCollection new.
-	transaction abort
+	transaction abort.
 ]
 
 { #category : #'private/mapping' }
@@ -486,7 +493,7 @@ UnitOfWork >> relatedRowsFor: each [
 	rows := each relatedRowsIn: rowMap.
 	extraRows := self session system additionalRelatedRowsFor: each in: rowMap.
 	extraRows isNil ifFalse: [rows addAll: extraRows].
-	^rows select: [:eachRelatedRow | eachRelatedRow status notNil]
+	^rows select: [:eachRelatedRow | eachRelatedRow status notNil].
 ]
 
 { #category : #'private/mapping' }
@@ -511,12 +518,12 @@ UnitOfWork >> rollback [
 { #category : #enumerating }
 UnitOfWork >> rowsForTable: aTable do: aBlock [
 
-	rowMap rowsForTable: aTable do: aBlock
+	rowMap rowsForTable: aTable do: aBlock.
 ]
 
 { #category : #accessing }
 UnitOfWork >> rowsToWrite [
-	^commitPlan
+	^commitPlan.
 ]
 
 { #category : #private }
@@ -544,7 +551,7 @@ UnitOfWork >> session: aGlorpSession [
 { #category : #testing }
 UnitOfWork >> shouldFilterDeletions [
 	"Should we filter deleted objects from the results of queries. We don't do this if we're in the process of registering the transitive closure, because any fetches we do there are in order to get information we need for the commit (e.g. primary keys). If we filtered the deleted objects, then we may not be able to figure out primary keys for the objects to be deleted"
-	^commitPhase ~~ #registering
+	^commitPhase ~~ #registering.
 ]
 
 { #category : #'private/mapping' }
@@ -555,18 +562,18 @@ UnitOfWork >> sortCommitPlanRows [
 	commitPlan := sorter sort: commitPlan.
 	sorter := GlorpRowSorter new
 		getChildrenVia: [:each | self relatedRowsFor: each].
-	deletePlan := sorter sort: deletePlan
+	deletePlan := sorter sort: deletePlan.
 ]
 
 { #category : #accessing }
 UnitOfWork >> system [
-	^session system
+	^session system.
 ]
 
 { #category : #deletion }
 UnitOfWork >> undelete: anObject ifNotDeleted: aBlock [
 	deletedObjects remove: anObject ifAbsent: aBlock.
-	(session embeddedObjectsFor: anObject) do: [:each | self undelete: each]
+	(session embeddedObjectsFor: anObject) do: [:each | self undelete: each].
 ]
 
 { #category : #'private/mapping' }
@@ -589,7 +596,7 @@ UnitOfWork >> updateSessionCacheFor: anObject withRow: aRow [
 	key := aRow primaryKey.
 	key isNil ifTrue: [^self].
 	(session cacheContainsObjectForClass: anObject class key: key) 
-		ifFalse: [self addObject: anObject toCacheKeyedBy: key]
+		ifFalse: [self addObject: anObject toCacheKeyedBy: key].
 ]
 
 { #category : #'begin/commit/abort' }
@@ -602,7 +609,7 @@ UnitOfWork >> validateRows [
 		tables add: each table].
 	tableNames := tables collect: [:each | each qualifiedName].
 	tables asSet size = tableNames asSet size ifFalse: [self error: 'multiple table objects with the same name'].
-	self system validateRows: self
+	self system validateRows: self.
 ]
 
 { #category : #'begin/commit/abort' }
@@ -615,7 +622,7 @@ UnitOfWork >> validateRowsPostWrite [
 { #category : #deletion }
 UnitOfWork >> willDelete: anObject [
 	"Return true if we will delete anObject when we commit."	
-	^(deletedObjects includes: anObject) or: [deleting includes: anObject]
+	^(deletedObjects includes: anObject) or: [deleting includes: anObject].
 ]
 
 { #category : #'private/mapping' }
@@ -628,17 +635,18 @@ UnitOfWork >> writeRows [
 	deletePlan reverseDo: [:eachRow | | rowSucceeded |
 		rowSucceeded := session writeRow: eachRow.
 		succeeded := succeeded & rowSucceeded].
-	self readBackNewRowInformation
+	self readBackNewRowInformation.
 ]
 
 { #category : #'private/mapping' }
 UnitOfWork >> writeRowsForTable: aTable [
+	"No isEmpty check is needed as the writeHomogeneousRows: method checks it.  Return is not used."
 
 	| rows rowsByOperation |
-
-	rows := rowsByTable at: aTable ifAbsent: [#()].
-	^rows isEmpty ifFalse: [
-		rowsByOperation := rows glorpGroupedBy: [:eachRow | session shouldInsert: eachRow].
-		rowsByOperation do: [:eachListOfHomogeneousRows | 
-			succeeded := succeeded & (session writeHomogeneousRows: eachListOfHomogeneousRows)]]
+	rows := rowsByTable at: aTable ifAbsent: [^self].
+	rowsByOperation := rows glorpGroupedBy: [:eachRow | session shouldInsert: eachRow].
+	rowsByOperation do:
+		[:eachListOfHomogeneousRows |
+		succeeded := succeeded &
+			(session writeHomogeneousRows: eachListOfHomogeneousRows)].
 ]

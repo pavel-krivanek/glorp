@@ -14,7 +14,7 @@ Class {
 		'descriptor',
 		'availableSubSelectNumber'
 	],
-	#category : 'Glorp-Expressions'
+	#category : #'Glorp-Exceptions'
 }
 
 { #category : #accessing }
@@ -113,6 +113,13 @@ BaseExpression >> hasDescriptor [
 { #category : #accessing }
 BaseExpression >> mappedFields [
 	^self descriptor mappedFields collect: [:each | self translateField: each].
+]
+
+{ #category : #accessing }
+BaseExpression >> mappingSequenceName [
+	"Terminate the concatenation."
+
+	^''
 ]
 
 { #category : #testing }

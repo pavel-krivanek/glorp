@@ -15,23 +15,23 @@ ObjectBuilder >> buildObjectFrom: anArray [
 	self row: anArray.
 	self requiresPopulating ifTrue: [self populateInstance].
 	(self system shouldResetExpiryTimeForObjectOfClass: instance class readFrom: self query)
-		ifTrue: [self session markAsCurrentOfClass: instance class key: self key]
+		ifTrue: [self session markAsCurrentOfClass: instance class key: self key].
 ]
 
 { #category : #testing }
 ObjectBuilder >> buildsObjects [
-	^true
+	^true.
 ]
 
 { #category : #accessing }
 ObjectBuilder >> cachedQueryFor: aMapping [
-	^self queryCache at: aMapping ifAbsent: [nil]
+	^self queryCache at: aMapping ifAbsent: [nil].
 ]
 
 { #category : #accessing }
 ObjectBuilder >> cachedQueryFor: aMapping is: aQuery [
 	"Save a query which we will use when constructing filtered queries"
-	self queryCache at: aMapping put: aQuery
+	self queryCache at: aMapping put: aQuery.
 ]
 
 { #category : #'building objects' }
@@ -39,41 +39,41 @@ ObjectBuilder >> canBuild [
 	"If we have a regular object with a nil primary key, or if we have an embedded object whose values are all nil, we can't build anything (probably due to an outer join)"
 	^self descriptor mapsPrimaryKeys
 		ifTrue: [self key notNil]
-		ifFalse: [true]
+		ifFalse: [true].
 ]
 
 { #category : #'building objects' }
 ObjectBuilder >> canCache [
 	| keyFields |
 	keyFields := self descriptor keyFields.
-	^keyFields notNil and: [keyFields notEmpty]
+	^keyFields notNil and: [keyFields notEmpty].
 ]
 
 { #category : #accessing }
 ObjectBuilder >> canCauseDuplicateRows [
-	^expression class == MappingExpression and: [expression mapping isToManyRelationship]
+	^expression class == MappingExpression and: [expression mapping isToManyRelationship].
 ]
 
 { #category : #accessing }
 ObjectBuilder >> command [
-	^cursor command
+	^cursor command.
 ]
 
 { #category : #'building objects' }
 ObjectBuilder >> createObjectOfClass: aClass [
 	"Try to create objects using new, so initialization can run. But if we can't do it, then just use basicNew."
-	^[aClass new] on: Error do: [:ex | ex return: aClass basicNew]
+	^[aClass new] on: Error do: [:ex | ex return: aClass basicNew].
 ]
 
 { #category : #accessing }
 ObjectBuilder >> descriptor [
 	
-	^expression descriptor
+	^expression descriptor.
 ]
 
 { #category : #'selecting fields' }
 ObjectBuilder >> fieldsForSelectStatement [
-	^self fieldsFromThePerspectiveOfTheMainSelect: (self fieldsFromMyPerspective)
+	^self fieldsFromThePerspectiveOfTheMainSelect: (self fieldsFromMyPerspective).
 ]
 
 { #category : #'selecting fields' }
@@ -85,7 +85,7 @@ ObjectBuilder >> fieldsFromMyPerspective [
 
 { #category : #'selecting fields' }
 ObjectBuilder >> fieldsFromThePerspectiveOfTheMainSelect: aCollection [
-	^expression translateFields: aCollection
+	^expression translateFields: aCollection.
 ]
 
 { #category : #'building objects' }
@@ -108,14 +108,14 @@ ObjectBuilder >> findInstanceForRow: aRow proxyType: proxyType [
 	instance := self createObjectOfClass: (expression descriptor
 		describedConcreteClassFor: self row
 		withBuilder: self).
-	self canCache ifTrue: [self session cacheAt: self key put: instance]
+	self canCache ifTrue: [self session cacheAt: self key put: instance].
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 ObjectBuilder >> initialize [
 
 	requiresPopulating := false.
-	isExpired := false
+	isExpired := false.
 ]
 
 { #category : #accessing }
@@ -142,7 +142,7 @@ ObjectBuilder >> instanceExistsButIsDeleted [
 
 { #category : #accessing }
 ObjectBuilder >> key [
-	^self primaryKey
+	^self primaryKey.
 ]
 
 { #category : #'building objects' }
@@ -187,7 +187,7 @@ ObjectBuilder >> newProxyWithNewQueryForClass: aClass [
 		parameters: parameters;
 		query: self queryForNewProxy.
 	self session addToReaper: instance.
-	^self
+	^self.
 ]
 
 { #category : #'building objects' }
@@ -221,7 +221,7 @@ ObjectBuilder >> printOn: aStream [
 	super printOn: aStream.
 	aStream nextPut: $(.
 	expression printOn: aStream.
-	aStream nextPut: $)
+	aStream nextPut: $).
 ]
 
 { #category : #accessing }
@@ -244,7 +244,7 @@ ObjectBuilder >> queryForNewProxy [
 
 { #category : #accessing }
 ObjectBuilder >> requiresPopulating [
-	^requiresPopulating and: [self returnProxies not]
+	^requiresPopulating and: [self returnProxies not].
 ]
 
 { #category : #accessing }
@@ -254,7 +254,7 @@ ObjectBuilder >> requiresPopulating: aBoolean [
 
 { #category : #accessing }
 ObjectBuilder >> returnProxies [
-	^query returnProxies
+	^query returnProxies.
 ]
 
 { #category : #accessing }
@@ -265,10 +265,10 @@ ObjectBuilder >> returnValueIn: aCursoredStream [
 	expression mapping isToManyRelationship ifFalse: [^self instance].
 	relatedBuilder := aCursoredStream elementBuilderFor: expression base.
 	(relatedBuilder isNil or: [relatedBuilder instance isNil]) ifTrue: [^self instance].
-	^expression mapping getValueFrom: relatedBuilder instance
+	^expression mapping getValueFrom: relatedBuilder instance.
 ]
 
 { #category : #'building objects' }
 ObjectBuilder >> shouldProxyInstanceFor: proxyType [
-	^proxyType notNil
+	^proxyType notNil.
 ]

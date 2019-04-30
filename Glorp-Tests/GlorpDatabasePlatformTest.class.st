@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpDatabasePlatformTest,
 	#superclass : #GlorpTestCase,
-	#category : 'Glorp-Tests-Tests'
+	#category : #'Glorp-Tests'
 }
 
 { #category : #tests }
@@ -24,7 +24,7 @@ GlorpDatabasePlatformTest >> helpTestPrintTimestamp: aTimestampString [
 	aStream := WriteStream on: String new.
 	DatabasePlatform new printDate: ts isoFormatOn: aStream.
 	aStream nextPut: Character space.
-	DatabasePlatform new printTime: ts isoFormatOn: aStream milliseconds: Dialect supportsMillisecondsInTimes .
+	DatabasePlatform new printTime: ts isoFormatOn: aStream milliseconds: true.
 	timestamp := aStream contents.
 	self assert: timestamp = aTimestampString.
 ]
@@ -32,7 +32,11 @@ GlorpDatabasePlatformTest >> helpTestPrintTimestamp: aTimestampString [
 { #category : #tests }
 GlorpDatabasePlatformTest >> string20 [
 	| platform |
-	platform := PostgresPlatform new.
+	platform := Dialect isVisualAge
+		ifTrue:
+			[Transcript cr; show: self class name, '>>string20: testing Oracle, not PostgreSQL'.
+			OraclePlatform new]
+		ifFalse: [PostgresSocketPlatform new].
 	platform characterEncoding: #'utf-8'.
 	^platform varchar: 20.
 ]
@@ -67,14 +71,14 @@ GlorpDatabasePlatformTest >> testReadTimestamp [
 
 	| ts |
 	ts := DatabasePlatform new readTimestamp: '2003-03-03 15:29:28.337-05' for: nil.
-	self assert: ts asSeconds + ts offset asSeconds = 3224158168.
-	self assert: ([ts asMilliseconds + ts offset asMilliSeconds = 3224158168337 ]
+	self assert: ts asSeconds = 3224158168.
+	self assert: ([ts asMilliseconds = 3224158168337 ]
 		on: MessageNotUnderstood
 		do: [ :mnu | mnu return: mnu message selector = #asMilliseconds ]).
 
 	ts := DatabasePlatform new readTimestamp: '2003-03-13 15:29:28.337-05' for: nil.
-	self assert: ts asSeconds + ts offset asSeconds = 3225022168.
-	self assert: ([ts asMilliseconds + ts offset asMilliSeconds = 3225022168337]
+	self assert: ts asSeconds = 3225022168.
+	self assert: ([ts asMilliseconds = 3225022168337]
 		on: MessageNotUnderstood
 		do: [ :mnu | mnu return: mnu message selector = #asMilliseconds ])
 ]
@@ -159,6 +163,7 @@ GlorpDatabasePlatformTest >> testTrimString1 [
 GlorpDatabasePlatformTest >> testTrimString2 [
 	"Some special characters"
 	| type plat string |
+	Dialect isVisualAge ifTrue: [Transcript cr; show: self class name; show: '>>testTrimString2 skipped in VA'. ^self].
 
 	type := self string20.
 	plat := type platform.

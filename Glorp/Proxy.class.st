@@ -17,62 +17,62 @@ Class {
 		'parameters',
 		'action'
 	],
-	#category : 'Glorp-Queries'
+	#category : #'Glorp-Queries'
 }
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> read: aClass where: aBlock [
 	^self new query: (Query read: aClass where: aBlock)
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> read: aClass where: aBlock in: aSession [
 	^self new
 		query: (Query read: aClass where: aBlock);
 		session: aSession
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> readOneOf: aClass where: aBlock [
 	^self new query: (Query readOneOf: aClass where: aBlock)
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> readOneOf: aClass where: aBlock in: aSession [
 	^self new
 		query: (Query readOneOf: aClass where: aBlock);
 		session: aSession.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> returningManyOf: aClass where: aBlock [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: aBlock
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> returningManyOf: aClass where: aBlock in: aSession [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: aBlock in: aSession
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> returningOneOf: aClass where: aBlock [
 	"returningOneOf: is a synonyms of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:where:).
 	^self readOneOf: aClass where: aBlock
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'instance creation' }
 Proxy class >> returningOneOf: aClass where: aBlock in: aSession [
 	"returningOneOf: is a synonyms of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:where:).
 	^self readOneOf: aClass where: aBlock in: aSession
 ]
 
@@ -117,7 +117,7 @@ Proxy >> glorpOwner [
 Proxy >> glorpOwner: anObject [
 	"If we don't have an action, the owner is unnecessary. Ignore it. If we do have one, put it in as the key of an association with the action block following it."
 	action isNil ifTrue: [^self].
-	action key: anObject
+	action key: anObject.
 ]
 
 { #category : #'proxy actions' }
@@ -131,7 +131,7 @@ Proxy >> glorpProxyAction [
 Proxy >> glorpProxyAction: aTwoArgumentBlock [
 	"Set the action we'll take when the proxy fires. This is a two argument block that takes the owning object and the value of the proxy as arguments."
 	aTwoArgumentBlock isNil ifTrue: [^action := nil].
-	action := nil -> aTwoArgumentBlock
+	action := nil -> aTwoArgumentBlock.
 ]
 
 { #category : #'proxy actions' }
@@ -141,7 +141,7 @@ Proxy >> glorpTriggerProxyAction: target [
 	action isNil ifTrue: [^self].
 	owner := action key.
 	block := action value.
-	block value: owner value: target
+	block value: owner value: target.
 ]
 
 { #category : #accessing }
@@ -150,7 +150,7 @@ Proxy >> isKindOf: aClass [
 	query isNil ifTrue: [^false].
 	query resultClass isNil ifTrue: [^false].
 	query resultClass isBehavior ifFalse: [^false].
-	^query resultClass includesBehavior: aClass
+	^query resultClass includesBehavior: aClass.
 ]
 
 { #category : #accessing }
@@ -160,7 +160,7 @@ Proxy >> parameters [
 
 { #category : #accessing }
 Proxy >> parameters: aDictionary [
-	parameters := aDictionary
+	parameters := aDictionary.
 ]
 
 { #category : #printing }
