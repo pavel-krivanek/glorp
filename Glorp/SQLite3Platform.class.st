@@ -32,10 +32,7 @@ My int* and float*/double type methods that define Glorp types for SQLite confor
 Class {
 	#name : #SQLite3Platform,
 	#superclass : #DatabasePlatform,
-	#instVars : [
-		'supportsGroupWritingValues'
-	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Platforms'
 }
 
 { #category : #'as yet unclassified' }
