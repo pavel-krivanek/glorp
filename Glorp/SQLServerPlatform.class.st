@@ -4,8 +4,16 @@ This is a platform for the Microsoft SQL Server database.
 Class {
 	#name : #SQLServerPlatform,
 	#superclass : #DatabasePlatform,
-	#category : 'Glorp-Platforms'
+	#instVars : [
+		'supportsGroupWritingValues'
+	],
+	#category : #'Glorp-Database'
 }
+
+{ #category : #accessing }
+SQLServerPlatform class >> kind [
+	^'Microsoft SQL Server'
+]
 
 { #category : #'as yet unclassified' }
 SQLServerPlatform class >> reservedWords [

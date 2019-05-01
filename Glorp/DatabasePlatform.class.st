@@ -65,6 +65,13 @@ DatabasePlatform class >> createLoginFromConnectionDictionary: aDict [
 	self subclassResponsibility
 ]
 
+{ #category : #accessing }
+DatabasePlatform class >> kind [
+	"Answer a string showing representing the type of DMBS for which the receiver provides services.  Return nil if the class is abstract, not itself usable to connect to a database.  The kind symbol is also be used to sort lists of platform classes."
+
+	^nil
+]
+
 { #category : #eoglorp }
 DatabasePlatform class >> loginWithConnectionDictionary: aDict [ 
 	| platformClass |

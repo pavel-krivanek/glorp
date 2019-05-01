@@ -4,8 +4,13 @@ This is a platform for the socket protocol 2 API of the PostgreSQL database.
 Class {
 	#name : #PostgreSQLPlatform,
 	#superclass : #PostgresPlatform,
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
+
+{ #category : #accessing }
+PostgreSQLPlatform class >> kind [
+	^'Postgres via old Socket I/F'
+]
 
 { #category : #testing }
 PostgreSQLPlatform class >> useBindingByDefault [

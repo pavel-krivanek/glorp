@@ -4,8 +4,16 @@ This is a platform for Oracle databases. Currently there's only one, but it migh
 Class {
 	#name : #OraclePlatform,
 	#superclass : #DatabasePlatform,
-	#category : 'Glorp-Platforms'
+	#instVars : [
+		'supportsGroupWritingValues'
+	],
+	#category : #'Glorp-Database'
 }
+
+{ #category : #accessing }
+OraclePlatform class >> kind [
+	^'Oracle Native Driver'
+]
 
 { #category : #constants }
 OraclePlatform class >> reservedWords [

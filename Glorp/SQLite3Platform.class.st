@@ -32,8 +32,16 @@ My int* and float*/double type methods that define Glorp types for SQLite confor
 Class {
 	#name : #SQLite3Platform,
 	#superclass : #DatabasePlatform,
-	#category : 'Glorp-Platforms'
+	#instVars : [
+		'supportsGroupWritingValues'
+	],
+	#category : #'Glorp-Database'
 }
+
+{ #category : #accessing }
+SQLite3Platform class >> kind [
+	^'SQLite3'
+]
 
 { #category : #'as yet unclassified' }
 SQLite3Platform class >> reservedWords [

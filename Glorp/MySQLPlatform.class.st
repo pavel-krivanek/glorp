@@ -5,9 +5,9 @@ Class {
 	#name : #MySQLPlatform,
 	#superclass : #DatabasePlatform,
 	#instVars : [
-		'engine'
+		'supportsGroupWritingValues'
 	],
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
 
 { #category : #'as yet unclassified' }
@@ -16,6 +16,11 @@ MySQLPlatform class >> createLoginFromConnectionDictionary: aDict [
 	Replace its body with a proper implementation. *** "
 
 	self error: 'Subclass responsibility stub not reimplemented'
+]
+
+{ #category : #accessing }
+MySQLPlatform class >> kind [
+	^'MySQL Native Driver'
 ]
 
 { #category : #constants }

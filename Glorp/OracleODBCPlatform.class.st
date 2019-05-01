@@ -4,8 +4,13 @@ This is a platform for Oracle, as accessed through ODBC. The database doesn't ch
 Class {
 	#name : #OracleODBCPlatform,
 	#superclass : #OraclePlatform,
-	#category : 'Glorp-Platforms'
+	#category : #'Glorp-Database'
 }
+
+{ #category : #accessing }
+OracleODBCPlatform class >> kind [
+	^'Oracle ODBC Driver'
+]
 
 { #category : #testing }
 OracleODBCPlatform >> isODBCPlatform [
