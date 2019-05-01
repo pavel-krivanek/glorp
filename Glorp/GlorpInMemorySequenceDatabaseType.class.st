@@ -17,7 +17,7 @@ Class {
 	#classInstVars : [
 		'count'
 	],
-	#category : #'Glorp-Types'
+	#category : 'Glorp-Types'
 }
 
 { #category : #accessing }

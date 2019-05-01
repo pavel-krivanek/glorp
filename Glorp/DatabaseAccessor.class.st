@@ -39,7 +39,7 @@ Class {
 	#classVars : [
 		'LoggingEnabled'
 	],
-	#category : #'Glorp-Core'
+	#category : 'Glorp-Core'
 }
 
 { #category : #'instance creation' }

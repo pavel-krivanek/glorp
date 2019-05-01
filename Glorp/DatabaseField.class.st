@@ -28,7 +28,7 @@ Class {
 		'isLockKey',
 		'defaultValue'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

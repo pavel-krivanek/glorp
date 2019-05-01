@@ -160,6 +160,23 @@ AbstractReadQuery >> asFullQuery [
 	^self.
 ]
 
+{ #category : #recursing }
+AbstractReadQuery >> asRecursiveQuery [
+	"Return a RecursiveQuery with my values.  Only call within a larger method that provides the additional values I will then need."
+
+	| newQuery |
+	newQuery := RecursiveQuery new
+		initResultClass: self resultClass
+		whereClause: self whereClause
+		singleObject: self readsOneObject.
+	self copyAttributesTo: newQuery.
+	newQuery session: session.
+	newQuery setOrdering: ordering.
+	newQuery setGrouping: grouping.
+	tracing isNil ifFalse: [newQuery tracing: tracing copy].
+	^newQuery
+]
+
 { #category : #accessing }
 AbstractReadQuery >> baseExpression [
 	^base.
@@ -417,6 +434,55 @@ AbstractReadQuery >> resultType [
 { #category : #'specifying retrievals' }
 AbstractReadQuery >> retrieve: anExpression [
 	self tracing retrieve: (self expressionBlockFor: anExpression).
+]
+
+{ #category : #recursing }
+AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursiveQuery: aRecursionQuery retrievingAll: anotherArray where: aWhereClause intersect: aQuery [
+	"As for retrieveAll:thenFollow:recursivelyRetrievingAll:where:intersect. but allowing a more detailed management of the recursion step, e.g. using the recurse mapping in the whereClause."
+
+	^aQuery asRecursiveQuery
+		mappingToCloseOver: aSymbol;
+		retrievalMappingExpressions: anArray;
+		unionQuery:
+			(CompoundQuery newUnionAll
+				requiresDistinct: false;
+				addQuery: (self retrieveAll: anArray);
+				addQuery: (aRecursionQuery retrieveAll: anArray));
+		yourself
+]
+
+{ #category : #recursing }
+AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursivelyRetrievingAll: anotherArray intersect: aQuery [
+	"Make me the initial query of a recursive read.  The retrieveAll array is an array of mapping names, all direct.  The mappingToCloseOver symbol is a self mapping that uses (all or some of) these direct mappings: it is the mapping whose closure we seek.  The retrieve arrays hold symbols or blocks (usually the latter) selecting what the iterative step will retrieve from the recursion table and/or, via the recurse mapping, from the main table(s).  Since both retrievals populate the same table, the two arrays must correspond in size and in ability to populate the same fields."
+
+	^aQuery asRecursiveQuery
+		mappingToCloseOver: aSymbol;
+		retrievalMappingExpressions: anArray;
+		unionQuery:
+			(CompoundQuery newUnionAll
+				requiresDistinct: false;
+				addQuery: (self retrieveAll: anArray);
+				addQuery: ((self class read: self resultClass)
+							retrieveAll: anotherArray;
+							yourself));
+		yourself
+]
+
+{ #category : #recursing }
+AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursivelyRetrievingAll: anotherArray start: aQuery [
+	"Make me the final query of a recursive read.  The retrieveAll array is an array of mapping names, all direct.  The thenRecurseOn symbol is a self mapping that uses (all or some of) these direct mappings: it is the mapping whose closure we seek.  The retrieve arrays holds symbols or blocks (usually the latter) selecting what the iterative step will retrieve from the recursion table and/or, via the recurse mapping, from the main table(s).  Since both retrievals populate the same table, the two arrays must correspond in size and in ability to populate the same fields."
+
+	^self asRecursiveQuery
+		mappingToCloseOver: aSymbol;
+		retrievalMappingExpressions: anArray;
+		unionQuery:
+			(CompoundQuery newUnionAll
+				requiresDistinct: false;
+				addQuery: (aQuery retrieveAll: anArray);
+				addQuery: ((self class read: self resultClass)
+							retrieveAll: anotherArray;
+							yourself));
+		yourself
 ]
 
 { #category : #'specifying retrievals' }
