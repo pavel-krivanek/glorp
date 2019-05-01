@@ -11,6 +11,35 @@ BaselineOfGlorp >> baseline: spec [
 	spec for: #'common' do: [
 		spec blessing: #'baseline'.
 		spec 
-			package: 'Glorp';
-			package: 'Glorp-Tests' with: [ spec requires: #('Glorp' ) ] ].
+			package: 'GlorpCore';
+			package: 'GlorpDatabase';
+			package: 'GlorpDatabaseTypes';
+			package: 'GlorpExpressions';
+			package: 'GlorpExtensions';
+			package: 'GlorpMappings';
+			package: 'GlorpMisc';
+			package: 'GlorpQueries';
+			package: 'GlorpUnitOfWork';
+
+			package: 'GlorpPharoPort';
+
+			package: 'GlorpCollectionTypeModels';
+			package: 'GlorpDBTests';
+			package: 'GlorpDBTypeTests';
+			package: 'GlorpTestModels';
+			package: 'GlorpTests';
+
+			yourself
+		].
+]
+
+{ #category : #baselines }
+BaselineOfGlorp >> project [
+	
+	| aProject |
+	
+	aProject := super project.
+	aProject loadType: #atomic.
+	^ aProject.
+	
 ]
