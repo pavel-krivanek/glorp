@@ -14,7 +14,7 @@ Class {
 		'descriptor',
 		'availableSubSelectNumber'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #accessing }

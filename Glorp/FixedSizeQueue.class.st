@@ -12,7 +12,7 @@ Class {
 		'maximumSize',
 		'items'
 	],
-	#category : #'Glorp-Core'
+	#category : 'Glorp-Core'
 }
 
 { #category : #'instance creation' }

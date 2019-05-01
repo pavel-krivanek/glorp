@@ -10,7 +10,7 @@ Class {
 	#instVars : [
 		'commands'
 	],
-	#category : #'Glorp-Core'
+	#category : 'Glorp-Core'
 }
 
 { #category : #accessing }

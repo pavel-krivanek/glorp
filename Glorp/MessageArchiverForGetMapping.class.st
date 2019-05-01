@@ -5,7 +5,7 @@ This is a special subclass of MessageArchiver which constructs its expression us
 Class {
 	#name : #MessageArchiverForGetMapping,
 	#superclass : #MessageArchiver,
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'expression creation' }

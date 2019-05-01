@@ -14,7 +14,7 @@ Class {
 		'value',
 		'isInstantiated'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

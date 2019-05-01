@@ -20,7 +20,7 @@ Class {
 		'timeToDie',
 		'association'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #accessing }

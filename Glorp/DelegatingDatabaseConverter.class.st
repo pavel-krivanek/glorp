@@ -16,7 +16,7 @@ Class {
 		'stToDbSelector',
 		'dbToStSelector'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

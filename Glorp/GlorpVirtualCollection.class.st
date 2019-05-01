@@ -22,7 +22,7 @@ Class {
 		'realObjects',
 		'parameters'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

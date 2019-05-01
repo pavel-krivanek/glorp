@@ -18,7 +18,7 @@ Class {
 		'rootDescriptor',
 		'rootClass'
 	],
-	#category : #'Glorp-Mappings'
+	#category : 'Glorp-Mappings'
 }
 
 { #category : #private }

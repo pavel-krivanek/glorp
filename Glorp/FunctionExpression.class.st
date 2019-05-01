@@ -23,7 +23,7 @@ Class {
 	#classInstVars : [
 		'functions'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #private }

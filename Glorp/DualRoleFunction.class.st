@@ -9,7 +9,7 @@ Class {
 		'whereClauseVersion',
 		'selectListVersion'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #accessing }

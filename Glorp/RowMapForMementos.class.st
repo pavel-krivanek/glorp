@@ -14,7 +14,7 @@ Class {
 		'reversedCorrespondenceMap',
 		'collectionMementos'
 	],
-	#category : #'Glorp-UnitOfWork'
+	#category : 'Glorp-UnitOfWork'
 }
 
 { #category : #'instance creation' }

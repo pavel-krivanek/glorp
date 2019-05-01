@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'expectedTables'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Exceptions'
 }
 
 { #category : #accessing }

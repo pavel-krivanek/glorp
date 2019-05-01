@@ -13,7 +13,7 @@ Class {
 		'key1',
 		'key2'
 	],
-	#category : #'Glorp-UnitOfWork'
+	#category : 'Glorp-UnitOfWork'
 }
 
 { #category : #comparing }

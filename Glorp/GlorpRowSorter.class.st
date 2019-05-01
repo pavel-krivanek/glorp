@@ -22,7 +22,7 @@ Class {
 		'items',
 		'childCache'
 	],
-	#category : #'Glorp-UnitOfWork'
+	#category : 'Glorp-UnitOfWork'
 }
 
 { #category : #'instance creation' }

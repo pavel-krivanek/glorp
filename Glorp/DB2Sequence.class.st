@@ -14,7 +14,7 @@ Instance Variables
 Class {
 	#name : #DB2Sequence,
 	#superclass : #OracleSequence,
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'as yet unclassified' }

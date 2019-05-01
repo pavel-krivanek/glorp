@@ -29,7 +29,7 @@ Class {
 		'sqlString',
 		'session'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

@@ -8,7 +8,7 @@ Class {
 	#instVars : [
 		'attributeNameToFieldNameBlock'
 	],
-	#category : #'Glorp-Mappings'
+	#category : 'Glorp-Mappings'
 }
 
 { #category : #accessing }

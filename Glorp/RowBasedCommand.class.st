@@ -23,7 +23,7 @@ Class {
 		'rowCount',
 		'failed'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

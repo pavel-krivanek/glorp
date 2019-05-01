@@ -18,7 +18,7 @@ Class {
 		'sourceFields',
 		'targetFields'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

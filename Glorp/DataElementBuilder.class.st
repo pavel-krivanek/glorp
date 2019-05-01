@@ -7,7 +7,7 @@ This makes building them quite simple.
 Class {
 	#name : #DataElementBuilder,
 	#superclass : #ElementBuilder,
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'building objects' }

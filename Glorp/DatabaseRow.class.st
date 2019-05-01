@@ -33,7 +33,7 @@ Class {
 		'missingFieldIndicator',
 		'emptySlot'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #private }

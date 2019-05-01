@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'sequenceTableName'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #defaults }

@@ -14,7 +14,7 @@ Class {
 		'base',
 		'value'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

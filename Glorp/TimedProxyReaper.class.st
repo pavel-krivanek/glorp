@@ -22,7 +22,7 @@ Class {
 		'done',
 		'startTime'
 	],
-	#category : #'Glorp-Core'
+	#category : 'Glorp-Core'
 }
 
 { #category : #'As yet unclassified' }

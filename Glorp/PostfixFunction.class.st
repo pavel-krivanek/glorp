@@ -5,7 +5,7 @@ This represents a function that prints postfix, meaning its name comes after its
 Class {
 	#name : #PostfixFunction,
 	#superclass : #FunctionExpression,
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #printing }

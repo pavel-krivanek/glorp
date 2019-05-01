@@ -31,7 +31,7 @@ Class {
 		'replacementSubSelect',
 		'uniqueConstraints'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

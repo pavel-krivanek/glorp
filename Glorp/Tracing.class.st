@@ -21,7 +21,7 @@ Class {
 		'alsoFetchExpressions',
 		'query'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

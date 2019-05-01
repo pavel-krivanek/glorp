@@ -16,7 +16,7 @@ Class {
 		'statement',
 		'busy'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

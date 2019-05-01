@@ -4,7 +4,7 @@ This is a function subclass specifically for substring functions. It needs its o
 Class {
 	#name : #SubstringFunction,
 	#superclass : #PrefixFunction,
-	#category : #'Glorp-Exceptions'
+	#category : #'Glorp-Expressions'
 }
 
 { #category : #preparing }

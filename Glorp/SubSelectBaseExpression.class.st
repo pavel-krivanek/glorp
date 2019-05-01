@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'trueBase'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

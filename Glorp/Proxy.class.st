@@ -17,7 +17,7 @@ Class {
 		'parameters',
 		'action'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

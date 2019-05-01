@@ -18,7 +18,7 @@ Class {
 		'myReceiver',
 		'query'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'as yet unclassified' }

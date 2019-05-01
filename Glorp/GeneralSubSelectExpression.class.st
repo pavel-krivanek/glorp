@@ -15,7 +15,7 @@ Class {
 		'query',
 		'base'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

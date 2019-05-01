@@ -19,7 +19,7 @@ Class {
 		'undoMap',
 		'collectionMementos'
 	],
-	#category : #'Glorp-UnitOfWork'
+	#category : 'Glorp-UnitOfWork'
 }
 
 { #category : #'instance creation' }

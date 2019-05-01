@@ -14,7 +14,7 @@ Class {
 		'query',
 		'localBase'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #preparing }
@@ -34,7 +34,7 @@ SubSelectExpression >> descriptor [
 	^self leftChild descriptor.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 SubSelectExpression >> initializeQuery [
 	query := Query
 		read: localBase descriptor describedClass

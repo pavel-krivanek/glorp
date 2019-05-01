@@ -14,7 +14,7 @@ Class {
 		'arguments',
 		'functionParts'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

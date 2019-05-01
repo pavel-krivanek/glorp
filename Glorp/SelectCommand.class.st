@@ -18,7 +18,7 @@ Class {
 		'parameters',
 		'blockFactor'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

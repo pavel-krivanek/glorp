@@ -11,7 +11,7 @@ Class {
 		'shouldCreateInDatabase',
 		'fields'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

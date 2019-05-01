@@ -9,7 +9,7 @@ Instance Variables:
 Class {
 	#name : #UniqueConstraint,
 	#superclass : #DatabaseTableConstraint,
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #'instance creation' }

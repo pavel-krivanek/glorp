@@ -14,7 +14,7 @@ Class {
 		'orderBy',
 		'shouldWriteTheOrderField'
 	],
-	#category : #'Glorp-Mappings'
+	#category : 'Glorp-Mappings'
 }
 
 { #category : #mapping }

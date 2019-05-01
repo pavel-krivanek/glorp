@@ -5,7 +5,7 @@ This is a query intended to execute a SQLite3 PRAGMA command. The command behave
 Class {
 	#name : #SQLite3PragmaQuery,
 	#superclass : #SimpleQuery,
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

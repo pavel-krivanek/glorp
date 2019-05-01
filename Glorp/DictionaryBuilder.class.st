@@ -14,7 +14,7 @@ Class {
 		'keyBuilder',
 		'valueBuilder'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'building objects' }

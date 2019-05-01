@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'command'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Exceptions'
 }
 
 { #category : #accessing }

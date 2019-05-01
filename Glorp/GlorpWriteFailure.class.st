@@ -14,7 +14,7 @@ Class {
 		'command',
 		'object'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Exceptions'
 }
 
 { #category : #'*Glorp' }

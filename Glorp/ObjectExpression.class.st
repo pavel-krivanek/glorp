@@ -25,7 +25,7 @@ Class {
 		'tableAliases',
 		'fieldAliases'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'api-aggregates' }
@@ -34,7 +34,7 @@ ObjectExpression >> aggregate: anExpression as: aggregateFunctionName [
 	^self aggregate: anExpression as: aggregateFunctionName where: nil.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 ObjectExpression >> aggregate: anExpression as: aggregateFunctionName where: whereExpression [
 	"This is the most general form of aggregation convenience method, and other aggregations, e.g. sqlCount, are implemented in terms of it.  This method creates a subselect out of the expression that is our argument (anExpression), returning an aggregation expression based on it.  For example,
 	session read: GlorpCustomer where:
@@ -192,7 +192,7 @@ session read: GlorpCustomer where: 	[:each |  (each count: [:eachCust | eachCust
 	^self aggregate: anExpression as: #countStar where: filterExpression.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 ObjectExpression >> existenceCheck: anExpression as: functionName [
 	"Make a subselect of the expression that is our argument, returning it wrapped in either an exists or a not exists, e.g. 
 	session read: GlorpCustomer where: 	[:each |  

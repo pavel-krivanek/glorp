@@ -6,7 +6,7 @@ It doesn't work yet, since printing of constants doesn't like having functions i
 Class {
 	#name : #Cast,
 	#superclass : #PrefixFunction,
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

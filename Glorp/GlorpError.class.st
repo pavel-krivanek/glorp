@@ -8,7 +8,7 @@ Class {
 	#classVars : [
 		'Announcements'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Exceptions'
 }
 
 { #category : #'exception compatibility' }

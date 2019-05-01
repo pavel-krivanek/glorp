@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'joins'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

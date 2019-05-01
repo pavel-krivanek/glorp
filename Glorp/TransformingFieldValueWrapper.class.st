@@ -16,7 +16,7 @@ Class {
 		'inverseTransformation',
 		'innerWrapper'
 	],
-	#category : #'Glorp-UnitOfWork'
+	#category : 'Glorp-UnitOfWork'
 }
 
 { #category : #accessing }

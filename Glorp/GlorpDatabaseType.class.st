@@ -20,7 +20,7 @@ Class {
 		'selector',
 		'typeString'
 	],
-	#category : #'Glorp-Types'
+	#category : 'Glorp-Types'
 }
 
 { #category : #'instance creation' }

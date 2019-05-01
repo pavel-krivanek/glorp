@@ -16,7 +16,7 @@ Class {
 		'sequenceIncrement',
 		'accessProtect'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #testing }

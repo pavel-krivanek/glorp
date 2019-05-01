@@ -6,7 +6,7 @@ Implements firebird sequence generation by calling out to gen_id()
 Class {
 	#name : #FirebirdSequence,
 	#superclass : #NamedSequence,
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #public }

@@ -4,7 +4,7 @@ This represents a function that takes no arguments and is complete in itself. Th
 Class {
 	#name : #StandaloneFunction,
 	#superclass : #FunctionExpression,
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #accessing }

@@ -6,5 +6,5 @@ InvalidSessionSetup will be raised if the descriptor system we are validating is
 Class {
 	#name : #InvalidSessionSetup,
 	#superclass : #ValidationError,
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Exceptions'
 }

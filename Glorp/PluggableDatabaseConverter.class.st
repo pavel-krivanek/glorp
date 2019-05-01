@@ -14,7 +14,7 @@ Class {
 		'stToDb',
 		'dbToSt'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #converting }

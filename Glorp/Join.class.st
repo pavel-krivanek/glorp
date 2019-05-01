@@ -24,7 +24,7 @@ Class {
 		'outerJoin',
 		'owningMapping'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
@@ -114,7 +114,7 @@ Join >> = aJoin [
 	^true.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 Join >> addSource: aField target: anotherField [ 
 	| value targetValue |
 	value := (self isConstant: aField) 
@@ -278,12 +278,12 @@ Join >> beOuterJoin [
 	outerJoin := true.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 Join >> condenseBooleanEquality [
 	^self.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 Join >> condenseBooleanEqualityExpressions [
 	^self.
 ]
@@ -369,7 +369,7 @@ Join >> isOuterJoin [
 	^outerJoin.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 Join >> mapFromSource: sourceObject andTarget: targetObject intoRowsIn: aRowMap [
 	(sourceObject isNil or: [targetObject isNil]) ifTrue: [^self].
 	1
@@ -543,7 +543,7 @@ Join >> replacing: aTable withEquivalenceFrom: aJoin [
 	^self class fromAll: newSources toAll: newTargets.
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #'as yet unclassified' }
 Join >> rewriteEquality [
 	^self.
 ]

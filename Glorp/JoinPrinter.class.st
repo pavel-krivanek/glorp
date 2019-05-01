@@ -16,7 +16,7 @@ Class {
 		'availableTables',
 		'query'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

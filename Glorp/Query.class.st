@@ -28,7 +28,7 @@ Class {
 		'readsOneObject',
 		'grouping'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

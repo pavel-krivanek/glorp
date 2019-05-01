@@ -4,5 +4,5 @@ This class represents package information for the GlorpExpressions package, for 
 Class {
 	#name : #GlorpExpressionsPackage,
 	#superclass : #Object,
-	#category : #'Glorp-Exceptions'
+	#category : #'Glorp-Expressions'
 }

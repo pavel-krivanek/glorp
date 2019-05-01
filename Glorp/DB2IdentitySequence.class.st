@@ -8,7 +8,7 @@ One can obtain the most recently installed number using a query like this.
 Class {
 	#name : #DB2IdentitySequence,
 	#superclass : #NamedSequence,
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #sequencing }

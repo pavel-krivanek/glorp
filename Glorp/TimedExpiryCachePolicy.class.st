@@ -13,7 +13,7 @@ Class {
 	#instVars : [
 		'timeout'
 	],
-	#category : #'Glorp-Core'
+	#category : 'Glorp-Core'
 }
 
 { #category : #'wrap/unwrap' }

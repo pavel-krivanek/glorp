@@ -9,7 +9,7 @@ Class {
 	#instVars : [
 		'conditional'
 	],
-	#category : #'Glorp-Mappings'
+	#category : 'Glorp-Mappings'
 }
 
 { #category : #mapping }

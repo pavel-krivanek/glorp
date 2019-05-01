@@ -17,7 +17,7 @@ Class {
 		'base',
 		'alias'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

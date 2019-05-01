@@ -21,7 +21,7 @@ Class {
 		'customCommand',
 		'tablesToPrint'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #preparing }

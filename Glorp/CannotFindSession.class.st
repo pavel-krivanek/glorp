@@ -5,7 +5,7 @@ This is an error that we raise when trying to determine what session to use for 
 Class {
 	#name : #CannotFindSession,
 	#superclass : #GlorpError,
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Exceptions'
 }
 
 { #category : #'as yet unclassified' }

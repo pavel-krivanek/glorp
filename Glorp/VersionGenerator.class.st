@@ -10,7 +10,7 @@ Subclasses must implement the following messages:
 Class {
 	#name : #VersionGenerator,
 	#superclass : #GlorpDatabaseValueGenerator,
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #sequencing }

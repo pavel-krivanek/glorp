@@ -14,7 +14,7 @@ Class {
 		'keyExpression',
 		'valueExpression'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }

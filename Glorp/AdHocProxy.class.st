@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'readBlock'
 	],
-	#category : #'Glorp-Queries'
+	#category : 'Glorp-Queries'
 }
 
 { #category : #'instance creation' }
