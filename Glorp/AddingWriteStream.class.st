@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'target'
 	],
-	#category : 'Glorp-Core'
+	#category : #'Glorp-Extensions'
 }
 
 { #category : #'instance-creation' }
