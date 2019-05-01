@@ -24,7 +24,7 @@ Class {
 		'outerJoin',
 		'owningMapping'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

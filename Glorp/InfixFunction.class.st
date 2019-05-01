@@ -1,5 +1,5 @@
 "
-This is a function that is infix. That is, it prints its name in between its arguments. For example, + for string concatenation, || for logical OR. 
+This is a function that is infix. That is, it prints its name in between its arguments. For example, + for string concatenation, || for logical OR.
 
 Instance Variables:
 	arguments	<Collection of GlorpExpression>	Our post-arguments (the first one being the base).
@@ -14,7 +14,7 @@ Class {
 		'arguments',
 		'functionParts'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

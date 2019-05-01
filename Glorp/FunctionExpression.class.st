@@ -7,7 +7,7 @@ Instance Variables
 	alias <String> If we're to be selected as a field, what should we be selected as. Think SELECT t1.A + t1.B AS FRED.
 	symbol <Symbol> The original symbol used to create us. Helpful if recreating onto a different platform where the DB string can be different.
 	type <GlorpDatabaseType> Optional. If we have a type defined, then we can record it here. Otherwise, we will return the type of the field we are operating on.
-	
+
 
 "
 Class {
@@ -23,7 +23,7 @@ Class {
 	#classInstVars : [
 		'functions'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #accessing }

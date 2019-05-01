@@ -23,7 +23,7 @@ Subclasses must implement the following messages:
 Class {
 	#name : #GlorpExpression,
 	#superclass : #Object,
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

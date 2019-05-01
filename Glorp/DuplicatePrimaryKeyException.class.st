@@ -9,7 +9,7 @@ Class {
 		'existingObject',
 		'newObject'
 	],
-	#category : #'Glorp-Core'
+	#category : 'Glorp-Exceptions'
 }
 
 { #category : #'instance creation' }

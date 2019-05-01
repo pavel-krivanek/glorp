@@ -10,7 +10,7 @@ Class {
 	#instVars : [
 		'children'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

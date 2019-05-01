@@ -18,7 +18,7 @@ Class {
 		'rightChild',
 		'outerJoin'
 	],
-	#category : #'Glorp-Exceptions'
+	#category : 'Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
