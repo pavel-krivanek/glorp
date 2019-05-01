@@ -12,7 +12,7 @@ Class {
 		'lastSystemTime',
 		'lastServerTime'
 	],
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Misc'
 }
 
 { #category : #dates }
@@ -65,14 +65,14 @@ Dialect class >> determineDialect [
 	^ dialectName := #Pharo
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #info }
 Dialect class >> dialectName [
 
 	dialectName isNil ifTrue: [self determineDialect.].
 	^ dialectName
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #info }
 Dialect class >> dialectVersion [
 	"Glorp does not need to consult dialect versions at the moment.  This method is currently made available purely as a precaution, in case Glorp experimenters should wish to add a dialect-version-requiring feature."
 
@@ -90,7 +90,7 @@ Dialect class >> doublePrecisionFloatClass [
 	^ Float
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #errors }
 Dialect class >> error [
 
 	^Error

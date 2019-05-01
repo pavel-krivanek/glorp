@@ -4,7 +4,7 @@ This is a helper class for methods that I'd like to be able to add as extensions
 Class {
 	#name : #GlorpHelper,
 	#superclass : #Object,
-	#category : 'Glorp-Exceptions'
+	#category : #'Glorp-Misc'
 }
 
 { #category : #classes }
@@ -28,7 +28,7 @@ GlorpHelper class >> do: aBlock for: aCollection separatedBy: separatorBlock [
 			separatorBlock value]]
 ]
 
-{ #category : #'*Glorp' }
+{ #category : #classes }
 GlorpHelper class >> glorpConstantExpressionClass [
 	^self dialect glorpConstantExpressionClass
 ]
