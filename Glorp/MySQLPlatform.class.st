@@ -5,9 +5,9 @@ Class {
 	#name : #MySQLPlatform,
 	#superclass : #DatabasePlatform,
 	#instVars : [
-		'supportsGroupWritingValues'
+		'engine'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Platforms'
 }
 
 { #category : #'as yet unclassified' }

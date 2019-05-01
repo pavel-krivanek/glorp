@@ -5,9 +5,9 @@ Class {
 	#name : #NullSequence,
 	#superclass : #DatabaseSequence,
 	#classVars : [
-		'NullSequence'
+		'Singleton'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Database'
 }
 
 { #category : #defaults }
