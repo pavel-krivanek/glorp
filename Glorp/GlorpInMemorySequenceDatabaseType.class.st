@@ -1,13 +1,3 @@
-"
-Mempry Sequence type
-
-Instance Variables
-	representationType:		<Object>
-
-representationType
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpInMemorySequenceDatabaseType,
 	#superclass : #GlorpDatabaseType,
@@ -17,7 +7,7 @@ Class {
 	#classInstVars : [
 		'count'
 	],
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #accessing }
@@ -40,6 +30,12 @@ GlorpInMemorySequenceDatabaseType class >> representedBy: dbType [
 GlorpInMemorySequenceDatabaseType class >> reset [
 
 	count := 0
+]
+
+{ #category : #'exdi specific' }
+GlorpInMemorySequenceDatabaseType >> exdiType [
+	"Return a symbol that the VisualWorks EXDI uses to indicate the database type -- this is a symbol which is often the name of a Smalltalk class, but with variations for multiple db types that correspond to the same Smalltalk symbol. It also varies by Database. This is equivalent to the values returned by methods like #odbcConversion or #oracleConversion"
+	^representationType exdiType.
 ]
 
 { #category : #converting }

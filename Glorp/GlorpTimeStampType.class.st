@@ -1,16 +1,19 @@
-"
-Timestamp type
-"
 Class {
 	#name : #GlorpTimeStampType,
 	#superclass : #GlorpDatabaseType,
-	#category : 'Glorp-Types'
+	#category : #'Glorp-Types'
 }
 
 { #category : #converting }
 GlorpTimeStampType >> converterForStType: aClass [
 	aClass = Date ifTrue: [^self platform converterNamed: #timestampToDate].
 	^self platform converterNamed: #timestamp.
+]
+
+{ #category : #'exdi specific' }
+GlorpTimeStampType >> exdiType [
+	"Return a symbol that the VisualWorks EXDI uses to indicate the database type -- this is a symbol which is often the name of a Smalltalk class, but with variations for multiple db types that correspond to the same Smalltalk symbol. It also varies by Database. This is equivalent to the values returned by methods like #odbcConversion or #oracleConversion"
+	^#Timestamp.
 ]
 
 { #category : #converting }

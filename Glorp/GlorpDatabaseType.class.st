@@ -72,6 +72,12 @@ GlorpDatabaseType >> converterForStType: aClass [
 	^self platform nullConverter.
 ]
 
+{ #category : #'exdi specific' }
+GlorpDatabaseType >> exdiType [
+	"Return a symbol that the VisualWorks EXDI uses to indicate the database type -- this is a symbol which is often the name of a Smalltalk class, but with variations for multiple db types that correspond to the same Smalltalk symbol. It also varies by Database. This is equivalent to the values returned by methods like #odbcConversion or #oracleConversion"
+	self subclassResponsibility.
+]
+
 { #category : #testing }
 GlorpDatabaseType >> generatesOverExistingValues [
 	"Do we generate our value even if there's alread one present in the field"
