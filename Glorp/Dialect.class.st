@@ -27,6 +27,17 @@ Dialect class >> argumentCountFor: aBlock [
 	^aBlock argumentCount
 ]
 
+{ #category : #private }
+Dialect class >> basicIsVisualWorks [
+	^Smalltalk class name == #NameSpace
+"We've decided to trust that no other Smalltalk dialect uses NameSpace (e.g. in VASmalltalk, Smalltalk class name returns #EsSmalltalkNamespace).  However if we ever need a better check, one option is to add (or replace with) the following:
+	Smalltalk selectors do:
+		[:s | (s == #version and:
+			[(Smalltalk version copyFrom: 1 to: 11) = 'VisualWorks']) 
+		    	ifTrue: [^true]].
+	^false"
+]
+
 { #category : #numbers }
 Dialect class >> coerceToDoublePrecisionFloat: aNumber [
 
@@ -65,14 +76,14 @@ Dialect class >> determineDialect [
 	^ dialectName := #Pharo
 ]
 
-{ #category : #info }
+{ #category : #identifying }
 Dialect class >> dialectName [
 
 	dialectName isNil ifTrue: [self determineDialect.].
 	^ dialectName
 ]
 
-{ #category : #info }
+{ #category : #identifying }
 Dialect class >> dialectVersion [
 	"Glorp does not need to consult dialect versions at the moment.  This method is currently made available purely as a precaution, in case Glorp experimenters should wish to add a dialect-version-requiring feature."
 
@@ -134,9 +145,21 @@ Dialect class >> isBlock: anObject [
 	^anObject isBlock
 ]
 
+{ #category : #identifying }
+Dialect class >> isDolphin [
+
+	^ self dialectName = #Dolphin
+]
+
 { #category : #numbers }
 Dialect class >> isFloatingPoint: aNumber [
 	^aNumber class == self doublePrecisionFloatClass or: [aNumber class == Float]
+]
+
+{ #category : #identifying }
+Dialect class >> isGNU [
+
+	^ self dialectName = #GNU
 ]
 
 { #category : #identifying }
@@ -145,11 +168,16 @@ Dialect class >> isHeadless [
 	^ Smalltalk isHeadless
 ]
 
-{ #category : #'general portability' }
+{ #category : #identifying }
 Dialect class >> isNamespaceAware [
-	isNamespaceAware isNil
-		ifTrue: [ isNamespaceAware := false ].
-	^ isNamespaceAware
+	isNamespaceAware isNil ifTrue: [isNamespaceAware := self basicIsVisualWorks].
+	^isNamespaceAware
+]
+
+{ #category : #identifying }
+Dialect class >> isObjectStudio [
+
+	^ self dialectName = #ObjectStudio
 ]
 
 { #category : #identifying }
@@ -161,6 +189,31 @@ Dialect class >> isPharo [
 { #category : #numbers }
 Dialect class >> isScaleOf: aNumber lessThanOrEqualTo: aScale [
 	^aNumber class == self fixedPointClass and: [aNumber scale <= aScale].
+]
+
+{ #category : #identifying }
+Dialect class >> isSqueak [
+
+	^ self dialectName = #Squeak
+]
+
+{ #category : #identifying }
+Dialect class >> isVWWithNameSpaces [
+	"For cases where our hacked backports of asQualifiedReference and etc. to VW3 are not sufficient."
+
+	^self isVisualWorks and: [self isNamespaceAware]
+]
+
+{ #category : #identifying }
+Dialect class >> isVisualAge [
+
+	^ self dialectName = #VisualAge
+]
+
+{ #category : #identifying }
+Dialect class >> isVisualWorks [
+
+	^ self dialectName = #VisualWorks
 ]
 
 { #category : #'class lookup' }
