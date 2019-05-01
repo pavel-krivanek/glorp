@@ -4,10 +4,7 @@ This is a platform for Oracle databases. Currently there's only one, but it migh
 Class {
 	#name : #OraclePlatform,
 	#superclass : #DatabasePlatform,
-	#instVars : [
-		'supportsGroupWritingValues'
-	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Platforms'
 }
 
 { #category : #constants }

@@ -1,3 +1,13 @@
+"
+Mempry Sequence type
+
+Instance Variables
+	representationType:		<Object>
+
+representationType
+	- xxxxx
+
+"
 Class {
 	#name : #GlorpInMemorySequenceDatabaseType,
 	#superclass : #GlorpDatabaseType,

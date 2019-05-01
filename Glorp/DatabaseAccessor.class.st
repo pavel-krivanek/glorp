@@ -13,12 +13,10 @@ Subclasses must implement the following messages:
 		logout
 		showDialog:
 
-Instance Variables
+Instance Variables:
 	connection	<varies>	The underlying database connection
 	currentLogin	<Login> The glorp-level login we are using
-	logging	<Boolean>	(default is false) Is logging on or off
-	logOnly <Boolean> (default is false) If logging is true, and logOnly is true, then the commands are ONLY logged and not executed.
-	logger <TextCollector> (default is Transcript) The user can put any TextCollector API supporting class in here to collect information. It must support #show: and #cr.
+	logging	<Boolean>	Is logging on or off
 	permittedCommands	<Collection of: DatabaseCommand class>	The list of commands we are permitted to use. This allows us to filter commands, indicating that a particular session should only be doing inserts right now, not updates, deletes, or queries. Or that it should only be doing writes, not reads.
 	reusePreparedStatements	<Boolean>	Should we try to reuse prepared statements,that have the same SQL, or just re-prepare each time.
 
@@ -31,17 +29,17 @@ Class {
 		'connection',
 		'currentLogin',
 		'logging',
-		'logger',
-		'logOnly',
 		'reusePreparedStatements',
 		'deniedCommands',
 		'mutex',
-		'dependents'
+		'dependents',
+		'logOnly',
+		'logger'
 	],
 	#classVars : [
-		'DatabaseAccessor'
+		'LoggingEnabled'
 	],
-	#category : #'Glorp-Database'
+	#category : #'Glorp-Core'
 }
 
 { #category : #'instance creation' }

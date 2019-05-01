@@ -1,19 +1,23 @@
 "
-This is the per-class cache of instances read from the database.  A CachePolicy is assigned by the descriptor (or, if the cache's class has no descriptor in the session's system, by default) and controls whether and how the cached instances are expired.
+This is the per-class cache of instances read from the database.
 
 Instance Variables:
-	mainCache	<CacheManager>	manages a group of class-specific caches of instances read in a session
+	items	<Dictionary from: Object to: Object>	The cached items, keyed by their primary key values
+	policy	<CachePolicy>	The settings for this cache.
 
 
 
 "
 Class {
 	#name : #Cache,
-	#superclass : #UnmanagedCache,
+	#superclass : #Object,
 	#instVars : [
-		'mainCache'
+		'items',
+		'policy',
+		'mainCache',
+		'extraReferences'
 	],
-	#category : #'Glorp-Core'
+	#category : 'Glorp-Core'
 }
 
 { #category : #'*Glorp' }

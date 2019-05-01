@@ -15,15 +15,19 @@ Class {
 	#name : #Login,
 	#superclass : #Object,
 	#instVars : [
+		'encodingStrategy',
 		'database',
 		'username',
 		'password',
 		'connectString',
 		'name',
 		'schema',
+		'databaseName',
+		'host',
+		'port',
 		'secure'
 	],
-	#category : #'Glorp-Database'
+	#category : 'Glorp-Core'
 }
 
 { #category : #'instance creation' }
