@@ -16,6 +16,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpConditionalMappingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpConditionalMappingTest >> setUp [
 	super setUp.

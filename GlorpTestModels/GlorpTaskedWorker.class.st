@@ -32,6 +32,16 @@ GlorpTaskedWorker class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpTaskedWorker class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpTaskedWorker >> = aWorker [
 	super = aWorker ifFalse: [^false].

@@ -13,6 +13,15 @@ GlorpTreeNode class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpTreeNode class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'As yet unclassified' }
 GlorpTreeNode >> children [
 	^children.

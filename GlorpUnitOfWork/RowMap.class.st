@@ -38,6 +38,15 @@ RowMap class >> new: size [
 	^super new initialize: size.
 ]
 
+{ #category : #'VisualWorks metadata' }
+RowMap class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #lookup }
 RowMap >> addRow: aRow [
 	^self addRow: aRow forTable: aRow table withKey: aRow owner.

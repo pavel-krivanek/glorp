@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpSQLPrintingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #utilities }
 GlorpSQLPrintingTest >> assertGroupWritingOnPlatform: platform [
 	| system row1 row2 command string session |

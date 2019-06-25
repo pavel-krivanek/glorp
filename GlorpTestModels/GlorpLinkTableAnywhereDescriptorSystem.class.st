@@ -9,6 +9,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpLinkTableAnywhereDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'descriptors/bank' }
 GlorpLinkTableAnywhereDescriptorSystem >> classModelForGlorpCustomer: aClassModel [
 	aClassModel newAttributeNamed: #id.

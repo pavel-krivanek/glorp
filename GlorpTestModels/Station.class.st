@@ -7,3 +7,12 @@ Class {
 	],
 	#category : #GlorpTestModels
 }
+
+{ #category : #'VisualWorks metadata' }
+Station class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]

@@ -33,6 +33,15 @@ GlorpCompressedMoney class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpCompressedMoney class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpCompressedMoney >> amount [
 	^array at: 2

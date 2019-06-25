@@ -29,6 +29,15 @@ GlorpAttachment class >> glorpSetupDescriptor: aDesc forSystem: system [
 	(aDesc newMapping: OneToOneMapping) attributeName: #attachmentBytes
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpAttachment class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpAttachment >> attachmentBytes [
 	^attachmentBytes

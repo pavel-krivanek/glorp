@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpNoProxyCollectionReadTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #tests }
 GlorpNoProxyCollectionReadTest >> testReadCollectionWithoutProxies [
 	"before running this test change RelationshipMapping>>initialize shouldProxy := false"

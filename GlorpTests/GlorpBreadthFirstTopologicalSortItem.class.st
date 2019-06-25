@@ -17,6 +17,15 @@ GlorpBreadthFirstTopologicalSortItem class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpBreadthFirstTopologicalSortItem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpBreadthFirstTopologicalSortItem >> id [
 	^id

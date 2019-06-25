@@ -28,6 +28,15 @@ GlorpMoney class >> forAmount: anAmount [
 	^self currency: self defaultCurrency amount: anAmount.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpMoney class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpMoney >> amount [
 	^amount

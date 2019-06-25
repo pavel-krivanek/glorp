@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseAccessorTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpDatabaseAccessorTest >> testLoggingSwitch [
 	| currentSetting accessor |

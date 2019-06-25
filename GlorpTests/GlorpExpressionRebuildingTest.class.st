@@ -9,6 +9,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpExpressionRebuildingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpExpressionRebuildingTest >> setUp [
 	super setUp.

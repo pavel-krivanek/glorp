@@ -10,6 +10,15 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTinyPublisher class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpTinyPublisher >> id [
 

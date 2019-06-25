@@ -8,6 +8,15 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+IdentityHashPrintingObject class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #printing }
 IdentityHashPrintingObject >> printOn: aStream [
 	aStream nextPutAll: 'thing with hash '.

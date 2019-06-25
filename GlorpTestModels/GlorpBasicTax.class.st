@@ -14,3 +14,13 @@ GlorpBasicTax class >> glorpSetupDescriptor: aDescriptor forSystem: aSystem [
 		keyedBy: 'T'
 		field: (table fieldNamed: 'TYPE').
 ]
+
+{ #category : #'VisualWorks metadata' }
+GlorpBasicTax class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpManager class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpManager >> = aManager [
 	^super = aManager and: [branch = aManager branch].

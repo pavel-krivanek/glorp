@@ -8,3 +8,12 @@ Class {
 	],
 	#category : #GlorpTestModels
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpAirlineMeal class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]

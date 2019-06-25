@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpBankExampleSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #examples }
 GlorpBankExampleSystem >> exampleGlorpAddressNumber1: anAddress [
 	anAddress id: 12.

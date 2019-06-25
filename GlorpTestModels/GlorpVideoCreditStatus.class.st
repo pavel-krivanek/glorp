@@ -21,6 +21,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpVideoCreditStatus class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 GlorpVideoCreditStatus >> assertEqual: aCreditStatus [
 

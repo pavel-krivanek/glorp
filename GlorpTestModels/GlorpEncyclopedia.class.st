@@ -25,6 +25,15 @@ GlorpEncyclopedia class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopedia class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpEncyclopedia >> articleAt: aString put: anEntry [
 	entries at: aString put: anEntry.

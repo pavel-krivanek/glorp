@@ -50,6 +50,15 @@ GlorpTax class >> glorpTypeResolver [
 	^FilteredTypeResolver forRootClass: GlorpTax.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpTax class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'add/remove' }
 GlorpTax >> addTax: aTax [
 	self taxes add: aTax.

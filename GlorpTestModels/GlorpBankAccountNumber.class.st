@@ -18,6 +18,15 @@ GlorpBankAccountNumber class >> example12345 [
 		branchNumber: 777.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpBankAccountNumber class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpBankAccountNumber >> accountNumber [
 	^accountNumber

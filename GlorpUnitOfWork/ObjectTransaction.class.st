@@ -27,6 +27,15 @@ ObjectTransaction class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+ObjectTransaction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'begin/commit/abort' }
 ObjectTransaction >> abort [
 	undoMap keysAndValuesDo: [:original :copy | self restoreStateOf: original toThatOf: copy]

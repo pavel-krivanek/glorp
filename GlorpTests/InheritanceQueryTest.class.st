@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+InheritanceQueryTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'utility - inner queries' }
 InheritanceQueryTest >> queryForCustomerStation [
 	| query |

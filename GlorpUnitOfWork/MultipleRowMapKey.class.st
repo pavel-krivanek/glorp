@@ -17,6 +17,15 @@ MultipleRowMapKey class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+MultipleRowMapKey class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'instance creation' }
 MultipleRowMapKey class >> with: key1 with: key2 with: key3 [
 	(key1 isNil or: [key2 isNil or: [key3 isNil]]) ifTrue: [self error: 'Nil key in row map, probably indicates an invalid object structure'].

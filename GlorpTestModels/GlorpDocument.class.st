@@ -31,6 +31,15 @@ GlorpDocument class >> glorpSetupDescriptor: aDesc forSystem: system [
 		orderBy: [:ea | ea index]
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDocument class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpDocument >> attachments [
 	^attachments

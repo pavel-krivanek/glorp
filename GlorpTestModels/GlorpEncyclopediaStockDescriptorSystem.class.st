@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaStockDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #other }
 GlorpEncyclopediaStockDescriptorSystem >> allTableNames [
 	^#('GR_TINY_PUBLISHER' 'PU2B_TITLES_STOCK')

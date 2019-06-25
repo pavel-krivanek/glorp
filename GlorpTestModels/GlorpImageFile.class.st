@@ -24,6 +24,15 @@ GlorpImageFile class >> example2 [
 		bits: #[1 2 3 4 5 6 7 8 9 10 11 12 13 14 15].
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpImageFile class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpImageFile >> bits [
 	^bits

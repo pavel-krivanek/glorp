@@ -54,6 +54,15 @@ GlorpAddress class >> glorpSetupDescriptor: aDescriptor forSystem: aDescriptorSy
 		addMapping: (DirectMapping from: #number to: (table fieldNamed: 'HOUSE_NUM'))
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpAddress class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #notification }
 GlorpAddress >> glorpNoticeOfExpiryIn: aSession [
 ]

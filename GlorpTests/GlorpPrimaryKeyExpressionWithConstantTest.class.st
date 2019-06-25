@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpPrimaryKeyExpressionWithConstantTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpPrimaryKeyExpressionWithConstantTest >> setUp [
 	super setUp.

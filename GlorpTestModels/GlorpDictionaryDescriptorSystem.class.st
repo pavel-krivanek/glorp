@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDictionaryDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpDictionaryDescriptorSystem >> allTableNames [
 	^#('GLORP_TASKED_WORKER' 'GLORP_TWO_WAY_LINK' 'GLORP_WORKER_TASK')

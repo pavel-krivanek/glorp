@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpStringTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpStringTest >> testGlorpIsCollection [
 	self deny: 'abc' glorpIsCollection.

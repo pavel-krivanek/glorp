@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDialectTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpDialectTest >> testBlockArgumentCount [
 	self assert: (Dialect argumentCountFor: [3]) = 0.

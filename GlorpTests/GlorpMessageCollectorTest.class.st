@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpMessageCollectorTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpMessageCollectorTest >> messageCollectorDNUObjectStudio [
 	| caught |

@@ -13,6 +13,15 @@ GlorpMediaType class >> text [
 	^self new name: 'text'; mimeType: 'text/plain'
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpMediaType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpMediaType >> mimeType [
 	^mimeType

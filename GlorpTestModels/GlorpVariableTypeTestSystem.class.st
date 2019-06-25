@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpVariableTypeTestSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #classes }
 GlorpVariableTypeTestSystem >> classModelForGlorpGallery: aClassModel [
 	aClassModel newAttributeNamed: #id.

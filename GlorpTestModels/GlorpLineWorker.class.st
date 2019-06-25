@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpLineWorker class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpLineWorker >> = aLineWorker [
 	^super = aLineWorker and: [productionLine = aLineWorker productionLine].

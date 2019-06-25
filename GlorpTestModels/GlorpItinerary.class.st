@@ -24,6 +24,15 @@ GlorpItinerary class >> example2 [
 		reservation: GlorpReservation example2.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpItinerary class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpItinerary >> id [
 	^id

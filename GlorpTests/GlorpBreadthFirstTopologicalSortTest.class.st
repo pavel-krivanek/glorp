@@ -11,6 +11,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpBreadthFirstTopologicalSortTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #support }
 GlorpBreadthFirstTopologicalSortTest >> assertSortOrder: aCollection [
 	| ids |

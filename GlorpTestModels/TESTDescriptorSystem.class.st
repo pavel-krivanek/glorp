@@ -71,6 +71,16 @@ TESTDescriptorSystem class >> testLocalInnerQueries [
 	^result
 ]
 
+{ #category : #'VisualWorks metadata' }
+TESTDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #classes }
 TESTDescriptorSystem >> classModelForCustomerStation: aClassModel [
 

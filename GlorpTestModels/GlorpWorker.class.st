@@ -17,6 +17,15 @@ GlorpWorker class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpWorker class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpWorker >> finishedJobs [
 	^finishedJobs

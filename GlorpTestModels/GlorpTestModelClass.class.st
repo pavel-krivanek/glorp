@@ -6,3 +6,13 @@ Class {
 	#superclass : #TestAsserter,
 	#category : #GlorpTestModels
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTestModelClass class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]

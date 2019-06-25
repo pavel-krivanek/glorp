@@ -16,6 +16,15 @@ ASBonus class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+ASBonus class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 ASBonus >> credits [
 

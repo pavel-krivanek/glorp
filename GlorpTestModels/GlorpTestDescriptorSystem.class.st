@@ -6,3 +6,13 @@ Class {
 	#superclass : #DescriptorSystem,
 	#category : #GlorpTestModels
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTestDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

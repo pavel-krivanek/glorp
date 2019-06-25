@@ -14,6 +14,15 @@ ASItem class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+ASItem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 ASItem >> bonuses [
 

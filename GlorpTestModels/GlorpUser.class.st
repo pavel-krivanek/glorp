@@ -16,6 +16,15 @@ GlorpUser class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpUser class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpUser >> folders [
 	^folders

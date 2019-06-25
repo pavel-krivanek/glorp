@@ -28,6 +28,15 @@ GlorpBankTransaction class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpBankTransaction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpBankTransaction >> amount [
 	^amount

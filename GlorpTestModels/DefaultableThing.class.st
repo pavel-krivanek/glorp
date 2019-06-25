@@ -8,3 +8,12 @@ Class {
 	],
 	#category : #GlorpTestModels
 }
+
+{ #category : #'VisualWorks metadata' }
+DefaultableThing class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]

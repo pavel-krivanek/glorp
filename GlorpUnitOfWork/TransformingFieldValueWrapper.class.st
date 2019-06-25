@@ -19,6 +19,16 @@ Class {
 	#category : #GlorpUnitOfWork
 }
 
+{ #category : #'VisualWorks metadata' }
+TransformingFieldValueWrapper class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 TransformingFieldValueWrapper >> allInnerWrappers [
 	^innerWrapper allInnerWrappers, (Array with: innerWrapper).

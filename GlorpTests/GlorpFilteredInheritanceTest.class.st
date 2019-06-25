@@ -13,6 +13,16 @@ GlorpFilteredInheritanceTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource with: GlorpSessionResource
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpFilteredInheritanceTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpFilteredInheritanceTest >> compareEmployees: employees [
 

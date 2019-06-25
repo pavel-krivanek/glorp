@@ -22,6 +22,15 @@ GlorpTransformedTime class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpTransformedTime class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpTransformedTime >> id [
 	^id

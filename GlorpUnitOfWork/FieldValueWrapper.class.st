@@ -25,6 +25,15 @@ FieldValueWrapper class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+FieldValueWrapper class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 FieldValueWrapper >> allInnerWrappers [
 	^#().

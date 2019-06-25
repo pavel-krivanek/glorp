@@ -37,6 +37,15 @@ UnitOfWork class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+UnitOfWork class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'begin/commit/abort' }
 UnitOfWork >> abort [
 	self reinitialize.

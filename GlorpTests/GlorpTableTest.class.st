@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTableTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpTableTest >> keywordForConstraintsWhenDropping: aConstraint onPlatform: aDatabasePlatform [
 	"This method returns the term to test against independently of #writeConstraintToDrop:onStream:.  The logic is that ANSI uses 'DROP CONSTRAINT but MySQL uses

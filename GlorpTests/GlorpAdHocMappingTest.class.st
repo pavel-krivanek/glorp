@@ -12,6 +12,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpAdHocMappingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpAdHocMappingTest >> moneyNegatingMappingTo: amountField in: aDescriptor [ 
 	mapping := aDescriptor newMapping: AdHocMapping.

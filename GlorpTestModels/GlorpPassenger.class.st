@@ -30,6 +30,15 @@ GlorpPassenger class >> example2 [
 		airline: GlorpAirline example2.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpPassenger class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpPassenger >> airline [
 	^airline.

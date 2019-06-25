@@ -19,6 +19,16 @@ GlorpVideoRental class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpVideoRental class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpVideoRental >> <= aVideoRental [
 	^self title <= aVideoRental title.

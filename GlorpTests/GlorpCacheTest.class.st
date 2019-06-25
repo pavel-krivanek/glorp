@@ -13,6 +13,16 @@ GlorpCacheTest class >> resources [
 	^Array with: GlorpSessionResource
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpCacheTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpCacheTest >> setUp [
 	super setUp.

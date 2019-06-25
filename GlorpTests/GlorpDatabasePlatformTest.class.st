@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabasePlatformTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpDatabasePlatformTest >> addToString: aString [
 	"Append a couple of special characters. The result will utf-8 encode to be 3 characters longer than its number of characters"

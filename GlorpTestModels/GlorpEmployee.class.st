@@ -8,3 +8,13 @@ Class {
 GlorpEmployee class >> glorpTypeResolver [
 	^FilteredTypeResolver forRootClass: GlorpEmployee
 ]
+
+{ #category : #'VisualWorks metadata' }
+GlorpEmployee class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

@@ -14,6 +14,16 @@ GlorpTestCase class >> sunitName [
 	^self name
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpTestCase class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #hacks }
 GlorpTestCase >> knownFailure [
 	"This does nothing, but makes it easier to search for known failures."

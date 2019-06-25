@@ -14,6 +14,15 @@ ASOrder class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+ASOrder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 ASOrder >> customer [
 

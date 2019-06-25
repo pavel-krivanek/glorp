@@ -65,6 +65,15 @@ GlorpPerson class >> example2 [
 		address: GlorpAddress example2.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpPerson class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpPerson >> address [
 	"Private - Answer the value of the receiver's ''address'' instance variable."

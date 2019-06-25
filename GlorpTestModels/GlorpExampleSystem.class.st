@@ -13,6 +13,15 @@ GlorpExampleSystem class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpExampleSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #initialize }
 GlorpExampleSystem >> initialize [
 

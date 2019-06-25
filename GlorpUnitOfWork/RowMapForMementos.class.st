@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpUnitOfWork
 }
 
+{ #category : #'VisualWorks metadata' }
+RowMapForMementos class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'instance creation' }
 RowMapForMementos class >> withCorrespondenceMap: aDictionary [
 

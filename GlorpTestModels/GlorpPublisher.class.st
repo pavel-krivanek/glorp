@@ -13,6 +13,15 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpPublisher class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpPublisher >> differentBunchOfEmployeesById [
 	^differentBunchOfEmployeesById

@@ -6,3 +6,13 @@ Class {
 	#superclass : #GlorpEmployee,
 	#category : #GlorpTestModels
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTransientEmployee class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

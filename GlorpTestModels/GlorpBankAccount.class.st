@@ -24,6 +24,15 @@ GlorpBankAccount class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpBankAccount class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpBankAccount >> <= anAccount [
 	^self accountNumber accountNumber <= anAccount accountNumber accountNumber.

@@ -22,6 +22,15 @@ GlorpAirline class >> example2 [
 		name: 'Lufthansa'.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpAirline class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpAirline >> id [
 	^id

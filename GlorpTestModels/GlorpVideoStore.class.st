@@ -18,6 +18,16 @@ GlorpVideoStore class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpVideoStore class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 GlorpVideoStore >> assertEqual: aStore [
 	self assert: id = aStore id.

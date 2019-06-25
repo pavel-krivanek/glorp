@@ -30,6 +30,15 @@ GlorpRowSorter class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpRowSorter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #sorting }
 GlorpRowSorter >> childrenOf: anItem [
 	^childCache at: anItem ifAbsentPut: [

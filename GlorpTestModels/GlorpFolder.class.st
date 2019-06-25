@@ -16,6 +16,15 @@ GlorpFolder class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpFolder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'initialize-release' }
 GlorpFolder >> initialize [
 	user := nil.

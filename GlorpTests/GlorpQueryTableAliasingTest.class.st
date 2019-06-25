@@ -10,6 +10,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpQueryTableAliasingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'As yet unclassified' }
 GlorpQueryTableAliasingTest >> helpTestPrintingWhereClause: anExpression [
 	| command |

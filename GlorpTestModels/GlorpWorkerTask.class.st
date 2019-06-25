@@ -32,6 +32,15 @@ GlorpWorkerTask class >> exampleTasks [
 	^tasks
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpWorkerTask class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'test-comparing' }
 GlorpWorkerTask >> <= aTask [ 
 	

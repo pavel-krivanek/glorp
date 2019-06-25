@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDescriptorValidationTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #testing }
 GlorpDescriptorValidationTest >> testJoinDirection [
 	| descriptor table1 table2 mapping system descriptor2 |

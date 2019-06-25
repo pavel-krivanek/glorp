@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #other }
 GlorpEncyclopediaDescriptorSystem >> allTableNames [
 	^#('ENCYC' 'ENCYC_ENTRY' 'ENCYC_ENTRY_LINK' 'IMAGINARY_MEDIA_TYPE' 'GR_PUBLISHER' 'PUBLISHER_TITLE' 'PUB_TITLES_STOCK' 'PUB_TITLE_LINK' 'PUBLISHER_TITLE2' 'PUB_EMP_LINK' 'PUBLISHER_EMP').

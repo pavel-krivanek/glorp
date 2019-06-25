@@ -21,6 +21,15 @@ GlorpAttachmentBytes class >> glorpSetupDescriptor: aDesc forSystem: system [
 		to: (t fieldNamed: 'content')
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpAttachmentBytes class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpAttachmentBytes >> content [
 	^content

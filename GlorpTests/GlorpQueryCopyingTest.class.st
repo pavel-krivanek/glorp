@@ -16,6 +16,16 @@ GlorpQueryCopyingTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpQueryCopyingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpQueryCopyingTest >> setUp [
 	super setUp.

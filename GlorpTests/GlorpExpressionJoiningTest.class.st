@@ -9,6 +9,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpExpressionJoiningTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpExpressionJoiningTest >> join: exp [ 
 	^exp asExpressionJoiningSource: source toTarget: target

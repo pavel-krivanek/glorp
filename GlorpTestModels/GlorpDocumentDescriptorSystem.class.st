@@ -52,6 +52,16 @@ GlorpDocumentDescriptorSystem class >> readDocumentAndAttachmentsFrom: glorpSess
 	^doc
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDocumentDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #glorp }
 GlorpDocumentDescriptorSystem >> allTableNames [
 	^#('document' 'attachment' 'attachmentbytes')

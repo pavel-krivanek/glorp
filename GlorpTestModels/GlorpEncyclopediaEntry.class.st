@@ -31,6 +31,15 @@ GlorpEncyclopediaEntry class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaEntry class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpEncyclopediaEntry >> id [
 	^id

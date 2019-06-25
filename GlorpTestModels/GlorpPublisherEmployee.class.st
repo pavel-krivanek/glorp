@@ -16,6 +16,15 @@ GlorpPublisherEmployee class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpPublisherEmployee class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpPublisherEmployee >> id [
 	^id

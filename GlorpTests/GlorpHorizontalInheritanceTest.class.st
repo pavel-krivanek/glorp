@@ -12,6 +12,16 @@ GlorpHorizontalInheritanceTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource with: GlorpSessionResource
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpHorizontalInheritanceTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpHorizontalInheritanceTest >> setUp [
 	super setUp.

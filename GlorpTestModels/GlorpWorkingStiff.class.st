@@ -17,6 +17,15 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpWorkingStiff class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpWorkingStiff >> = aWorkingStiff [
 	^self class = aWorkingStiff class and: [id = aWorkingStiff id and: [name = aWorkingStiff name]].

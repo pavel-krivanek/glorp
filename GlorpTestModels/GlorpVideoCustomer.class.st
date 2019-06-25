@@ -20,6 +20,16 @@ GlorpVideoCustomer class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpVideoCustomer class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpVideoCustomer >> <= aVideoCustomer [
 	^self name < aVideoCustomer name

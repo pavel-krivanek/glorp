@@ -22,6 +22,15 @@ GlorpServiceCharge class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpServiceCharge class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpServiceCharge >> amount [
 	^amount

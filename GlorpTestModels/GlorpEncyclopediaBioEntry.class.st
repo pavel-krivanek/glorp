@@ -14,6 +14,15 @@ GlorpEncyclopediaBioEntry class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaBioEntry class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'initialize-release' }
 GlorpEncyclopediaBioEntry >> initialize [
 ]

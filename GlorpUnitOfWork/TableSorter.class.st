@@ -35,6 +35,15 @@ TableSorter class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+TableSorter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 TableSorter >> addTable: aTable [ 
 	tables add: aTable

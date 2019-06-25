@@ -9,6 +9,15 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTag class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'as yet unclassified' }
 GlorpTag >> generateKeyFromLabel [
 	key := label asLowercase

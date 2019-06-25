@@ -16,6 +16,15 @@ Class {
 	#category : #GlorpUnitOfWork
 }
 
+{ #category : #'VisualWorks metadata' }
+RowMapKey class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 RowMapKey >> = aRowMapKey [
 

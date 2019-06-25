@@ -60,6 +60,15 @@ GlorpBook class >> example4 [
 		version: 2.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpBook class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpBook >> author [
 	^author

@@ -12,6 +12,15 @@ GlorpTaggableObject class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpTaggableObject class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'as yet unclassified' }
 GlorpTaggableObject >> initialize [
 	tags := OrderedCollection new.
