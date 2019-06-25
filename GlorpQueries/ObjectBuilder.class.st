@@ -10,6 +10,16 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+ObjectBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'building objects' }
 ObjectBuilder >> buildObjectFrom: anArray [
 	self row: anArray.

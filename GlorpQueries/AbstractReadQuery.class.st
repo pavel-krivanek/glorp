@@ -129,6 +129,16 @@ AbstractReadQuery class >> returningOneOf: aClass where: anExpression [
 		singleObject: true
 ]
 
+{ #category : #'VisualWorks metadata' }
+AbstractReadQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'boolean operations' }
 AbstractReadQuery >> AND: anExpression [
 	"Allow you to send AND: or OR: directly to a query to build up a query dynamically without needing to mess with the criteria explicitly"

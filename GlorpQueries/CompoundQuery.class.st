@@ -37,6 +37,16 @@ CompoundQuery class >> newUnionAll [
 	^self new operation: #'UNION ALL'.
 ]
 
+{ #category : #'VisualWorks metadata' }
+CompoundQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 CompoundQuery >> addQuery: aQuery [
 	queries isEmpty ifTrue: [primaryQuery := aQuery].

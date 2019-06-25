@@ -78,6 +78,15 @@ ElementBuilder class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+ElementBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'building objects' }
 ElementBuilder >> buildObjectFrom: anArray [ 
 	self subclassResponsibility.

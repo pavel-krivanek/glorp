@@ -26,6 +26,15 @@ GlorpPreparedStatement class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpPreparedStatement class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpPreparedStatement >> busy [
 	^busy.

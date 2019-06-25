@@ -55,6 +55,15 @@ GlorpCursoredStream class >> on: aStream for: aCommand accessor: aDatabaseAccess
 		databaseAccessor: aDatabaseAccessor.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpCursoredStream class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 GlorpCursoredStream >> accessor [
 	^databaseAccessor.

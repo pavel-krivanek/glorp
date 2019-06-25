@@ -24,6 +24,15 @@ JoinPrinter class >> for: aQuery [
 	^self new query: aQuery.
 ]
 
+{ #category : #'VisualWorks metadata' }
+JoinPrinter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 JoinPrinter >> allTables [
 	^query tablesToPrint.

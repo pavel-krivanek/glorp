@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+DictionaryBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'building objects' }
 DictionaryBuilder >> buildObjectFrom: anArray [
 	"We just build an association out of the sub-builders "

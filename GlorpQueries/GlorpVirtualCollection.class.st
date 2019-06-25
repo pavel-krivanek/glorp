@@ -30,6 +30,15 @@ GlorpVirtualCollection class >> on: aClass in: aSession [
 	^self new on: aClass in: aSession.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpVirtualCollection class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #private }
 GlorpVirtualCollection >> AND: aBlock [
 	query AND: aBlock.

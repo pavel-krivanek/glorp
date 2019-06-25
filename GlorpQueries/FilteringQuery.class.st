@@ -27,6 +27,16 @@ FilteringQuery class >> on: aCollection filter: aBlock [
  		filter: aBlock.
 ]
 
+{ #category : #'VisualWorks metadata' }
+FilteringQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 FilteringQuery >> collectBlock [
 	^collectBlock

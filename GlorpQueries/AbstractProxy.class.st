@@ -23,6 +23,15 @@ AbstractProxy class >> new [
 	^super new proxyInitialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+AbstractProxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 AbstractProxy >> = anObject [
 	"In VA we inherit this as identity. Need to override"
