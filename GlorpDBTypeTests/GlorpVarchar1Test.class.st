@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTypeTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpVarchar1Test class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #types }
 GlorpVarchar1Test >> defaultDatabaseType [
 	^self platform varchar: 1.

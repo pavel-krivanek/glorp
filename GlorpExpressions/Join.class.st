@@ -95,6 +95,15 @@ Join class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+Join class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 Join >> , aJoin [
 	| newJoin |

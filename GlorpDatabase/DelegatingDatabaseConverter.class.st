@@ -35,6 +35,16 @@ DelegatingDatabaseConverter class >> named: aSymbol hostedBy: anObject fromStToD
 		fromDbToSt: dbStSelector.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DelegatingDatabaseConverter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 DelegatingDatabaseConverter >> convert: anObject fromDatabaseRepresentationAs: aDatabaseType [ 
 	^host perform: dbToStSelector with: anObject with: aDatabaseType

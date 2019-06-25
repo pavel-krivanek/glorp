@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTestUpdatingTimestampInRecord class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpTestUpdatingTimestampInRecord >> testUpdating [
 

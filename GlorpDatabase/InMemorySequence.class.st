@@ -20,6 +20,16 @@ InMemorySequence class >> default [
 	^self new.
 ]
 
+{ #category : #'VisualWorks metadata' }
+InMemorySequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #public }
 InMemorySequence >> getSequenceValueFromDatabaseFor: aField in: aRow using: aSession [
 

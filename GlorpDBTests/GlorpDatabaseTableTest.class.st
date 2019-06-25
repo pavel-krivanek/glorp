@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseTableTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpDatabaseTableTest >> testFKUniqueNames [
 

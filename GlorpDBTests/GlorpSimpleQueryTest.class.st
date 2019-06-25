@@ -13,6 +13,16 @@ GlorpSimpleQueryTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpSimpleQueryTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpSimpleQueryTest >> setUp [
 	super setUp.

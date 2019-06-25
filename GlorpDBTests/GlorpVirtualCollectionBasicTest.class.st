@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpVirtualCollectionBasicTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpVirtualCollectionBasicTest >> realObjects [
 	"Get the real objects from a virtual collection without resorting to any of its mechanisms except do:, so we can validate against more complex things."

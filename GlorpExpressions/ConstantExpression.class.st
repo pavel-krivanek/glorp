@@ -23,6 +23,16 @@ ConstantExpression class >> for: anObject [
 	^self new value: anObject.
 ]
 
+{ #category : #'VisualWorks metadata' }
+ConstantExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 ConstantExpression >> alias [
 	^alias

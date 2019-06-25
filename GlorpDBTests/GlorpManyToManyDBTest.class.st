@@ -12,6 +12,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpManyToManyDBTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpManyToManyDBTest >> checkAccounts [
 
