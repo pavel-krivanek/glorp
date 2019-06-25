@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpExpressionIterationTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpExpressionIterationTest >> helpTestSingleNodeDo: exp [ 
 	self assert: (exp collect: [:each | each]) = (OrderedCollection with: exp)

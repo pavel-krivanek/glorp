@@ -13,6 +13,16 @@ GlorpCursoredCollectionTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpCursoredCollectionTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #support }
 GlorpCursoredCollectionTest >> customerStream [
 	| rows |
