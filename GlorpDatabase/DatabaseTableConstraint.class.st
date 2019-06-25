@@ -26,6 +26,15 @@ DatabaseTableConstraint class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseTableConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #printing }
 DatabaseTableConstraint >> creationString [
 

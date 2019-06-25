@@ -15,3 +15,13 @@ Class {
 PostgresLibpqPlatform class >> kind [
 	^'Postgres via Libpq I/F'
 ]
+
+{ #category : #'VisualWorks metadata' }
+PostgresLibpqPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

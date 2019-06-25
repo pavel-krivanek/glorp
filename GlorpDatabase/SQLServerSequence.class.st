@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+SQLServerSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #sequencing }
 SQLServerSequence >> getSequenceValueFromDatabaseFor: aField in: aRow using: aSession [
 ]

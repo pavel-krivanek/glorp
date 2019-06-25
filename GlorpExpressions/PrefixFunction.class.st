@@ -18,6 +18,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+PrefixFunction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 PrefixFunction >> argumentModifierBlock [
 	^argumentModifierBlock

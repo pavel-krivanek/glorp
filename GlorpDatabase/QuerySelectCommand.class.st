@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+QuerySelectCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 QuerySelectCommand >> bindingTypes [
 	self useBinding ifFalse: [^#()].

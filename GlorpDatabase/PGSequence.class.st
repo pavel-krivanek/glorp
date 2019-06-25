@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+PGSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #SQL }
 PGSequence >> getSequenceValueFromDatabaseFor: aDatabaseField in: aDatabaseRow using: anAccessor [
 

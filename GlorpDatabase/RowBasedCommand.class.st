@@ -45,6 +45,16 @@ RowBasedCommand class >> forRows: aCollectionOfDatabaseRows useBinding: aBoolean
 		yourself.
 ]
 
+{ #category : #'VisualWorks metadata' }
+RowBasedCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 RowBasedCommand >> allRows [
 	^allRows.

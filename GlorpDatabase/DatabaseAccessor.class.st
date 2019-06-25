@@ -70,6 +70,15 @@ DatabaseAccessor class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseAccessor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #executing }
 DatabaseAccessor >> addConstraint: aConstraint [ 
 	

@@ -9,6 +9,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+FirebirdSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #public }
 FirebirdSequence >> creationString [
 

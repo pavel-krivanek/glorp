@@ -28,6 +28,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+ObjectExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'api-aggregates' }
 ObjectExpression >> aggregate: anExpression as: aggregateFunctionName [
 

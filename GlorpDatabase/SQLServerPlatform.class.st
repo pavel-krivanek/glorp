@@ -22,6 +22,16 @@ SQLServerPlatform class >> reservedWords [
 		asSet
 ]
 
+{ #category : #'VisualWorks metadata' }
+SQLServerPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #constants }
 SQLServerPlatform >> areSequencesExplicitlyCreated [
 

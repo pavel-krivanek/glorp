@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+PluggableDatabaseConverter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 PluggableDatabaseConverter >> convert: anObject fromDatabaseRepresentationAs: aDatabaseType [ 
 	^dbToSt isNil ifTrue: [anObject] ifFalse: [dbToSt value: anObject]

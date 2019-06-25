@@ -15,6 +15,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+JustSelectTheMaximumSequenceValueAndAddOne class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 JustSelectTheMaximumSequenceValueAndAddOne >> field [
 	field isNil ifTrue: [field := table primaryKeyFields first].

@@ -48,7 +48,7 @@ Class {
 	#classInstVars : [
 		'converterRepository'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #constants }
@@ -111,6 +111,15 @@ DatabasePlatform class >> useBindingIfSupported: aBooleanOrNil [
 	"If I am nil (the default), each platform that supportsBinding lazily initializes to its defaultUseBinding value.  If I have a value, I force lazy initialization of each platform that supportsBinding to my value.  Normally, a value is set only for specific testing purposes."
 
 	UseBindingIfSupported := aBooleanOrNil.
+]
+
+{ #category : #'VisualWorks metadata' }
+DatabasePlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #constants }

@@ -19,6 +19,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+OracleSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 OracleSequence >> alwaysGetFromDb [
 	^sequenceIncrement = 1

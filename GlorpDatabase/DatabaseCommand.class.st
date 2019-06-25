@@ -37,6 +37,15 @@ DatabaseCommand class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 DatabaseCommand >> arrayBoundFields [
 	self subclassResponsibility

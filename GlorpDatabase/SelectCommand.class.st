@@ -39,6 +39,16 @@ SelectCommand class >> forQuery: aQuery parameters: aDictionary useBinding: aBoo
 		yourself.
 ]
 
+{ #category : #'VisualWorks metadata' }
+SelectCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 SelectCommand >> blockFactor: anInteger [
 	blockFactor := anInteger.

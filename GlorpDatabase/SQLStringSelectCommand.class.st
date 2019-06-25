@@ -18,6 +18,16 @@ SQLStringSelectCommand class >> sqlString: aString parameters: aDictionaryOrArra
 		session: aSession.
 ]
 
+{ #category : #'VisualWorks metadata' }
+SQLStringSelectCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 SQLStringSelectCommand >> bindingTypes [
 	^query isNil ifTrue: [#()] ifFalse: [super bindingTypes].

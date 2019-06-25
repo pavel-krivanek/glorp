@@ -17,6 +17,16 @@ FirebirdPlatform class >> kind [
 	^'Firebird'
 ]
 
+{ #category : #'VisualWorks metadata' }
+FirebirdPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #constants }
 FirebirdPlatform >> areSequencesExplicitlyCreated [
 	^true

@@ -18,6 +18,16 @@ PrimaryKeyConstraint class >> forTable: aDatabaseTable fields: collDatabaseField
 		yourself
 ]
 
+{ #category : #'VisualWorks metadata' }
+PrimaryKeyConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #printing }
 PrimaryKeyConstraint >> creationStringFor: aPlatform [
 

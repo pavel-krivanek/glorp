@@ -12,6 +12,16 @@ OracleODBCPlatform class >> kind [
 	^'Oracle ODBC Driver'
 ]
 
+{ #category : #'VisualWorks metadata' }
+OracleODBCPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 OracleODBCPlatform >> isODBCPlatform [
 

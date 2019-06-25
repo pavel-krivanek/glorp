@@ -31,6 +31,16 @@ DatabaseSequence class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #sequencing }
 DatabaseSequence >> creationString [
 

@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+DeleteCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 DeleteCommand >> arrayBoundFields [
 	"For a delete, it makes no difference, we only ever include the primary key fields"

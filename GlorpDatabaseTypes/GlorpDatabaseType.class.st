@@ -53,6 +53,15 @@ GlorpDatabaseType class >> padToTwoDigits: anInteger [
 	^string size = 1 ifTrue: ['0', string] ifFalse: [string].
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpDatabaseType >> = aType [
 	^self basicEquals: aType.

@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+SQLite3Sequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #sequencing }
 SQLite3Sequence >> getSequenceValueFromDatabaseFor: aField in: aRow using: aSession [
 ]

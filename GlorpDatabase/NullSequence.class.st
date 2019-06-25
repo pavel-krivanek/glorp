@@ -23,6 +23,16 @@ NullSequence class >> new [
 	^Singleton.
 ]
 
+{ #category : #'VisualWorks metadata' }
+NullSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #public }
 NullSequence >> getSequenceValueFromDatabaseFor: aField in: aRow using: aSession [
 ]

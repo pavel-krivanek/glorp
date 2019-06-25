@@ -16,6 +16,16 @@ SQLStringCommand class >> for: aString [
 	^self new setSQLString: aString.
 ]
 
+{ #category : #'VisualWorks metadata' }
+SQLStringCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 SQLStringCommand >> arrayBoundFields [
 	"Don't have enough information to do this, I don't think"

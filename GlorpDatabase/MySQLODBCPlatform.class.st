@@ -9,6 +9,16 @@ MySQLODBCPlatform class >> kind [
 	^'MySQL ODBC Driver'
 ]
 
+{ #category : #'VisualWorks metadata' }
+MySQLODBCPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 MySQLODBCPlatform >> isODBCPlatform [
 

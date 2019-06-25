@@ -11,3 +11,13 @@ Class {
 AdabasDPlatform class >> kind [
 	^'Adabas'
 ]
+
+{ #category : #'VisualWorks metadata' }
+AdabasDPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

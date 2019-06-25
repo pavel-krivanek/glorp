@@ -51,6 +51,15 @@ DatabaseField class >> new [
 	^self error: 'dbType needed'
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseField class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 DatabaseField >> <= aField [
 	^self name <= aField name

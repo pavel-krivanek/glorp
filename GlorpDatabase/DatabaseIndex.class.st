@@ -36,6 +36,15 @@ DatabaseIndex class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseIndex class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #initializing }
 DatabaseIndex >> addField: aField [
 	^fields add: aField

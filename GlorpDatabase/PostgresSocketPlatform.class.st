@@ -15,3 +15,13 @@ Class {
 PostgresSocketPlatform class >> kind [
 	^'Postgres Socket'
 ]
+
+{ #category : #'VisualWorks metadata' }
+PostgresSocketPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

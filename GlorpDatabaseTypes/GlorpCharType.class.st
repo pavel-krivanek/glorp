@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpCharType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #initialize }
 GlorpCharType >> initialize [
 	super initialize.

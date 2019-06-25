@@ -17,6 +17,16 @@ PostgreSQLPlatform class >> useBindingByDefault [
 	^false
 ]
 
+{ #category : #'VisualWorks metadata' }
+PostgreSQLPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #constants }
 PostgreSQLPlatform >> areSequencesExplicitlyCreated [
 	^true.

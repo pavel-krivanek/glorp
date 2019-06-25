@@ -51,6 +51,16 @@ ForeignKeyConstraint class >> sourceFields: sourceFields targetFields: targetFie
 		yourself.
 ]
 
+{ #category : #'VisualWorks metadata' }
+ForeignKeyConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 ForeignKeyConstraint >> addSourceField: aField [
 	(self sourceFields allSatisfy: [:each | aField table = each table]) ifFalse: [self error: 'Fields in foreign key constraints must all have the same source table'].

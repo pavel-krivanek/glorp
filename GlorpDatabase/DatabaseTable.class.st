@@ -46,6 +46,15 @@ DatabaseTable class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseTable class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 DatabaseTable >> <= aTable [
 	^self qualifiedName <= aTable qualifiedName.

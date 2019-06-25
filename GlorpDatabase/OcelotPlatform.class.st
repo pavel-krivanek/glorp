@@ -12,6 +12,16 @@ OcelotPlatform class >> kind [
 	^'Ocelot'
 ]
 
+{ #category : #'VisualWorks metadata' }
+OcelotPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #constants }
 OcelotPlatform >> areSequencesExplicitlyCreated [
 

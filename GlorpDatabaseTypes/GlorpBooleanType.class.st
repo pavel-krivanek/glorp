@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpBooleanType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 GlorpBooleanType >> converterForStType: aClass [
 	(aClass includesBehavior: Boolean) ifTrue: [^self platform converterNamed: #booleanToBoolean].

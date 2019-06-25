@@ -50,6 +50,16 @@ SQLite3Platform class >> reservedWords [
 		asSet
 ]
 
+{ #category : #'VisualWorks metadata' }
+SQLite3Platform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #constants }
 SQLite3Platform >> areSequencesExplicitlyCreated [
 	^false
