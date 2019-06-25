@@ -23,6 +23,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+Case class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'As yet unclassified' }
 Case >> argumentTypes: anArray [ 
 	argumentTypes := anArray.

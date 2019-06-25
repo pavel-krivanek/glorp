@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTypeTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpNumeric52Test class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #types }
 GlorpNumeric52Test >> defaultDatabaseType [
 	^(self platform numeric)

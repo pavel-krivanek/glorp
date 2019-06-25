@@ -21,6 +21,16 @@ UniqueConstraint class >> forTable: aTable fields: aCollectionOfFields [
 	^instance
 ]
 
+{ #category : #'VisualWorks metadata' }
+UniqueConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #printing }
 UniqueConstraint >> creationStringFor: aPlatform [
 

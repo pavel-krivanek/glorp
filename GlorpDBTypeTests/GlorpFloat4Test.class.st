@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTypeTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpFloat4Test class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #types }
 GlorpFloat4Test >> defaultDatabaseType [
 	^self platform float4.

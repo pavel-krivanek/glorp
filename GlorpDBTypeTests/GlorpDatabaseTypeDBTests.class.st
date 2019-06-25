@@ -15,6 +15,16 @@ GlorpDatabaseTypeDBTests class >> resources [
 	^Array with: GlorpSessionResource
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseTypeDBTests class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpDatabaseTypeDBTests >> platform [
 	^connection platform

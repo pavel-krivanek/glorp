@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTypeTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTimestampTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpTimestampTest >> compareTime: read to: original [
 	| zeroDuration max min |

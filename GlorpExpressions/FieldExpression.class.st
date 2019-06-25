@@ -28,6 +28,16 @@ FieldExpression class >> forField: aField basedOn: anObjectExpression [
 		yourself
 ]
 
+{ #category : #'VisualWorks metadata' }
+FieldExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 FieldExpression >> alias [
 	^alias

@@ -22,6 +22,16 @@ EmptyExpression class >> on: aValue [
 	^self new value: aValue.
 ]
 
+{ #category : #'VisualWorks metadata' }
+EmptyExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #api }
 EmptyExpression >> AND: anExpression [
 

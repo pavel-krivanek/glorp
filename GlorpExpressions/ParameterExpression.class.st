@@ -23,6 +23,16 @@ ParameterExpression class >> forField: aField basedOn: anObjectExpression [
 	^self new field: aField base: anObjectExpression; yourself
 ]
 
+{ #category : #'VisualWorks metadata' }
+ParameterExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 ParameterExpression >> addToTargetFields: aCollection [
 	"If we can provide target fields, add them to the collection"

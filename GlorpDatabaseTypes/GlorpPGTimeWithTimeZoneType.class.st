@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpPGTimeWithTimeZoneType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'converting-times' }
 GlorpPGTimeWithTimeZoneType >> converterForStType: aClass [
 	"Convert as though we were a regular time field, since our Smalltalk object has no time zone information."

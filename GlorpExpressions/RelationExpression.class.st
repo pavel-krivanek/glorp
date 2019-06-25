@@ -30,6 +30,16 @@ RelationExpression class >> named: aSymbol basedOn: anExpression withArguments: 
 		withArguments: anArray.
 ]
 
+{ #category : #'VisualWorks metadata' }
+RelationExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 RelationExpression >> addBoundExpressionsIn: aCommand to: boundExpressions [
 	"If our right-child can be used for binding, add it to the list. We need to do this at this level because the expressions themselves don't know what type they'll be matched against"

@@ -32,6 +32,15 @@ GlorpExpression class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #api }
 GlorpExpression >> , anExpression [
 	^self get: #, withArguments: (Array with: anExpression asGlorpExpression).

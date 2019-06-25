@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpIntegerType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpIntegerType >> = aType [
 	(aType class == self platform numeric class and: [aType isIntegerType]) ifTrue: [^true].

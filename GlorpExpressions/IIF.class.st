@@ -16,6 +16,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+IIF class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'As yet unclassified' }
 IIF >> argumentTypes: anArray [ 
 	argumentTypes := anArray.

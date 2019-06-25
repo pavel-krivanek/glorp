@@ -24,6 +24,16 @@ VWDatabaseAccessor class >> errorsToCatch [
 	^Error, pgError.
 ]
 
+{ #category : #'VisualWorks metadata' }
+VWDatabaseAccessor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #executing }
 VWDatabaseAccessor >> answerForCommand: aCommand fromDBSession: aSession [
 	"This may only be called immediately after execute.  Get the first answer.  If there are no rows returned but the command needa a count of rows affected, set the rowCount.  This may mean sending answer repeatedly if needed (i.e. by batched update or query-delete commands - or insert, but insert commands do not need row counts)."

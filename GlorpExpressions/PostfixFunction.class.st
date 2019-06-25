@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+PostfixFunction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #printing }
 PostfixFunction >> printSQLOn: aStream withParameters: aDictionary [
 	

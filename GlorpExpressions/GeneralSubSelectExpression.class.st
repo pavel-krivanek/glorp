@@ -24,6 +24,16 @@ GeneralSubSelectExpression class >> basedOn: anExpression [
 	^self new base: anExpression ultimateBaseExpression.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GeneralSubSelectExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 GeneralSubSelectExpression >> addBoundExpressionsIn: aCommand to: boundExpressions [
 	self query session: aCommand query session.

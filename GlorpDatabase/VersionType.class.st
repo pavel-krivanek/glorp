@@ -28,6 +28,16 @@ VersionType class >> underlyingType: aDatabaseType generator: aGenerator [
 	^self new underlyingType: aDatabaseType generator: aGenerator.
 ]
 
+{ #category : #'VisualWorks metadata' }
+VersionType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 VersionType >> converterForStType: aClass [
 

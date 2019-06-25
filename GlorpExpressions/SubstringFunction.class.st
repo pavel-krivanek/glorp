@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+SubstringFunction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 SubstringFunction >> _rewriteFunctionArguments [
 	"SUBSTR wants arguments position and length rather than (start) position and end position in Postgres, Oracle (not OracleODBC), MySQL, SQL Server and DB2."

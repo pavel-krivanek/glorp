@@ -37,6 +37,16 @@ VADatabaseAccessor class >> initializeDatabaseErrorSignal [
 		markReadOnly: true
 ]
 
+{ #category : #'VisualWorks metadata' }
+VADatabaseAccessor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #executing }
 VADatabaseAccessor >> basicExecuteSQLString: aString [
 	^self basicExecuteSQLString: aString binding: nil

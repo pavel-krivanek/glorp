@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTypeTests
 }
 
+{ #category : #'VisualWorks metadata' }
+AbstractLOBTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #private }
 AbstractLOBTest >> adjustForMaximumSize: aValue [
 	^aValue ifNotNil: [ 	aValue size > session platform maximumQueryValueSize 

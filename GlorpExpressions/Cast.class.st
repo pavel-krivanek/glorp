@@ -17,6 +17,16 @@ Cast class >> value: anObject as: aDatabaseType [
 	^self new base: anObject asGlorpExpression; arguments: (Array with: aDatabaseType asGlorpExpression)
 ]
 
+{ #category : #'VisualWorks metadata' }
+Cast class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'initialize-release' }
 Cast >> initialize [
 	super initialize.

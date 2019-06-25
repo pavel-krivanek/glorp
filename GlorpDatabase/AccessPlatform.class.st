@@ -12,6 +12,16 @@ AccessPlatform class >> kind [
 	^'Access'
 ]
 
+{ #category : #'VisualWorks metadata' }
+AccessPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #constants }
 AccessPlatform >> areSequencesExplicitlyCreated [
 

@@ -16,6 +16,16 @@ GlorpDatabaseTypeIndividualDBTests class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseTypeIndividualDBTests class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #helpers }
 GlorpDatabaseTypeIndividualDBTests >> compareFloatInModel: read with: original [
 	read isNil ifTrue: [^false].

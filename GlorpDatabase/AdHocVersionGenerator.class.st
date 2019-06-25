@@ -22,6 +22,16 @@ AdHocVersionGenerator class >> block: aBlock [
 	^self new block: aBlock.
 ]
 
+{ #category : #'VisualWorks metadata' }
+AdHocVersionGenerator class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 AdHocVersionGenerator >> block [
 	^block

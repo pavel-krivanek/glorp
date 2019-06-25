@@ -7,7 +7,7 @@ Class {
 	#classInstVars : [
 		'count'
 	],
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp'
 }
 
 { #category : #accessing }
@@ -30,6 +30,16 @@ GlorpInMemorySequenceDatabaseType class >> representedBy: dbType [
 GlorpInMemorySequenceDatabaseType class >> reset [
 
 	count := 0
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpInMemorySequenceDatabaseType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'exdi specific' }

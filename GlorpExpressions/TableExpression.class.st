@@ -25,6 +25,16 @@ TableExpression class >> forTable: aDatabaseTable basedOn: aBaseExpression [
 		yourself
 ]
 
+{ #category : #'VisualWorks metadata' }
+TableExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 TableExpression >> aliasedTableFor: aDatabaseTable [ 
 	^self controlsTables 

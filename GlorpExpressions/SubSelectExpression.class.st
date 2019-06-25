@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+SubSelectExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 SubSelectExpression >> addBoundExpressionsIn: aCommand to: boundExpressions [
 	self query prepare.

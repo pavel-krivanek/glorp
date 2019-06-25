@@ -31,6 +31,16 @@ MappingExpression class >> named: aSymbol basedOn: anExpression [
 		basedOn: anExpression
 ]
 
+{ #category : #'VisualWorks metadata' }
+MappingExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 MappingExpression >> additionalExpressions [
 	^self additionalExpressionsOn: self.

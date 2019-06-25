@@ -20,6 +20,15 @@ VariableJoin class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+VariableJoin class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 VariableJoin >> addJoinFor: aClass as: aJoin [
 	joins at: aClass put: aJoin.

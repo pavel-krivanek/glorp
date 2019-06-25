@@ -30,6 +30,16 @@ InfixFunction class >> named: aStringOrArray [
 	^instance.
 ]
 
+{ #category : #'VisualWorks metadata' }
+InfixFunction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 InfixFunction >> argument [
 	^arguments first.

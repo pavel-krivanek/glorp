@@ -13,6 +13,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+ExpressionGroup class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'instance creation' }
 ExpressionGroup class >> with: anExpression [
 	^self new add: anExpression.
