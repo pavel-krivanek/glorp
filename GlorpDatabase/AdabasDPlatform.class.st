@@ -4,7 +4,7 @@ This is a platform for the Adabas database, but appears very unfinished;  for ex
 Class {
 	#name : #AdabasDPlatform,
 	#superclass : #AdabasLikePlatform,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #accessing }

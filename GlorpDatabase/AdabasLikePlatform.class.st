@@ -4,7 +4,7 @@ This is a platform for Adabas and related databases.
 Class {
 	#name : #AdabasLikePlatform,
 	#superclass : #DatabasePlatform,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

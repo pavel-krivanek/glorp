@@ -31,7 +31,7 @@ Class {
 		'shouldRefresh',
 		'tracing'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -46,7 +46,7 @@ AbstractReadQuery class >> read: aClass [
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> read: aClass limit: anInteger [
-	^self returningManyOf: aClass limit: anInteger
+	^self read: aClass where: nil limit: anInteger.
 ]
 
 { #category : #'instance creation' }
@@ -56,23 +56,26 @@ AbstractReadQuery class >> read: aClass where: anExpression [
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> read: aClass where: anExpression limit: anInteger [
-	^self
-		returningManyOf: aClass
-		where: anExpression
-		limit: anInteger
+	^(self newQuery)
+		limit: anInteger;
+		initResultClass: aClass whereClause: anExpression singleObject: false;
+		yourself
 ]
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> readManyOf: aClass limit: anInteger [
-	^self returningManyOf: aClass limit: anInteger
+	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:limit:).
+	^self read: aClass limit: anInteger
 ]
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> readManyOf: aClass where: anExpression limit: anInteger [
-	^self
-		returningManyOf: aClass
-		where: anExpression
-		limit: anInteger
+	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:limit:).
+	^self read: aClass where: anExpression limit: anInteger
 ]
 
 { #category : #'instance creation' }
@@ -90,43 +93,50 @@ AbstractReadQuery class >> readOneOf: aClass where: anExpression [
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> returningManyOf: aClass [
-	^self returningManyOf: aClass where: nil
+	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:).
+	^self read: aClass
 ]
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> returningManyOf: aClass limit: anInteger [
-	^self
-		returningManyOf: aClass
-		where: nil
-		limit: anInteger
+	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:limit:).
+	^self read: aClass limit: anInteger
 ]
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> returningManyOf: aClass where: anExpression [
-	^self returningManyOf: aClass where: anExpression limit: nil
+	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
+	^self read: aClass where: anExpression
 ]
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> returningManyOf: aClass where: anExpression limit: anInteger [
-	^(self newQuery)
-		limit: anInteger;
-		initResultClass: aClass
-			whereClause: anExpression
-			singleObject: false;
-		yourself
+	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:limit:).
+	^self read: aClass where: anExpression limit: anInteger
 ]
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> returningOneOf: aClass [
-	^self returningOneOf: aClass where: nil
+	"returningOneOf: is a synonym of readOneOf:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:).
+	^self readOneOf: aClass.
 ]
 
 { #category : #'instance creation' }
 AbstractReadQuery class >> returningOneOf: aClass where: anExpression [
-	^self newQuery
-		initResultClass: aClass
-		whereClause: anExpression
-		singleObject: true
+	"returningOneOf: is a synonym of readOneOf:. This now seems more natural to me, to be consistent with session API."
+
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:where:).
+	^self readOneOf: aClass where: anExpression
 ]
 
 { #category : #'VisualWorks metadata' }
@@ -205,23 +215,25 @@ AbstractReadQuery >> checkCacheWithParameters: aDictionary ifPresent: aBlock [
 	"Check if we have retrieval expressions for something other than the base. If so, we're not actually reading this object, or at least not just this object"
 	self tracing retrievalExpressions do: [:each | each base isNil ifFalse: [^self]].
 	primaryKey := self primaryKeyFrom: aDictionary.
-	"We can't figure out the primary key"
+	"The query did not specify all primary key fields or had other fields as well or similar."
 	primaryKey isNil ifTrue: [^nil].
-	"The primary key is invalid (i.e. has nulls in it). So we've found the entry, and we know it's nil"
+	"The query is for a horizontally-filtered subclass and had no fields (is Query readOneOf: MySubClass ?)."
+	primaryKey == DatabaseRow emptySlot ifTrue: [^nil].
+	"The query has null (or a null-equivalent value) in a foreign-key field (see #shouldForeignKeyValueBeTreatedAsNull). So we've found the entry, and we know it's nil."
 	primaryKey = #() ifTrue: [^aBlock value: nil].
-	"If it's expired, make sure we do the read but still refresh"
+	"If it is expired, make sure we do the read but still refresh."
   	(session hasExpired: resultClass key: primaryKey) ifTrue: [
 		self shouldRefresh: true.
 		^nil].
 	result := session 
 		cacheAt: primaryKey
 		forClass: resultClass
-		ifNone: [nil].
+		ifNone: [^nil].
 	filteredResult := session filterDeletionFrom: result.
-	^filteredResult isNil ifTrue: [nil] ifFalse: [
-		(session system shouldResetExpiryTimeForObjectOfClass: filteredResult class readFrom: self)
+	^filteredResult isNil ifFalse:
+		[(session system shouldResetExpiryTimeForObjectOfClass: filteredResult class readFrom: self)
 			ifTrue: [self session markAsCurrentOfClass: filteredResult class key: primaryKey].
-		aBlock value: filteredResult]
+		aBlock value: filteredResult].
 ]
 
 { #category : #validation }
@@ -293,6 +305,15 @@ AbstractReadQuery >> executeWithParameters: parameterArray in: aSession [
 	self setupTracing.
 	^self 
 		readFromDatabaseWithParameters: parameterArray.
+]
+
+{ #category : #accessing }
+AbstractReadQuery >> expectedRows [
+	"If we have set a limit, we cannot expect to get more rows back."
+
+	^self limit isNil
+		ifTrue: [super expectedRows]
+		ifFalse: [self limit]
 ]
 
 { #category : #testing }
@@ -446,6 +467,11 @@ AbstractReadQuery >> retrieve: anExpression [
 	self tracing retrieve: (self expressionBlockFor: anExpression).
 ]
 
+{ #category : #'specifying retrievals' }
+AbstractReadQuery >> retrieveAll: someExpressions [
+	someExpressions do: [:each | self retrieve: each].
+]
+
 { #category : #recursing }
 AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursiveQuery: aRecursionQuery retrievingAll: anotherArray where: aWhereClause intersect: aQuery [
 	"As for retrieveAll:thenFollow:recursivelyRetrievingAll:where:intersect. but allowing a more detailed management of the recursion step, e.g. using the recurse mapping in the whereClause."
@@ -544,16 +570,15 @@ AbstractReadQuery >> setUpBase [
 
 { #category : #executing }
 AbstractReadQuery >> setUpExpressions [
-	(whereClause isGlorpExpression and: [ whereClause queryLevelBaseExpression notNil ])
+	(whereClause isGlorpExpression and: [whereClause queryLevelBaseExpression notNil])
 		ifTrue:
-			[ base := whereClause queryLevelBaseExpression.
+			[base := whereClause queryLevelBaseExpression.
 			base hasDescriptor
-				ifFalse: [ base descriptor: (session descriptorFor: resultClass) ] ]
+				ifFalse: [base descriptor: (session descriptorFor: resultClass)]]
 		ifFalse:
-			[ base isNil
-				ifTrue: [ base := BaseExpression new ].
+			[base isNil ifTrue: [base := BaseExpression new].
 			base descriptor: (session descriptorFor: resultClass).
-			whereClause := whereClause asGlorpExpressionOn: base in: self ].
+			whereClause := whereClause asGlorpExpressionOn: base in: self].
 	ordering isNil
 		ifFalse:
 			[ordering := ordering
@@ -563,20 +588,20 @@ AbstractReadQuery >> setUpExpressions [
 		ifFalse:
 			[grouping := grouping
 				collect:
-					[:each | (self expressionBlockFor: each) asGlorpExpressionOn: base in: self]].	
-	tracing isNil
-		ifFalse: [ tracing updateBase: base ].
-	base descriptor typeResolver setUpExpressionsForQuery: self
+					[:each | (self expressionBlockFor: each) asGlorpExpressionOn: base in: self]].		
+	tracing isNil ifFalse: [tracing updateBase: base].
+	base descriptor typeResolver setUpExpressionsForQuery: self.
 ]
 
 { #category : #tracing }
 AbstractReadQuery >> setupTracing [
 	self setUpExpressions.
 	self tracing setup.
-	self tracing additionalExpressions do: [:each |
-		each hasDescriptor ifTrue: [
-			each descriptor trace: self tracing context: each].
-			each validate].
+	self tracing additionalExpressions do:
+		[:each |
+		each hasDescriptor ifTrue:
+			[each descriptor trace: self tracing context: each].
+		each validate].
 ]
 
 { #category : #testing }
