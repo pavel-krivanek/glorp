@@ -60,7 +60,7 @@ DatabasePlatform class >> allReservedWords [
 	^words
 ]
 
-{ #category : #'*eoglorp' }
+{ #category : #Eoglorp }
 DatabasePlatform class >> createLoginFromConnectionDictionary: aDict [ 
 	self subclassResponsibility
 ]
@@ -72,7 +72,7 @@ DatabasePlatform class >> kind [
 	^nil
 ]
 
-{ #category : #'*eoglorp' }
+{ #category : #Eoglorp }
 DatabasePlatform class >> loginWithConnectionDictionary: aDict [ 
 	| platformClass |
 	platformClass := self allSubclasses
@@ -87,7 +87,7 @@ DatabasePlatform class >> reservedWords [
 	^Set new.
 ]
 
-{ #category : #'*eoglorp' }
+{ #category : #Eoglorp }
 DatabasePlatform class >> understandsConnectionDictionary: aDict [
 
 	^false
