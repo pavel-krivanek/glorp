@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpOwnerSlaveTest,
 	#superclass : #GlorpMappingDBTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpOwnerSlaveTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpOwnerSlaveTest >> test1 [

@@ -6,8 +6,18 @@ We treat this as a relation, but with the special properties that when we conver
 Class {
 	#name : #CollectionExpression,
 	#superclass : #RelationExpression,
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
+
+{ #category : #'VisualWorks metadata' }
+CollectionExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #iterating }
 CollectionExpression >> do: aBlock skipping: aSet [

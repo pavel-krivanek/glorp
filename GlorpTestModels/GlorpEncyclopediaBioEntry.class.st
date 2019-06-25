@@ -6,12 +6,21 @@ Class {
 		'title',
 		'text'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpEncyclopediaBioEntry class >> new [
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaBioEntry class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'initialize-release' }

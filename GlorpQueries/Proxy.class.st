@@ -17,7 +17,7 @@ Class {
 		'parameters',
 		'action'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -44,44 +44,46 @@ Proxy class >> readOneOf: aClass where: aBlock in: aSession [
 		session: aSession.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Proxy class >> returningManyOf: aClass where: aBlock [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: aBlock
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Proxy class >> returningManyOf: aClass where: aBlock in: aSession [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: aBlock in: aSession
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Proxy class >> returningOneOf: aClass where: aBlock [
 	"returningOneOf: is a synonyms of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:where:).
 	^self readOneOf: aClass where: aBlock
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Proxy class >> returningOneOf: aClass where: aBlock in: aSession [
 	"returningOneOf: is a synonyms of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:where:).
 	^self readOneOf: aClass where: aBlock in: aSession
 ]
 
-{ #category : #accessing }
-Proxy >> = anObject [
-	"In VA we inherit this as identity. Need to override"
-	^self isGlorpProxy & anObject isGlorpProxy
-		ifTrue: [ self getValue = anObject getValue ]
-		ifFalse: [ super = anObject ]
+{ #category : #'VisualWorks metadata' }
+Proxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }
@@ -196,14 +198,4 @@ Proxy >> session [
 { #category : #accessing }
 Proxy >> session: aSession [ 
 	session := aSession
-]
-
-{ #category : #accessing }
-Proxy >> species [
-
-	self isInstantiated ifTrue: [^value species].
-	query isNil ifTrue: [^Proxy].
-	query resultClass isNil ifTrue: [^Proxy].
-	^query resultClass species
-
 ]

@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+SelectingElementBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'building objects' }
 SelectingElementBuilder >> buildObjectFrom: anArray [
 	^self.

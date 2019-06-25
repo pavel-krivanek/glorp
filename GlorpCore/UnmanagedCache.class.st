@@ -17,8 +17,17 @@ Class {
 		'policy',
 		'extraReferences'
 	],
-	#category : #GlorpCore
+	#category : #'GlorpCore-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+UnmanagedCache class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #lookup }
 UnmanagedCache >> at: key ifAbsent: aBlock [

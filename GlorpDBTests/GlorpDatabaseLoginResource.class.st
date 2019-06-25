@@ -6,43 +6,83 @@ Class {
 		'login'
 	],
 	#classVars : [
-		'DefaultLogin'
+		'GlorpDatabaseLoginResource'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
-{ #category : #defaults }
+{ #category : #accessing }
+GlorpDatabaseLoginResource class >> constructEventsTriggered [
+	^(super constructEventsTriggered)
+		add: #changedDefaultLogin;
+		yourself
+]
+
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultAccessLogin [
+	"To set the default database login for Access, execute the following statement."
+	"self defaultAccessLogin."
+
+	^DefaultLogin := (Login new)
+		database: AccessPlatform new;
+		username: 'whatever';
+		password: '';
+		connectString: 'access'
+]
+
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultDB2Login [
+	"To set the default database login to Oracle, execute the following statement."
+	"self defaultDB2Login."
+
+	^DefaultLogin := (Login new)
+		database: DB2Platform new;
+		username: 'sames';
+		password: 'sames';
+		connectString: 'store'
+]
+
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultFirebirdLogin [
+	"To set the default database login to Firebird, execute the following statement."
+	"self defaultFirebirdLogin."
+
+	^DefaultLogin := (Login new)
+		database: FirebirdPlatform new;
+		username: 'MyName';
+		password: 'MyPassword';
+		connectString: 'firebirdGlorpTestDB'
+]
+
+{ #category : #accessing }
 GlorpDatabaseLoginResource class >> defaultLogin [
 	"Return the default Login. Whether it binds is determined by UseBindingIfSupported if that is set, otherwise by the login platform's preference."
 
-	DefaultLogin isNil ifTrue: [^DefaultLogin := self defaultPostgreSQLLogin].
+	DefaultLogin isNil ifTrue: [^DefaultLogin := self defaultPostgreSQLLoginForVPN].
 	DefaultLogin database useBinding: DefaultLogin database class useBindingIfSupported.
 	^DefaultLogin
 ]
 
-{ #category : #defaults }
-GlorpDatabaseLoginResource class >> defaultLogin: aLogin [ 
+{ #category : #accessing }
+GlorpDatabaseLoginResource class >> defaultLogin: aLogin [
+	DefaultLogin = aLogin ifFalse: [GlorpDemoTablePopulatorResource invalidateSetup].
 	DefaultLogin := aLogin.
-	self triggerEvent: #changedDefaultLogin
+	self triggerEvent: #changedDefaultLogin.
 ]
 
-{ #category : #defaults }
+{ #category : #data }
 GlorpDatabaseLoginResource class >> defaultMysqlLogin [
 	"To set the default database login to MySQL, execute the following statement."
 	"self defaultMysqlLogin."
 
-	^DefaultLogin := (Login new
+	^DefaultLogin := (Login new)
 		database: MySQLPlatform new;
-		host: 'localhost';
-		port: '3306';
-		databaseName: 'sodbxtest';
-		username: 'sodbxtest';
-		password: 'sodbxtest')
-	
-
+		username: '';
+		password: '';
+		connectString: 'test'.
 ]
 
-{ #category : #defaults }
+{ #category : #data }
 GlorpDatabaseLoginResource class >> defaultOracleLiteLogin [
 	"To set the default database login to Oracle, execute the following statement."
 	"self defaultOracleLiteLogin."
@@ -54,7 +94,7 @@ GlorpDatabaseLoginResource class >> defaultOracleLiteLogin [
 		connectString: 'odbc:polite'
 ]
 
-{ #category : #defaults }
+{ #category : #data }
 GlorpDatabaseLoginResource class >> defaultOracleLogin [
 	"To set the default database login to Oracle, execute the following statement."
 	"self defaultOracleLogin."
@@ -66,7 +106,19 @@ GlorpDatabaseLoginResource class >> defaultOracleLogin [
 		connectString: ''
 ]
 
-{ #category : #defaults }
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultOracleLogin2 [
+	"To set the default database login to Oracle, execute the following statement."
+	"self defaultOracleLogin2."
+
+	^DefaultLogin := (Login new)
+		database: OraclePlatform new;
+		username: 'system';
+		password: 'password';
+		connectString: ''
+]
+
+{ #category : #data }
 GlorpDatabaseLoginResource class >> defaultOracleODBCLogin [
 	"To set the default database login to Oracle, execute the following statement."
 	"self defaultOracleODBCLogin."
@@ -78,24 +130,111 @@ GlorpDatabaseLoginResource class >> defaultOracleODBCLogin [
 		connectString: 'oracle'
 ]
 
-{ #category : #defaults }
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultPersonalOracleLogin [
+	"To set the default database login to Oracle, execute the following statement."
+	"self defaultPersonalOracleLogin."
+
+	^DefaultLogin := (Login new)
+		database: OraclePlatform new;
+		username: 'system';
+		password: 'manager';
+		connectString: ''
+]
+
+{ #category : #accessing }
 GlorpDatabaseLoginResource class >> defaultPlatform [
 	^self defaultLogin database.
 ]
 
-{ #category : #defaults }
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultPostgreSQL3LibpqLocalLogin [
+	"Execute the following statement to set the default database login to PostgreSQL protocol 3.0 via the C API (not socket, so, as for Oracle and other databases, the local client library must be on the path).  The setting of a schema is not needed for GlorpTest tests but is needed for ActiveRecordTest tests."
+	"self defaultPostgreSQL3LibpqLocalLogin."
+
+	^DefaultLogin := (Login new)
+		database: PostgresLibpqPlatform new;
+		schema: 'public';
+		username: 'MyName';
+		password: 'MyPassword';
+		connectString: 'localhost:5432_GlorpTestDB'.
+]
+
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultPostgreSQL3SocketLocalLogin [
+	"To set the default database login to PostgreSQL protocol 3.0, execute the following statement.  The setting of a schema is not needed for GlorpTest tests but is needed for ActiveRecordTest tests."
+	"self defaultPostgreSQL3SocketLocalLogin."
+
+	^DefaultLogin := (Login new)
+		database: PostgresSocketPlatform new;
+		schema: 'public';
+		username: 'MyName';
+		password: 'MyPassword';
+		connectString: 'localhost:5432_GlorpTestDB'.
+]
+
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultPostgreSQLInternetLogin [
+	"To set the default database login to  PostgreSQL protocol 2.0 via socket, execute the following statement."
+	"self defaultPostgreSQLInternetLogin."
+
+	^DefaultLogin := (Login new)
+		database: PostgreSQLPlatform new;
+		username: 'guest';
+		password: 'guest';
+		connectString: 'store.cincomsmalltalk.com:5432_glorptest'.
+]
+
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultPostgreSQLLocalLogin [
+	"To set the default database login to PostgreSQL protocol 2.0 via socket, execute the following statement.  The setting of a schema is not needed for GlorpTest tests but is needed for ActiveRecordTest tests."
+	"self defaultPostgreSQLLocalLogin."
+
+	^DefaultLogin := (Login new)
+		database: PostgreSQLPlatform new;
+		schema: 'public';
+		username: 'MyName';
+		password: 'MyPassword';
+		connectString: 'localhost:5432_GlorpTestDB'.
+]
+
+{ #category : #data }
 GlorpDatabaseLoginResource class >> defaultPostgreSQLLogin [
 	"To set the default database login to  PostgreSQL protocol 2.0 via socket, execute the following statement."
 	"self defaultPostgreSQLLogin."
 
 	^DefaultLogin := (Login new)
 		database: PostgreSQLPlatform new;
-		username: 'postgres';
-		password: 'secret';
-		connectString: '192.168.4.102_test'.
+		username: 'glorp-test';
+		password: 'simple';
+		connectString: '192.168.0.18_glorp-test'.
 ]
 
-{ #category : #defaults }
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultPostgreSQLLoginForGlorpStore [
+	"To set the default database login to  PostgreSQL protocol 2.0 via socket, execute the following statement."
+	"self defaultPostgreSQLLoginForGlorpStore."
+
+	^DefaultLogin := (Login new)
+		database: PostgreSQLPlatform new;
+		username: 'store-glorp-test';
+		password: 'simple';
+		connectString: '192.168.0.18_store-glorp-test'.
+]
+
+{ #category : #data }
+GlorpDatabaseLoginResource class >> defaultPostgreSQLLoginForVPN [
+	"To set the default database login to  PostgreSQL protocol 2.0 via socket, execute the following statement."
+	"self defaultPostgreSQLLoginForVPN."
+
+	^DefaultLogin := (Login new)
+		database: PostgreSQLPlatform new;
+		username: 'dbadmin';
+		password: 'dbadmin';
+		connectString: 'curly.parcplace.com:5432_template1'.
+]
+
+{ #category : #data }
 GlorpDatabaseLoginResource class >> defaultSQLServerLogin [
 	"To set the default database login for Dolphin, execute the following statement."
 	"self defaultSQLServerLogin."
@@ -107,20 +246,25 @@ GlorpDatabaseLoginResource class >> defaultSQLServerLogin [
 		connectString: 'glorptest'
 ]
 
-{ #category : #defaults }
+{ #category : #data }
 GlorpDatabaseLoginResource class >> defaultSQLiteLocalLogin [
 	"To set the default database login to SQLite, change the connectString to an appropriate path and execute the following statement."
 	"self defaultSQLiteLocalLogin."
 
-	<loginType: 'sqlite3'>
-
 	^DefaultLogin := (Login new)
 		database: SQLite3Platform new;
-		host: SmalltalkImage current imagePath asFileReference parent fullName, '/';
-		port: '';
 		username: '';
 		password: '';
-		databaseName: 'sodbxtest.db'.
+		connectString: 'C:\somePath\someData\glorpTestSQLite.db'.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseLoginResource class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
 
 ]
 

@@ -12,12 +12,22 @@ Class {
 	#instVars : [
 		'result'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'instance creation' }
 GlorpQueryStub class >> newQuery [
 	^self new.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpQueryStub class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #executing }

@@ -9,10 +9,20 @@ Class {
 	#category : #GlorpMisc
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 ValidationError class >> mayResume [
 
 	^true
+]
+
+{ #category : #'VisualWorks metadata' }
+ValidationError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #printing }

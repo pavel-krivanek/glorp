@@ -5,8 +5,18 @@ This represents a function that prints postfix, meaning its name comes after its
 Class {
 	#name : #PostfixFunction,
 	#superclass : #FunctionExpression,
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
+
+{ #category : #'VisualWorks metadata' }
+PostfixFunction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #printing }
 PostfixFunction >> printSQLOn: aStream withParameters: aDictionary [

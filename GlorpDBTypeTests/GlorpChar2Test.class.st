@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpChar2Test,
 	#superclass : #GlorpDatabaseTypeIndividualDBTests,
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-GlorpDBTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpChar2Test class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #types }
 GlorpChar2Test >> defaultDatabaseType [
@@ -11,7 +21,7 @@ GlorpChar2Test >> defaultDatabaseType [
 
 { #category : #tests }
 GlorpChar2Test >> testChar2 [
-	self platform isUDBCSQLite3Platform ifTrue: [ ^ self skip. ].
+
 	stType := String.
 	self helpTestValue: nil.
 	self helpTestValue: '' compareWith: [:read :original |
@@ -19,11 +29,10 @@ GlorpChar2Test >> testChar2 [
 	self helpTestValue: 'a'.
 	self helpTestValue: 'ab'.
 
-	self platform autoTrimsStringsLongerThanColumnSize ifFalse: [ 
-		self should: [self helpTestInvalidValue: 'abc'] raise: GlorpDatabaseWriteError.
-		self should: [self helpTestInvalidValue: 'abcd'] raise: GlorpDatabaseWriteError.
-		self should: [self helpTestInvalidValue: 'abcde'] raise: GlorpDatabaseWriteError.
-	 ].
+	"These overlong-means-invalid checks fail on SQLite where column length limits are unenforced."
+	self should: [self helpTestInvalidValue: 'abc'] raise: GlorpDatabaseWriteError.
+	self should: [self helpTestInvalidValue: 'abcd'] raise: GlorpDatabaseWriteError.
+	self should: [self helpTestInvalidValue: 'abcde'] raise: GlorpDatabaseWriteError.
 	
 	self assert: (type typeString asUppercase = (self platform char: 2) typeString asUppercase)
 ]

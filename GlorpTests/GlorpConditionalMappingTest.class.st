@@ -13,8 +13,18 @@ Class {
 		'mapping3',
 		'newMapping'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTestModels'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpConditionalMappingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpConditionalMappingTest >> setUp [

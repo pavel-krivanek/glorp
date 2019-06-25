@@ -17,6 +17,15 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDictionaryDescription class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'instance creation' }
 GlorpDictionaryDescription >> copyEmpty: anInteger [
 	"Masquerade as a instance of a collection :-)"

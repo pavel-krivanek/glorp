@@ -95,6 +95,15 @@ PersistentObject class >> table [
 	^self descriptor ifNotNil: [:descriptor | descriptor table]
 ]
 
+{ #category : #'VisualWorks metadata' }
+PersistentObject class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 PersistentObject >> = anObject [
 	"Implement equality to compare primary keys if they are set. Make sure that if we have proxies, we check through them."

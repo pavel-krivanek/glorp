@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpMSSQLFloatType,
 	#superclass : #GlorpAbstractNumericType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-GlorpDatabase'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpMSSQLFloatType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #SQL }
 GlorpMSSQLFloatType >> converterForStType: aClass [

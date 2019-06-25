@@ -2,8 +2,12 @@
 This represents a field in a database table. See also DatabaseTable. Glorp relies heavily on identity of fields for comparison purposes, so be careful when copying these.
 
 Instance Variables:
-	defaultValue	<Object>	What is the default value of this field, if unspecified in the creation statement.
-	isLockKey	<Boolean>	Is this field part of an optimistic lock key. If so, then on update we will generate an update statement that checks that this value hasn't changed since the object wasn't read.
+	imDefaultValue	<Object>	If the column in the database does not have a default value but we wish one, or it
+						does but we wish to use a different default value, set this in the image before writing.
+	dbDefaultValue	<Object>	If the column in the database has a default value, put it here to use in (re)creation
+						statements (by the user setting it or by reading it in a metadata descriptor system).
+	isLockKey	<Boolean>	Is this field part of an optimistic lock key. If so, then on update we will generate an
+						update statement that checks that this value hasn't changed since the object was read.
 	isNullable	<Boolean>	Is this field allowed to be null?
 	isPrimaryKey	<Boolean>	Is this field part of the primary key?
 	isUnique	<Boolean>	Does this field have a unique constraint in the database?
@@ -26,9 +30,10 @@ Class {
 		'isNullable',
 		'isUnique',
 		'isLockKey',
-		'defaultValue'
+		'imDefaultValue',
+		'dbDefaultValue'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -49,6 +54,22 @@ DatabaseField class >> named: aString type: dbType [
 DatabaseField class >> new [
 
 	^self error: 'dbType needed'
+]
+
+{ #category : #'VisualWorks metadata' }
+DatabaseField class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
+{ #category : #comparing }
+DatabaseField >> < aField [
+	"This assists my being part of sorting multiple fields."
+
+	^self name < aField name
 ]
 
 { #category : #comparing }
@@ -85,6 +106,16 @@ DatabaseField >> asGlorpExpressionOn: anExpression [
 	^ParameterExpression forField: self basedOn: anExpression.
 ]
 
+{ #category : #comparing }
+DatabaseField >> basicMatchesField: aField [
+	"Return true if I match aField, ignoring our table names."
+	self name asUppercase = aField name asUppercase ifFalse: [^false].
+	self isPrimaryKey = aField isPrimaryKey ifFalse: [^false].
+	self isNullable = aField isNullable ifFalse: [^false].
+	self isUnique = aField isUnique ifFalse: [^false].
+	^true
+]
+
 { #category : #configuring }
 DatabaseField >> beIndexed [
 	self table addIndex: (DatabaseIndex forField: self).
@@ -92,9 +123,11 @@ DatabaseField >> beIndexed [
 
 { #category : #configuring }
 DatabaseField >> beLockKey [
+	"Make lock fields non-nullable wherever possible:  when writing bound updates (especially when group-writing), the need to consider whether a lock field's prior value could be NULL complicates handling.   (Lock fields are typically of type VersionType with generatesOverExistingValues set, so Glorp will never naturally offer a nil value to a lock field;  usually, it is only legacy issues or non-Glorp access that could make it necessary to let a lock field be null)."
 
 	isLockKey := true.
-	self table isNil ifFalse: [self table addAsLockKeyField: self]
+	isNullable := false.	"but caller may reset this;  see comment above"
+	self table isNil ifFalse: [self table addAsLockKeyField: self].
 ]
 
 { #category : #configuring }
@@ -117,18 +150,44 @@ DatabaseField >> converterForStType: aClass [
 ]
 
 { #category : #accessing }
-DatabaseField >> defaultValue [
-	^defaultValue
+DatabaseField >> dbDefaultValue [
+	"'If this is not nil, the database has a default value for this column.  Note the difference between that and Glorp having an image-set default value, which is handled by imDefaultValue."
+
+	^dbDefaultValue
+]
+
+{ #category : #configuring }
+DatabaseField >> dbDefaultValue: anObject [
+	"'Set a default value for this column in the database;  used in table (re)creation and when reading metadata.  Note the difference between this and Glorp having an image-set default value, which is handled by imDefaultValue."
+
+	dbDefaultValue := anObject.
 ]
 
 { #category : #configuring }
 DatabaseField >> defaultValue: anObject [
-	defaultValue := anObject
+	"For backward compatibility and/or (excessive?) safety.  Before 8.2, my single 'defaultValue' instvar both set the value in the image before writing a no-value-for-me row and created a column with the same default value in the database.  Now we have two instvars to handle these two cases.  This setter preserves the pre-8.2 behaviour by setting both instvars to the same value.  Users are invited to decide which means of setting a default that they wish to use for any given call, and so replace calls of this method in their code with calls of the appropriate instvar's setter."
+
+	imDefaultValue := anObject.
+	dbDefaultValue := anObject.
 ]
 
 { #category : #accessing }
 DatabaseField >> foreignKeyConstraints [
 	^self table foreignKeyConstraints select: [:each | each sourceFields includes: self].
+]
+
+{ #category : #accessing }
+DatabaseField >> imDefaultValue [
+	"Glorp will insert this value into any row without a value for this field before writing to the database.  Note this is an alternative to or override of a default value on the database column."
+
+	^imDefaultValue
+]
+
+{ #category : #configuring }
+DatabaseField >> imDefaultValue: anObject [
+	"Glorp will insert this value into any row without a value for this field before writing to the database.  Note this is an alternative to or override of a default value on the database column;  use when the database does not have a default value or else has a different default value."
+
+	imDefaultValue := anObject.
 ]
 
 { #category : #accessing }
@@ -153,8 +212,7 @@ DatabaseField >> isDistinct [
 
 { #category : #testing }
 DatabaseField >> isGenerated [
-
-	^type isGenerated or: [defaultValue notNil].
+	^type isGenerated or: [imDefaultValue notNil]
 ]
 
 { #category : #testing }
@@ -164,7 +222,6 @@ DatabaseField >> isIndexed [
 
 { #category : #testing }
 DatabaseField >> isLockKey [
-	isLockKey isNil ifTrue: [isLockKey := false].
 	^isLockKey
 ]
 
@@ -195,16 +252,27 @@ DatabaseField >> isSameAliasedFieldAs: aField [
 ]
 
 { #category : #comparing }
+DatabaseField >> isSimilarField: aField [
+	"Return true if I match aField, ignoring our tables' names."
+
+	self name asUppercase = aField name asUppercase ifFalse: [^false].
+	self isPrimaryKey = aField isPrimaryKey ifFalse: [^false].
+	self isNullable = aField isNullable ifFalse: [^false].
+	self isUnique = aField isUnique ifFalse: [^false].
+	^true
+]
+
+{ #category : #comparing }
 DatabaseField >> isTheSameAs: aDatabaseField [
-	"Validate that two fields are exactly the same. Most useful for testing purposes, rather than normal usage, which is why we don't just use the #= method."
-	self name asUppercase = aDatabaseField name asUppercase ifFalse: [^false].
-	self isPrimaryKey = aDatabaseField isPrimaryKey ifFalse: [^false].
+	"Validate that two fields are exactly the same. Most useful for testing purposes, rather than normal usage, which is why we don't just use the #= method. If the field is part of the primary key, ignore the default value since duplicates are illegal. Beyond that, the platform vendor may impose its own default, ignoring ours. For example, MySQL automatically assigns varchar pkeys to have an empty string default value."
+
+	(self isSimilarField: aDatabaseField) ifFalse: [^false].
 	(self isTheSameTypeAs: aDatabaseField) ifFalse: [^false].
-	self isNullable = aDatabaseField isNullable ifFalse: [^false].
-	self isUnique = aDatabaseField isUnique ifFalse: [^false].
 	self isLockKey = aDatabaseField isLockKey ifFalse: [^false].
-	self defaultValue = aDatabaseField defaultValue ifFalse: [^false].
-	^true.
+	self isPrimaryKey ifFalse:
+		[self imDefaultValue = aDatabaseField imDefaultValue ifFalse: [^false].
+		self dbDefaultValue = aDatabaseField dbDefaultValue ifFalse: [^false]].
+	^true
 ]
 
 { #category : #comparing }
@@ -232,14 +300,10 @@ DatabaseField >> isUnique: aBoolean [
 	isUnique := aBoolean.
 ]
 
-{ #category : #testing }
+{ #category : #comparing }
 DatabaseField >> matchesField: aField [
-	table name = aField table name ifFalse: [^false].
-	name = aField name ifFalse: [^false].
-	isNullable = aField isNullable ifFalse: [^false].
-	isPrimaryKey = aField isPrimaryKey ifFalse: [^false].
-	isUnique = aField isUnique ifFalse: [^false].
-	^true
+	^self table name = aField table name
+		and: [self isSimilarField: aField]
 ]
 
 { #category : #accessing }

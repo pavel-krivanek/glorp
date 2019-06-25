@@ -5,13 +5,23 @@ Class {
 		'session',
 		'proxy'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpProxyTest class >> resources [
 
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpProxyTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }

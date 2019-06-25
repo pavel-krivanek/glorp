@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'vc'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpVirtualCollectionBasicTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpVirtualCollectionBasicTest >> realObjects [

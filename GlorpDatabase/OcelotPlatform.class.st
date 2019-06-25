@@ -4,12 +4,22 @@ This is a platform for the open-source Ocelot database.
 Class {
 	#name : #OcelotPlatform,
 	#superclass : #DatabasePlatform,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #accessing }
 OcelotPlatform class >> kind [
 	^'Ocelot'
+]
+
+{ #category : #'VisualWorks metadata' }
+OcelotPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #constants }

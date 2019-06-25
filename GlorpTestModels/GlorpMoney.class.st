@@ -5,7 +5,7 @@ Class {
 		'currency',
 		'amount'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #'instance creation' }
@@ -26,6 +26,15 @@ GlorpMoney class >> defaultCurrency [
 GlorpMoney class >> forAmount: anAmount [
 
 	^self currency: self defaultCurrency amount: anAmount.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpMoney class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

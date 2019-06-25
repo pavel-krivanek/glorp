@@ -1,8 +1,21 @@
+"
+In #tableForBOOK: we provide a lock key field 'VERSION' whose generated value is incremented whenever a row is updated.  This tests that clashing updates are blocked and legitimate ones are allowed.  Contrary to the (8.2 and after) lock field default, we make the lock field nullable so we can test updates to a NULL lock field.
+"
 Class {
 	#name : #GlorpOptimisticLockingTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpOptimisticLockingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpOptimisticLockingTest >> changeABookFrom: books [
@@ -92,11 +105,21 @@ GlorpOptimisticLockingTest >> testUnsuccessfulUpdateProceedingAndFailing [
 	books := session read: GlorpBook.
 	session accessor
 		executeSQLStringNoResult: 'UPDATE BOOK SET COPIES_IN_STOCK = 7, VERSION = 3'.
-	self should: [[self changeABookFrom: books] on: GlorpWriteFailure do: [:ex | ex resume: false]] raise: GlorpTransactionFailure.
-		
+	self should:
+		[[self changeABookFrom: books]
+			on: GlorpWriteFailure
+			do: [:ex | ex resume: false]]
+		raise: GlorpTransactionFailure
+		description: 'Resuming failed write with false did not raise transaction failure'.
+	self should:
+		[[self changeABookFrom: books]
+			on: GlorpWriteFailure
+			do: [:ex | ex resume]]
+		raise: GlorpTransactionFailure
+		description: 'Default resume did not falsify transaction'.
 	session reset.
 	books := session read: GlorpBook.
-	self assert: (books collect: [:each | each copiesInStock]) = #( 7 7).
+	self assert: (books collect: [:each | each copiesInStock]) = #(7 7).
 ]
 
 { #category : #tests }
@@ -105,11 +128,12 @@ GlorpOptimisticLockingTest >> testUnsuccessfulUpdateProceedingAnyway [
 	books := session read: GlorpBook.
 	session accessor
 		executeSQLStringNoResult: 'UPDATE BOOK SET COPIES_IN_STOCK = 7, VERSION = 3'.
-	[self changeABookFrom: books] on: GlorpWriteFailure do: [:ex | ex resume: true].
-		
+	[self changeABookFrom: books]
+		on: GlorpWriteFailure
+		do: [:ex | ex resume: true].
 	session reset.
 	books := session read: GlorpBook.
-	self assert: (books collect: [:each | each copiesInStock]) = #( 7 7).
+	self assert: (books collect: [:each | each copiesInStock]) = #(7 7).
 ]
 
 { #category : #tests }

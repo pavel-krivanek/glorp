@@ -5,8 +5,18 @@ This is the exception we raise if we encounter a database error trying to commit
 Class {
 	#name : #GlorpTransactionFailure,
 	#superclass : #GlorpError,
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTransactionFailure class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpTransactionFailure >> defaultMessageText [

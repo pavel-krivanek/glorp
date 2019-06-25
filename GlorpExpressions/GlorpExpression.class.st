@@ -23,13 +23,22 @@ Subclasses must implement the following messages:
 Class {
 	#name : #GlorpExpression,
 	#superclass : #Object,
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
 GlorpExpression class >> new [
 
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #api }
@@ -77,7 +86,7 @@ GlorpExpression >> OR: anExpression [
 ]
 
 { #category : #preparing }
-GlorpExpression >> addBoundExpressionsIn: aQuery to: boundExpressions [
+GlorpExpression >> addBoundExpressionsIn: aQuery [
 ]
 
 { #category : #preparing }
@@ -97,7 +106,7 @@ GlorpExpression >> additionalExpressionsIn: aQuery [
 	"Return the collection of additional expressions (representing joins) that this expression tree requires. Because some additional expressions may in turn have their own additional expressions (mapping joins represented by general expressions), repeat until we don't get any more."
 
 	| allExpressions newExpressions allNewExpressions expressionsConsidered |
-	allExpressions := ExpressionGroup with: self.
+	allExpressions := self asExpressionGroup.
 	allExpressions addAll: aQuery ordering.
 	allExpressions addAll: aQuery grouping.
 	allExpressions addAll: aQuery tracing additionalExpressions.
@@ -172,6 +181,11 @@ GlorpExpression >> anySatisfy: aBlock [
 { #category : #converting }
 GlorpExpression >> asDistinctFieldOn: anExpression [
 	^(self asGlorpExpressionOn: anExpression) get: #distinct withArguments: #().
+]
+
+{ #category : #converting }
+GlorpExpression >> asExpressionGroup [
+	^ExpressionGroup with: self
 ]
 
 { #category : #preparing }
@@ -374,7 +388,7 @@ GlorpExpression >> displayString [
 GlorpExpression >> do: aBlock [
 	"Iterate over the expression tree"
 
-	self do: aBlock skipping: Dialect identitySetClass new.
+	self do: aBlock skipping: IdentitySet new.
 ]
 
 { #category : #iterating }
@@ -433,11 +447,6 @@ GlorpExpression >> getFunction: aSymbol withArguments: anArray in: system [
 	^expression.
 ]
 
-{ #category : #preparing }
-GlorpExpression >> hasBindableExpressionsIn: aCommand [
-	^false.
-]
-
 { #category : #accessing }
 GlorpExpression >> hasDescriptor [
 
@@ -478,6 +487,11 @@ GlorpExpression >> inject: anObject into: aBlock [
 	sum := anObject.
 	self do: [:each | sum := aBlock value: sum value: each].
 	^sum
+]
+
+{ #category : #inspecting }
+GlorpExpression >> inspectorChildren [
+	^#()
 ]
 
 { #category : #inspecting }
@@ -691,8 +705,8 @@ GlorpExpression >> select: aBlock [
 GlorpExpression >> sharedPiecesWith: anExpression [
 	"Return a set of the pieces we share in common with anExpression. Mostly useful for debugging unwanted sharing, or the lack of wanted sharing. Note that this won't dive down into subselects."
 	| myPieces shared |
-	myPieces := Dialect identitySetClass new.
-	shared := Dialect identitySetClass new.
+	myPieces := IdentitySet new.
+	shared := IdentitySet new.
 	self do: [:each | myPieces add: each].
 	anExpression do: [:each | (myPieces includes: each) ifTrue: [shared add: each]].
 	^shared.

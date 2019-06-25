@@ -1,11 +1,18 @@
-"
-Integer type
-"
 Class {
 	#name : #GlorpIntegerType,
 	#superclass : #GlorpAbstractIntegerType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-GlorpDatabase'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpIntegerType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #comparing }
 GlorpIntegerType >> = aType [

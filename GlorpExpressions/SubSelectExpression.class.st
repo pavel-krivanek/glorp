@@ -17,10 +17,20 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+SubSelectExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
-SubSelectExpression >> addBoundExpressionsIn: aCommand to: boundExpressions [
+SubSelectExpression >> addBoundExpressionsIn: aCommand [
 	self query prepare.
-	self query addBoundExpressionsIn: aCommand to: boundExpressions.
+	self query addBoundExpressionsIn: aCommand.
 ]
 
 { #category : #accessing }
@@ -47,6 +57,7 @@ SubSelectExpression >> printSQLOn: aStream withParameters: aDictionary [
 	toPrint := relation = #noneSatisfy: ifTrue: ['NOT EXISTS ('] ifFalse: [' EXISTS ('].
 	aStream nextPutAll: toPrint.
 	command := self query sqlWith: aDictionary.
+	command boundExpressions: aStream boundExpressions.
 	aStream nextPutAll: command sqlString.
 	aStream nextPutAll: ')'.
 ]

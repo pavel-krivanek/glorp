@@ -15,6 +15,16 @@ Class {
 	#category : #GlorpDatabase
 }
 
+{ #category : #'VisualWorks metadata' }
+ObjectStudioDatabaseAccessor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #executing }
 ObjectStudioDatabaseAccessor >> basicExecuteSQLString: aString [
 	| result cursor records |

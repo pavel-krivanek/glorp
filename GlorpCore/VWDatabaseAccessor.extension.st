@@ -1,6 +1,6 @@
 Extension { #name : #VWDatabaseAccessor }
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-initialize-release' }
 VWDatabaseAccessor >> initializePreparedStatementCache [
 	"The preparedStatements cache holds only GlorpPreparedStatement instances.  As there is no descriptor-system-related collection of classes to be managed, and no session, we have no need of a CacheManager to contain this class, so use an UnmanagedCache."
 

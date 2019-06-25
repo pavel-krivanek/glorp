@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpCoreExtensionsTest,
 	#superclass : #GlorpTestCase,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpCoreExtensionsTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpCoreExtensionsTest >> testGlorpIsCollection [

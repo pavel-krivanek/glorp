@@ -8,12 +8,22 @@ Class {
 		'session',
 		'newQuery'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpQueryCopyingTest class >> resources [
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpQueryCopyingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }

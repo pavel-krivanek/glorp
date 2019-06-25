@@ -33,7 +33,7 @@ Class {
 		'missingFieldIndicator',
 		'emptySlot'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #private }
@@ -64,6 +64,15 @@ DatabaseRow class >> newForTable: aTable [
 DatabaseRow class >> newForTable: aTable withOwner: anObject [
 
 	^self new table: aTable; owner: anObject.
+]
+
+{ #category : #'VisualWorks metadata' }
+DatabaseRow class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #comparing }
@@ -406,17 +415,7 @@ DatabaseRow >> printEqualityTemplateForField: aDatabaseField on: aCommand [
 	aCommand nextPutAll: ' = '.
 	bind := aCommand canBind: (self at: aDatabaseField ifAbsent: [nil]) to: aDatabaseField type.
 	bind
-		ifTrue: [aCommand nextPutAll: '?']
-		ifFalse: [self printValueOfField: aDatabaseField on: aCommand].
-]
-
-{ #category : #printing }
-DatabaseRow >> printEqualityTemplateForField: aDatabaseField on: aCommand withBinding: aBoolean [
-	"Get around PostgreSQL bug.  Qualified names cannot appear in SET expression."
-	aCommand nextPutAll: (aDatabaseField platform nameForColumn: aDatabaseField name).
-	aCommand nextPutAll: ' = '.
-	aBoolean 
-		ifTrue: [aCommand nextPutAll: '?']
+		ifTrue: [aCommand nextPutBindMarkerIn: nil]
 		ifFalse: [self printValueOfField: aDatabaseField on: aCommand].
 ]
 
@@ -513,9 +512,18 @@ DatabaseRow >> shouldGenerateValueFor: aField in: aSession [
 	| isInsert |
 	aField isGenerated ifFalse: [^false].
 	aField type generatesOverExistingValues ifTrue: [^true].
+	"If nil is the value of a field that's not NULLable but has an (image) default, the preWriteAssignSequenceValueFor:in:using: is intended to write the default value instead of nil."
+	(self shouldMapNilToImDefaultValueFor: aField) ifTrue:[^true].
 	"For those that don't write over existing values, only update them if this is an insert. Otherwise we can't tell the difference between an empty column and one which we're just not updating in this unit of work. This requires the session, but the session may be nil - if so, default to true, because that usage is just for reserving sequence numbers, and it's better to err on the side of too many."
 	isInsert := aSession isNil ifTrue: [true] ifFalse: [aSession shouldInsert: self].
 	^isInsert and: [(self hasValueFor: aField) not].
+]
+
+{ #category : #sequencing }
+DatabaseRow >> shouldMapNilToImDefaultValueFor: aField [
+	| value |
+	value := self at: aField ifAbsent: [^false].
+	^value isNil and: [aField isNullable not and: [aField imDefaultValue notNil]]
 ]
 
 { #category : #accessing }

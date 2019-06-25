@@ -4,8 +4,18 @@ Previously, grouping in Glorp Queries only accepted a single expression. It is o
 Class {
 	#name : #GlorpMultipleGroupingTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpMultipleGroupingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpMultipleGroupingTest >> setUp [

@@ -1,17 +1,22 @@
 Class {
 	#name : #GlorpTestCase,
 	#superclass : #TestCase,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-SUnit'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 GlorpTestCase class >> isAbstract [
 	^self sunitName = #GlorpTestCase
 ]
 
-{ #category : #'as yet unclassified' }
-GlorpTestCase class >> sunitName [
-	^self name
+{ #category : #'VisualWorks metadata' }
+GlorpTestCase class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
 ]
 
 { #category : #hacks }

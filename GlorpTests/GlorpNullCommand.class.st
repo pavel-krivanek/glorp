@@ -4,15 +4,25 @@ This represents a command with no additional syntax, basically just a stream. Us
 Class {
 	#name : #GlorpNullCommand,
 	#superclass : #DatabaseCommand,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpCore'
 }
 
-{ #category : #'instance creation' }
+{ #category : #'As yet unclassified' }
 GlorpNullCommand class >> useBinding: aBoolean session: aSession [
 	^(self new)
 		useBinding: aBoolean;
 		session: aSession;
 		yourself.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpNullCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

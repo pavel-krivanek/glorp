@@ -8,9 +8,19 @@ Class {
 	#category : #GlorpMisc
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 CannotFindSession class >> mayResume [
 	^true.
+]
+
+{ #category : #'VisualWorks metadata' }
+CannotFindSession class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #printing }

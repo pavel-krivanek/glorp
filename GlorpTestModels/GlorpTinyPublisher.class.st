@@ -7,8 +7,17 @@ Class {
 		'titles',
 		'titlesWithNumberInStock'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTinyPublisher class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpTinyPublisher >> id [

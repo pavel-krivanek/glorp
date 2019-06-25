@@ -4,13 +4,23 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpReadQueryTest class >> resources [
 
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpReadQueryTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'tests-ordering' }

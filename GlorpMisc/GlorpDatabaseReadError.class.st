@@ -16,12 +16,22 @@ Class {
 		'databaseError',
 		'accessor'
 	],
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-GlorpCore'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'initialize-release' }
 GlorpDatabaseReadError class >> mayResume [
 	^true.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseReadError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

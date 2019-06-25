@@ -4,8 +4,17 @@ Class {
 	#instVars : [
 		'value'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpFakeElementBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpFakeElementBuilder >> value: anObject [

@@ -4,12 +4,22 @@ This is a set of test descriptors for dealing with different variations of dicti
 Class {
 	#name : #GlorpEncyclopediaDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #other }
 GlorpEncyclopediaDescriptorSystem >> allTableNames [
-	^#('ENCYC' 'ENCYC_ENTRY' 'ENCYC_ENTRY_LINK' 'IMAGINARY_MEDIA_TYPE' 'GR_PUBLISHER' 'PUBLISHER_TITLE' 'PUB_TITLES_STOCK' 'PUB_TITLE_LINK' 'PUBLISHER_TITLE2' 'PUB_EMP_LINK' 'PUBLISHER_EMP').
+	^#('ENCYC' 'ENCYC_ENTRY' 'ENCYC_ENTRY_LINK' 'ENCYC_AUTHOR' 'ENCYC_AUTHOR_ENTRY_LINK' 'IMAGINARY_MEDIA_TYPE' 'GR_PUBLISHER' 'PUBLISHER_TITLE' 'PUB_TITLES_STOCK' 'PUB_TITLE_LINK' 'PUBLISHER_TITLE2' 'PUB_EMP_LINK' 'PUBLISHER_EMP').
 ]
 
 { #category : #descriptors }
@@ -20,6 +30,14 @@ GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopedia: aClassModel
 	aClassModel newAttributeNamed: #entries dictionaryFrom: String to: GlorpEncyclopediaEntry.
 	"A slightly contrived way of having a mapping to a type of entries that don't use a link table."
 	aClassModel newAttributeNamed: #biographicalEntries dictionaryFrom: String to: GlorpEncyclopediaBioEntry.
+	"An object->object dictionary."
+	aClassModel newAttributeNamed: #entriesByAuthor dictionaryFrom: GlorpEncyclopediaAuthor to: GlorpEncyclopediaEntry.
+]
+
+{ #category : #descriptors }
+GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopediaAuthor: aClassModel [
+	aClassModel newAttributeNamed: #id.
+	aClassModel newAttributeNamed: #name.
 ]
 
 { #category : #descriptors }
@@ -72,12 +90,13 @@ GlorpEncyclopediaDescriptorSystem >> constructAllClasses [
 		add: GlorpEncyclopediaEntry;
 		add: GlorpPublisher;
 		add: GlorpPublisherEmployee;
+		add: GlorpEncyclopediaAuthor;
 		yourself
 ]
 
 { #category : #descriptors }
-GlorpEncyclopediaDescriptorSystem >> descriptorForGlorpEncyclopedia: aDescriptor [ 
-	| table linkTable |
+GlorpEncyclopediaDescriptorSystem >> descriptorForGlorpEncyclopedia: aDescriptor [
+	| table linkTable entriesByAuthor entryTable authorEntryLink |
 	table := self tableNamed: 'ENCYC'.
 	linkTable := self tableNamed: 'ENCYC_ENTRY_LINK'.
 	aDescriptor table: table.
@@ -85,18 +104,45 @@ GlorpEncyclopediaDescriptorSystem >> descriptorForGlorpEncyclopedia: aDescriptor
 		to: (table fieldNamed: 'ID').
 	(aDescriptor newMapping: DirectMapping) from: #name
 		to: (table fieldNamed: 'NAME').
-	(aDescriptor newMapping: BasicDictionaryMapping)
+	(aDescriptor newMapping: DictionaryMapping)
 		attributeName: #entries;
 		referenceClass: GlorpEncyclopediaEntry;
 		keyField: (linkTable fieldNamed: 'REFERENCE_NO');
-		linkFields: (Array 
-					with: (linkTable fieldNamed: 'ENCYC_ENTRY_ID')).
+		linkFields: (Array with: (linkTable fieldNamed: 'ENCYC_ENTRY_ID')).
 	(aDescriptor newMapping: DictionaryMapping)
 		attributeName: #biographicalEntries;
 		referenceClass: GlorpEncyclopediaBioEntry;
 		usesLinkTable: false;
 		beExclusive;
 		keyField: ((self tableNamed: 'ENCYC_BIO') fieldNamed: 'TITLE').
+
+	entryTable := self tableNamed: 'ENCYC_ENTRY'.
+	authorEntryLink := self tableNamed: 'ENCYC_AUTHOR_ENTRY_LINK'.
+	entriesByAuthor := aDescriptor newMapping: DictionaryMapping.
+	entriesByAuthor
+		attributeName: #entriesByAuthor;
+		referenceClass: GlorpEncyclopediaEntry;
+		usesLinkTable: true;													"Maybe some or all of ..."
+		join: (Join from: (table fieldNamed: 'ID') to: (linkTable fieldNamed: 'ENCYC_ID'));	"... these three lines  ..."
+		linkFields: (Array with: (linkTable fieldNamed: 'ENCYC_ENTRY_ID'));			"... may not be needed."
+		"constructRowMapKeyAs: [:encyc :entry :author | MultipleRowMapKey with: encyc yourSelf with: author yourSelf];"
+		keyMapping: ((entriesByAuthor newMapping: OneToOneMapping)
+			attributeName: #key;
+			referenceClass: GlorpEncyclopediaAuthor;
+			usesLinkTable: true;		"true, i.e. look for a foreign key constraint from 'from' to 'to' in the join"
+			join: (Join from: (entryTable fieldNamed: 'ID') to: (authorEntryLink fieldNamed: 'ENCYC_ENTRY_ID'));	"map from value to key"
+			linkFields: (Array with: (authorEntryLink fieldNamed: 'ENCYC_AUTHOR_ID'))";"
+			"Note that when we're fired as a one-to-one, the row map key constructor block arguments will be different than for the main mapping"
+			"constructRowMapKeyAs: [:encyc :author | MultipleRowMapKey with: encyc yourSelf with: author yourSelf]").
+]
+
+{ #category : #descriptors }
+GlorpEncyclopediaDescriptorSystem >> descriptorForGlorpEncyclopediaAuthor: aDescriptor [ 
+	| entryTable |
+	entryTable := self tableNamed: 'ENCYC_AUTHOR'.
+	aDescriptor table: entryTable.
+	aDescriptor directMappingFor: #id.
+	aDescriptor directMappingFor: #name.
 ]
 
 { #category : #descriptors }
@@ -217,6 +263,20 @@ GlorpEncyclopediaDescriptorSystem >> descriptorForGlorpPublisherEmployee: aDescr
 ]
 
 { #category : #examples }
+GlorpEncyclopediaDescriptorSystem >> exampleAuthor1 [
+	^GlorpEncyclopediaAuthor new 
+		id: 1;
+		name: 'Somebody'.
+]
+
+{ #category : #examples }
+GlorpEncyclopediaDescriptorSystem >> exampleAuthor2 [
+	^GlorpEncyclopediaAuthor new 
+		id: 2;
+		name: 'Somebody Else'.
+]
+
+{ #category : #examples }
 GlorpEncyclopediaDescriptorSystem >> exampleEncyclopedias [
 	"self new exampleEncyclopedias"
 	| encyc1 entry1 entry2 entry3 encyc2 encyc3 |
@@ -230,6 +290,8 @@ GlorpEncyclopediaDescriptorSystem >> exampleEncyclopedias [
 	encyc2 := GlorpEncyclopedia new id: 4; name: 'The Plagiarists Compendium'.
 	encyc2 articleAt: '54321' put: entry1.
 	encyc2 articleAt: 'edcba' put: entry2.
+	encyc2 entriesByAuthor at: self exampleAuthor1 put: entry1.
+	encyc2 entriesByAuthor at: self exampleAuthor2 put: entry2.
 	encyc3 := GlorpEncyclopedia new id: 5; name: 'The Very Frugal Dictionary'.
 	^Array with: encyc1 with: encyc2 with: encyc3.
 ]
@@ -310,6 +372,22 @@ GlorpEncyclopediaDescriptorSystem >> tableForENCYC: aTable [
 
 	(aTable createFieldNamed: 'ID' type: platform int4) bePrimaryKey.
 	aTable createFieldNamed: 'NAME' type: (platform varChar: 50).
+]
+
+{ #category : #tables }
+GlorpEncyclopediaDescriptorSystem >> tableForENCYC_AUTHOR: aTable [
+	(aTable createFieldNamed: 'ID' type: platform integer) bePrimaryKey.
+	aTable createFieldNamed: 'NAME' type: (platform varChar: 50).
+]
+
+{ #category : #tables }
+GlorpEncyclopediaDescriptorSystem >> tableForENCYC_AUTHOR_ENTRY_LINK: aTable [
+	| entryId authorId |
+	entryId := aTable createFieldNamed: 'ENCYC_ENTRY_ID' type: (platform varChar: 50).
+	aTable addForeignKeyFrom: entryId to: ((self tableNamed: 'ENCYC_ENTRY') fieldNamed: 'ID').
+
+	authorId := aTable createFieldNamed: 'ENCYC_AUTHOR_ID' type: (platform integer).
+	aTable addForeignKeyFrom: authorId to: ((self tableNamed: 'ENCYC_AUTHOR') fieldNamed: 'ID').
 ]
 
 { #category : #tables }

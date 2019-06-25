@@ -10,8 +10,18 @@ Class {
 		't3id',
 		'platform'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpCommitOrderTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpCommitOrderTest >> setUp [

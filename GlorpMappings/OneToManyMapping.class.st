@@ -6,5 +6,15 @@ This represents a mapping from one object to a collection of others. This class 
 Class {
 	#name : #OneToManyMapping,
 	#superclass : #ToManyMapping,
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+OneToManyMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

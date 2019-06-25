@@ -4,10 +4,10 @@ This is a test descriptor system for documents with attachments that have their 
 Class {
 	#name : #GlorpDocumentDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-AAGlorp'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #none }
 GlorpDocumentDescriptorSystem class >> doTest [
 	"   AADescriptor doTest    "
 
@@ -34,7 +34,7 @@ GlorpDocumentDescriptorSystem class >> doTest [
 	glorpSession accessor logout
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #none }
 GlorpDocumentDescriptorSystem class >> readDocumentAndAttachmentsFrom: glorpSession [ 
 	| doc |
 	doc := glorpSession readOneOf: GlorpDocument.
@@ -50,6 +50,16 @@ GlorpDocumentDescriptorSystem class >> readDocumentAndAttachmentsFrom: glorpSess
 							, att mimeType;
 				cr].
 	^doc
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpDocumentDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #glorp }

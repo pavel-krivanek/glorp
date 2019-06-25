@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpVarchar4Test,
 	#superclass : #GlorpDatabaseTypeIndividualDBTests,
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-GlorpDBTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpVarchar4Test class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #types }
 GlorpVarchar4Test >> defaultDatabaseType [
@@ -21,7 +31,6 @@ GlorpVarchar4Test >> testTrimmedChar4 [
 
 { #category : #tests }
 GlorpVarchar4Test >> testVarChar4 [
-	self platform isUDBCSQLite3Platform ifTrue: [ ^ self skip. ].
 	stType := String.
 	self helpTestValue: nil.
 	self helpTestValue: '' compareWith: [:read :original |
@@ -34,7 +43,6 @@ GlorpVarchar4Test >> testVarChar4 [
 	self helpTestValue: #abcd.
 	stType := nil.
 
-	self platform autoTrimsStringsLongerThanColumnSize ifFalse: [ 
-		self should: [self helpTestInvalidValue: 'abcde'] raise: GlorpDatabaseWriteError.
-	]
+	"This overlong-means-invalid check fails on SQLite where column length limits are unenforced."
+	self should: [self helpTestInvalidValue: 'abcde'] raise: GlorpDatabaseWriteError.
 ]

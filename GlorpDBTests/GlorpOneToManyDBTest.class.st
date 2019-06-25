@@ -8,8 +8,18 @@ Class {
 		'emailId2',
 		'emailId3'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpOneToManyDBTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpOneToManyDBTest >> checkEmailAddresses: emailAddresses [
@@ -315,7 +325,7 @@ GlorpOneToManyDBTest >> testReadPersonWithEmailAddresses [
 			self checkEmailAddresses: emailAddresses].
 ]
 
-{ #category : #tests }
+{ #category : #'tests-alsoFetch' }
 GlorpOneToManyDBTest >> testReadPersonWithExistsWithAlsoFetch [
 	| people query |
 	self inTransactionDo: 
@@ -358,7 +368,7 @@ GlorpOneToManyDBTest >> testReadPersonWithJoinToEmailAddresses [
 			self assert: people size = 1].
 ]
 
-{ #category : #tests }
+{ #category : #'tests-alsoFetch' }
 GlorpOneToManyDBTest >> testReadPersonWithJoinWithAlsoFetch [
 	| people query |
 	self inTransactionDo: 
@@ -432,6 +442,19 @@ GlorpOneToManyDBTest >> testReadPersonWithSubselectToEmailAddresses [
 					eachPerson emailAddresses
 						anySatisfyExists: [:eachEmail | eachEmail host = 'objectpeople.com']].
 			self assert: people size = 1].
+]
+
+{ #category : #'tests-read-substrings' }
+GlorpOneToManyDBTest >> testReadRelationshipWithSubstringMatch [
+	| domain newDomain |
+	self inTransactionDo:
+		[domain := GlorpEmailDomain new topLevelDomain: 'com'.
+		session modify: domain in: [].
+		self writePersonWithEmailAddresses.
+		session reset.
+		newDomain := session readOneOf: GlorpEmailDomain.
+		self assert: newDomain addresses size = 1.
+		self assert: newDomain addresses first host = 'objectpeople.com'].
 ]
 
 { #category : #'tests-write' }

@@ -9,11 +9,20 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 ASBonus class >> new [
 	"Answer a newly created and initialized instance."
 
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+ASBonus class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

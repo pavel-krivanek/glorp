@@ -14,12 +14,21 @@ Class {
 		'id',
 		'time'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpTransformedTime class >> new [
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpTransformedTime class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

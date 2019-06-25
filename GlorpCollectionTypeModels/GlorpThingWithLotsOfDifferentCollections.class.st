@@ -55,6 +55,15 @@ GlorpThingWithLotsOfDifferentCollections class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpThingWithLotsOfDifferentCollections class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpThingWithLotsOfDifferentCollections >> array [
 	^array

@@ -17,8 +17,17 @@ Class {
 		'updateTime',
 		'updateSomeOtherThing'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpRecordWithUpdateTime class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpRecordWithUpdateTime >> id [

@@ -14,13 +14,22 @@ Class {
 		'value',
 		'isInstantiated'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
 AbstractProxy class >> new [
 
 	^super new proxyInitialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+AbstractProxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }
@@ -57,12 +66,6 @@ AbstractProxy >> doesNotUnderstand: aMessage [
 	^self getValue perform: aMessage selector withArguments: aMessage arguments.
 ]
 
-{ #category : #'dnu handling' }
-AbstractProxy >> doesNotUnderstand: sel args: args [ 
-	"This is the variant for ObjectStudio"
-	^self getValue perform: sel withArguments: args
-]
-
 { #category : #api }
 AbstractProxy >> getValue [
 
@@ -87,18 +90,6 @@ AbstractProxy >> inspect [
 	^self getValue inspect.
 ]
 
-{ #category : #'initialize-release' }
-AbstractProxy >> instVarAt: index [ 
-	"Primitive. Answer a fixed variable in an object. The numbering of the 
-	variables corresponds to the named instance variables. Fail if the index 
-	is not an Integer or is not the index of a fixed variable. Essential. See 
-	Object documentation whatIsAPrimitive."
-
-	<primitive: 73>
-	"Access beyond fixed variables."
-	^self basicAt: index - self class instSize		
-]
-
 { #category : #testing }
 AbstractProxy >> isGlorpProxy [
 	^true.
@@ -121,49 +112,6 @@ AbstractProxy >> isKindOf: aClass [
 	^false
 ]
 
-{ #category : #testing }
-AbstractProxy >> isNumber [
-
-	^false
-]
-
-{ #category : #overrides }
-AbstractProxy >> isSelfEvaluating [
-	^false
-]
-
-{ #category : #testing }
-AbstractProxy >> isString [
-
-	^false
-]
-
-{ #category : #overrides }
-AbstractProxy >> longPrintOn: aStream limitedTo: sizeLimit indent: indent [
-	"Append to the argument, aStream, the names and values of all of the receiver's instance variables.  Limit is the length limit for each inst var."
-
-	self class allInstVarNames doWithIndex:
-		[:title :index |
-		indent timesRepeat: [aStream tab].
-		aStream nextPutAll: title;
-		 nextPut: $:;
-		 space;
-		 tab;
-		 nextPutAll: 
-			((self instVarAt: index) printStringLimitedTo: (sizeLimit -3 -title size max: 1));
-		 cr]
-]
-
-{ #category : #overrides }
-AbstractProxy >> longPrintStringLimitedTo: aLimitValue [
-	"Answer a String whose characters are a description of the receiver."
-	
-	| str |
-	str := String streamContents: [:aStream | self longPrintOn: aStream limitedTo: aLimitValue indent: 0].
-	"Objects without inst vars should return something"
-	^ str isEmpty ifTrue: [self printString, String cr] ifFalse: [str]
-]
-
 { #category : #printing }
 AbstractProxy >> printOn: aStream [ 
 	aStream nextPut: ${.
@@ -182,26 +130,10 @@ AbstractProxy >> printString [
 	^aStream contents
 ]
 
-{ #category : #printing }
-AbstractProxy >> printStringLimitedTo: limit [
-	"Answer a String whose characters are a description of the receiver.
-	If you want to print without a character limit, use fullPrintString."
-	| limitedString |
-	limitedString := String streamContents: [:s | self printOn: s] limitedTo: limit.
-	limitedString size < limit ifTrue: [^ limitedString].
-	^ limitedString , '...etc...'
-]
-
 { #category : #initialize }
 AbstractProxy >> proxyInitialize [
 
 	isInstantiated := false.
-]
-
-{ #category : #overrides }
-AbstractProxy >> shouldBePrintedAsLiteral [
-
-	^false
 ]
 
 { #category : #overrides }

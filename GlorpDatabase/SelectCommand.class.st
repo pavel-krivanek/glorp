@@ -18,7 +18,7 @@ Class {
 		'parameters',
 		'blockFactor'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
 { #category : #'instance creation' }
@@ -37,6 +37,16 @@ SelectCommand class >> forQuery: aQuery parameters: aDictionary useBinding: aBoo
 		useBinding: aBoolean;
 		session: aSession;
 		yourself.
+]
+
+{ #category : #'VisualWorks metadata' }
+SelectCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }
@@ -71,11 +81,6 @@ SelectCommand >> parameters [
 { #category : #accessing }
 SelectCommand >> parameters: aDictionary [
 	parameters := aDictionary
-]
-
-{ #category : #accessing }
-SelectCommand >> printSQL [
-	self subclassResponsibility.
 ]
 
 { #category : #testing }

@@ -22,12 +22,21 @@ Class {
 		'items',
 		'childCache'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-GlorpDatabase'
 }
 
 { #category : #'instance creation' }
 GlorpRowSorter class >> new [
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpRowSorter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #sorting }

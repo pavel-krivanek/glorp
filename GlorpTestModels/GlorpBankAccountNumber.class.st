@@ -6,7 +6,7 @@ Class {
 		'branchNumber',
 		'accountNumber'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -16,6 +16,15 @@ GlorpBankAccountNumber class >> example12345 [
 		accountNumber: 12345;
 		bankCode: 4;
 		branchNumber: 777.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpBankAccountNumber class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'rows'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'instance creation' }
@@ -13,9 +13,21 @@ GlorpMockSession class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpMockSession class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpMockSession >> accessor [
-	^GlorpMockAccessor new.
+	^GlorpMockAccessor new
+		connection: GlorpMockConnection new;
+		yourself
 ]
 
 { #category : #initialize }

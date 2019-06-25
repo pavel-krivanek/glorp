@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+StandaloneFunction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 StandaloneFunction >> field [
 	^nil.

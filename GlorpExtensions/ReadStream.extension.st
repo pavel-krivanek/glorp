@@ -1,12 +1,12 @@
 Extension { #name : #ReadStream }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> actuallyAtEnd [
 	"For working around a VA cursor problem"
 	^self atEnd
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> collect: aBlock [
 	| newStream |
 	newStream := collection species new writeStream.
@@ -16,12 +16,12 @@ ReadStream >> collect: aBlock [
 "Use #writeStream, not WriteStream on: collection species, for portability;  VA cannot stream over all AdditiveSequenceableCollections."
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-building objects' }
 ReadStream >> collectionTypeFor: aClass [
 	^aClass.
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> detect: aBlock [ 
 	"Evaluate aBlock with each of the receiver's elements as the argument.
 	Answer the first element for which aBlock evaluates to true."
@@ -29,7 +29,7 @@ ReadStream >> detect: aBlock [
 	^self detect: aBlock ifNone: [self error: 'not found']
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> detect: aBlock ifNone: exceptionBlock [ 
 	"Evaluate aBlock with each of the receiver's elements as the argument.
 	Answer the first element for which aBlock evaluates to true."
@@ -38,19 +38,19 @@ ReadStream >> detect: aBlock ifNone: exceptionBlock [
 	^exceptionBlock value
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> includes: anObject [
 	self do: [:each | each = anObject ifTrue: [^true]].
 	^false.
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> newCollectionOfSize: aSize for: aCollectionType [
 
 	^aCollectionType isBehavior ifTrue: [aCollectionType new: aSize] ifFalse: [aCollectionType copyEmpty: aSize].
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> select: aBlock [
 	| newStream |
 	newStream := collection species new writeStream.
@@ -63,7 +63,7 @@ ReadStream >> select: aBlock [
 "Use #writeStream, not WriteStream on: collection species, for portability;  VA cannot stream over all AdditiveSequenceableCollections."
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-Not categorized' }
 ReadStream >> statement: aGlorpPreparedStatement [
 	"This is the statement used to create us. If it's coming back to a simple read stream, then we must have already used all its data, and can thus reuse it"
 	aGlorpPreparedStatement busy: false.

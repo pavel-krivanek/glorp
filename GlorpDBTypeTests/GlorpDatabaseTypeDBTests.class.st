@@ -7,12 +7,22 @@ Class {
 		'connection',
 		'session'
 	],
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpDatabaseTypeDBTests class >> resources [
 	^Array with: GlorpSessionResource
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseTypeDBTests class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

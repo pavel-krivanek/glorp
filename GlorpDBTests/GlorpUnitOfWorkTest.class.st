@@ -4,13 +4,23 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpUnitOfWorkTest class >> resources [
 
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpUnitOfWorkTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }
@@ -487,6 +497,28 @@ GlorpUnitOfWorkTest >> testRegisteringAndForcingUpdateToDatabase [
 ]
 
 { #category : #tests }
+GlorpUnitOfWorkTest >> testRollbackImmutableNonImmediateLiteral [
+	"Values written as literals in code such as 'Smalltalk' or 3.1415926535898d or 2.718s are immutable but not immediate.  Such values, if registered, are immensely unlikely to change intentionally - that's why they are made immutable.  By contrast, non-literal objects may be immutable and may change in #whileMutableDo: - see GlorpWVWriteBarrierTracker.  If we register an isLiteralImmutable value (and have no modificationTracker set in the session), we need to be able to abort that session's unit of work without seeing a spurious modification error.  Equally, we must not prevent GlorpWVWriteBarrierTracker from working correctly when in use (tests for that are in GlorpMigrationTests;  see e.g. #testAutoRegistrationUsingImmutabilityFlag)."
+
+	| salariedEmployees query namedSalaries |
+	salariedEmployees := Array
+		with: (GlorpSalariedEmployee new id: 1; name: 'double'; salary: 98765.4321d; yourself)
+		with: (GlorpSalariedEmployee new id: 2; name: 'float'; salary: 25.5; yourself)
+		with: (GlorpSalariedEmployee new id: 3; name: 'fixed'; salary: 12345.6789s; yourself).
+	"In Oracle array binding, a statement in OracleSession>>findRightBindingType: that raises an error if Doubles are combined with FixedPoints (or Integers) in the same column of the same array.  Thus we must use two units of work to write them separately.  (If you do not use binding (e.g. if you execute 'DatabasePlatform useBindingIfSupported: false' then the test passes on Oracle with all three registered in a single unit of work.)"
+	[session inUnitOfWorkDo: [:sess | sess registerAll: (salariedEmployees first: 2)].
+	session inUnitOfWorkDo: [:sess | sess register: salariedEmployees last].
+	session beginUnitOfWork.
+	query := SimpleQuery read: GlorpSalariedEmployee.
+	query orderBy: #salary; retrieve: #name; retrieve: #salary.
+	namedSalaries := session execute: query.
+	session rollbackUnitOfWork.
+	self assert: (namedSalaries collect: #first) = #('float' 'fixed' 'double').
+	self assert: (namedSalaries collect: #last) = #(25.5 12345.6789s 98765.4321d)]
+		ensure: [session inUnitOfWorkDo: [:sess | sess deleteAll: salariedEmployees]].
+]
+
+{ #category : #tests }
 GlorpUnitOfWorkTest >> testRollbackOneToManyAfterAdd [
 	| customer t1 t2 transList amount |
 	customer := GlorpCustomer example1.
@@ -538,6 +570,27 @@ GlorpUnitOfWorkTest >> testRollbackOneToManyProxy [
 	self assert: customer transactions size = 2.
 	self assert: customer transactions first == t1.
 	self assert: customer transactions last == t2.
+]
+
+{ #category : #tests }
+GlorpUnitOfWorkTest >> testRollbackOneToManyWithList [
+	"Check that dependents aren't being registered for the collection"
+	| customer marker |
+	"Lists only exist in VW"
+	Dialect isVisualWorks ifFalse: [^self].
+	marker := Object new.
+	customer := GlorpCustomer example1.
+	customer transactions: (customer transactions asList).
+	customer transactions addDependent: marker.
+	session beginUnitOfWork.
+	session register: customer.
+	20 timesRepeat: [customer addTransaction: (GlorpBankTransaction new)].
+	session rollbackUnitOfWork.
+	self assert: customer transactions class == (Dialect smalltalkAt: #List).
+	self assert: customer transactions size = 2.
+	self should: [customer transactions privateAt: 3] raise: Object subscriptOutOfBoundsSignal.
+	self assert: (customer transactions dependents includes: marker).
+	self deny: (session isRegistered: marker).
 ]
 
 { #category : #tests }

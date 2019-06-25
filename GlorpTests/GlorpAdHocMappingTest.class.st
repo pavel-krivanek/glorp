@@ -9,8 +9,18 @@ Class {
 		'money',
 		'rowMap'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpAdHocMappingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpAdHocMappingTest >> moneyNegatingMappingTo: amountField in: aDescriptor [ 

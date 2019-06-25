@@ -7,8 +7,18 @@ Class {
 	#instVars : [
 		'fieldTranslation'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+EmbeddedValueOneToOneMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #testing }
 EmbeddedValueOneToOneMapping >> controlsTables [

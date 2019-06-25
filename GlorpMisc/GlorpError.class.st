@@ -5,10 +5,7 @@ This is an abstract superclass for GLORP exceptions.
 Class {
 	#name : #GlorpError,
 	#superclass : #Error,
-	#classVars : [
-		'Announcements'
-	],
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-GlorpCore'
 }
 
 { #category : #'exception compatibility' }
@@ -17,26 +14,29 @@ GlorpError class >> ancestorOf: anExceptionThingy [
 	^self exceptionalEvent handles: anExceptionThingy
 ]
 
-{ #category : #'exception compatibility' }
-GlorpError class >> description [
-	"For ObjectStudio"
-	^super description.
-]
-
-{ #category : #'exception compatibility' }
+{ #category : #testing }
 GlorpError class >> mayResume [
 	"This is a VisualWorks convention. Reimplement this here so that it will also be found in other dialects that don't have it in the superclass."
 	^false
 ]
 
-{ #category : #'exception compatibility' }
+{ #category : #ANSI }
 GlorpError class >> signal [
 	^self new signal.
 ]
 
-{ #category : #'exception compatibility' }
+{ #category : #ANSI }
 GlorpError class >> signal: aString [
 	^self new signal: aString.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #testing }
@@ -55,14 +55,19 @@ GlorpError >> databaseError [
 { #category : #printing }
 GlorpError >> description [
 	"Make sure that we've populated our messageText before calling the superclass implementation."
-	self getMessageText.
-	^super description.
+
+	self messageText.
+	^super description
 ]
 
 { #category : #accessing }
 GlorpError >> getMessageText [
+	"This is horribly ugly. Not only are dialects inconsistent, but behaviour between types of exceptions is inconsistent within dialects"
 	
-	^self databaseError
+	Dialect isVisualWorks ifTrue: [^self getVisualWorksMessageText].
+	Dialect isVisualAge ifTrue: [^self getVisualAgeMessageText].
+	Dialect isSqueak ifTrue: [^self databaseError].
+	^self printString.
 ]
 
 { #category : #accessing }
@@ -75,15 +80,16 @@ GlorpError >> getVisualAgeMessageText [
 
 { #category : #accessing }
 GlorpError >> getVisualWorksMessageText [
-	"In VisualWorks, we often get arrays of ExternalDatabaseExceptions, whose parameter is an array of ExternalDatabaseError objects. Or we might just get an exception, or we might get nil or something else entirely, in which case we fall back to a default error message."
+	"In VisualWorks, we can get arrays of ExternalDatabaseExceptions, whose parameter is an array of ExternalDatabaseError objects. Or we might just get an exception, or we might get nil or something else entirely, in which case we fall back to a default error message."
+
 	| dbError |
 	self databaseError isNil ifTrue: [^messageText := self defaultMessageText].
 	dbError := self databaseError.
 	dbError glorpIsCollection ifTrue: [dbError := dbError first].
-	messageText := [dbError dbmsErrorString] on: Error do: [:ex | 
-		ex return: ([dbError messageText] on: Error do: [:anotherEx |
-			anotherEx return: self defaultMessageText])].
-	^messageText.
+	messageText := [dbError dbmsErrorString] on: Error do: [:ex | nil].
+	messageText isNil ifFalse: [^messageText].
+	messageText := [dbError description] on: Error do: [:anotherEx | self defaultMessageText].
+	^messageText
 ]
 
 { #category : #testing }
@@ -102,4 +108,21 @@ GlorpError >> messageText [
 GlorpError >> session [
 	"We don't know what our session is, return nil by default."
 	^nil.
+]
+
+{ #category : #ANSI }
+GlorpError >> signal [
+	"VisualWorks has non-ANSI semantics for this method. Re-implement to do the standard thing"
+	^Dialect isVisualWorks ifTrue: [self raise] ifFalse: [super signal].
+]
+
+{ #category : #ANSI }
+GlorpError >> signal: aString [
+	"VisualWorks has non-ANSI semantics for this method. Re-implement to do the standard thing"
+
+	^Dialect isVisualWorks
+		ifTrue:
+			[self messageText: aString.
+			self raise]
+		ifFalse: [super signal: aString].
 ]

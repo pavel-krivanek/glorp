@@ -5,8 +5,18 @@ Class {
 		'transaction',
 		'objects'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpObjectTransactionTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpObjectTransactionTest >> setUp [

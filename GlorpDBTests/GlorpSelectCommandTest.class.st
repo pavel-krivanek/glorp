@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpSelectCommandTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpSelectCommandTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpSelectCommandTest >> testExecute [

@@ -4,7 +4,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'testing - inner queries' }
 TESTDescriptorSystem class >> queryForCustomerStation [
 	| query |
 	query := Query read: CustomerStation
@@ -13,7 +13,7 @@ TESTDescriptorSystem class >> queryForCustomerStation [
 	^query
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'testing - inner queries' }
 TESTDescriptorSystem class >> queryForFeederStation [
 	| query |
 	query := Query read: FeederStation where: [:feederStation | feederStation id in: #(1 2 3 4)].
@@ -21,7 +21,7 @@ TESTDescriptorSystem class >> queryForFeederStation [
 	^query
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'testing - inner queries' }
 TESTDescriptorSystem class >> queryForSuccessor [
 	| query |
 	query := Query read: Successor where: [:successor | successor successorFeeder in: self queryForFeederStation].
@@ -29,7 +29,7 @@ TESTDescriptorSystem class >> queryForSuccessor [
 	^query
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'testing - inner queries' }
 TESTDescriptorSystem class >> testInnerQueries [
 	"self testInnerQueries"
 
@@ -44,7 +44,7 @@ TESTDescriptorSystem class >> testInnerQueries [
 	^result
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'testing - inner queries' }
 TESTDescriptorSystem class >> testLocalInnerQueries [
 	"self testLocalInnerQueries"
 
@@ -69,6 +69,16 @@ TESTDescriptorSystem class >> testLocalInnerQueries [
 	query retrieve: [:customerStation | customerStation id].
 	result := session execute: query.
 	^result
+]
+
+{ #category : #'VisualWorks metadata' }
+TESTDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #classes }

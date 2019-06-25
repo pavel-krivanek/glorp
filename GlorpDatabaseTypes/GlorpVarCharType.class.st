@@ -1,11 +1,18 @@
-"
-VARCHAR type
-"
 Class {
 	#name : #GlorpVarCharType,
 	#superclass : #GlorpAbstractStringType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpVarCharType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #initialize }
 GlorpVarCharType >> initialize [

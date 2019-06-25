@@ -4,8 +4,17 @@ Class {
 	#instVars : [
 		'id'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpSlave class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpSlave >> id [

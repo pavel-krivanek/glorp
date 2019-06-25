@@ -9,8 +9,18 @@ Class {
 		'singleResult',
 		'allResult'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpReadingDifferentCollectionsTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpReadingDifferentCollectionsTest >> check: aClass [
@@ -80,7 +90,7 @@ GlorpReadingDifferentCollectionsTest >> testSortedCollection [
 { #category : #tests }
 GlorpReadingDifferentCollectionsTest >> testSortedCollectionReversed [
 	self check: (SortedCollection sortBlock: [:a :b | b <= a]).
-	self deny: allResult last <= allResult first.
+	self assert: allResult last <= allResult first.
 ]
 
 { #category : #setup }

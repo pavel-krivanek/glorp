@@ -1,6 +1,6 @@
 Extension { #name : #UndefinedObject }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-printing' }
 UndefinedObject >> glorpPrintSQLOn: aCommand [
 
 	aCommand nextPutAll: 'NULL'.

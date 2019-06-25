@@ -7,10 +7,10 @@ Class {
 		'taxes',
 		'supertax'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpTax class >> glorpCommonSetupDescriptor: aDescriptor forSystem: aSystem [
 	| table |
 	table := aSystem tableNamed: 'TAX'.
@@ -29,7 +29,7 @@ GlorpTax class >> glorpCommonSetupDescriptor: aDescriptor forSystem: aSystem [
 				join: (Join from: (table fieldNamed: 'TAX_ID') to: (table fieldNamed: 'ID'))).
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpTax class >> glorpSetupDescriptor: aDescriptor forSystem: aSystem [
 	| table |
 	table := aSystem tableNamed: 'TAX'.
@@ -45,9 +45,18 @@ GlorpTax class >> glorpSetupDescriptor: aDescriptor forSystem: aSystem [
 		abstract: true
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpTax class >> glorpTypeResolver [
 	^FilteredTypeResolver forRootClass: GlorpTax.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpTax class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'add/remove' }

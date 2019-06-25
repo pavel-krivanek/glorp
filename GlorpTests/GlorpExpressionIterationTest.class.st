@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpExpressionIterationTest,
 	#superclass : #GlorpTestCase,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpExpressionIterationTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpExpressionIterationTest >> helpTestSingleNodeDo: exp [ 

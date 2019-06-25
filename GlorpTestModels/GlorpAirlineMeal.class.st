@@ -6,5 +6,14 @@ Class {
 		'description',
 		'ingredients'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpAirlineMeal class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]

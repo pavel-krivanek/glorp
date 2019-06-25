@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpNumeric52Test,
 	#superclass : #GlorpDatabaseTypeIndividualDBTests,
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-GlorpDBTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpNumeric52Test class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #types }
 GlorpNumeric52Test >> defaultDatabaseType [

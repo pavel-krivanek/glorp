@@ -31,16 +31,25 @@ GlorpClassModel class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpClassModel class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpClassModel >> addAttribute: anAttributeDescription [
 	attributes add: anAttributeDescription.
 	anAttributeDescription classModel: self.
-	^anAttributeDescription
+	^anAttributeDescription.
 ]
 
 { #category : #accessing }
 GlorpClassModel >> attributeNamed: aSymbol [
-	^attributes detect: [:each | each name = aSymbol] ifNone: [self newAttributeNamed: aSymbol]
+	^attributes detect: [:each | each name = aSymbol] ifNone: [self newAttributeNamed: aSymbol].
 ]
 
 { #category : #accessing }
@@ -48,7 +57,7 @@ GlorpClassModel >> attributeNamed: aSymbol type: aClass [
 	^attributes
 		detect:
 			[:each | each name = aSymbol and: [each type isNil or: [each type = aClass]]]
-		ifNone: [self newAttributeNamed: aSymbol type: aClass]
+		ifNone: [self newAttributeNamed: aSymbol type: aClass].
 ]
 
 { #category : #accessing }
@@ -62,12 +71,12 @@ GlorpClassModel >> attributeNamed: aSymbol type: aClass collectionType: collecti
 			collectionTypeMatches := each collectionType isNil
 				or: [each collectionType = collectionClass].
 			nameMatches & typeMatches & collectionTypeMatches]
-		ifNone: [self newAttributeNamed: aSymbol type: aClass]
+		ifNone: [self newAttributeNamed: aSymbol type: aClass].
 ]
 
 { #category : #accessing }
 GlorpClassModel >> attributes [
-	^attributes
+	^attributes.
 ]
 
 { #category : #attributes }
@@ -83,7 +92,7 @@ GlorpClassModel >> describedClass [
 { #category : #accessing }
 GlorpClassModel >> describedClass: aClass [
 	describedClass := aClass.
-	subclasses := aClass allSubclasses isEmpty ifTrue: [nil] ifFalse: [aClass allSubclasses asArray]
+	subclasses := aClass allSubclasses isEmpty ifTrue: [nil] ifFalse: [aClass allSubclasses asArray].
 ]
 
 { #category : #accessing }
@@ -93,9 +102,9 @@ GlorpClassModel >> hasAttributeNamed: aSymbol [
 	^false
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initializing }
 GlorpClassModel >> initialize [
-	attributes := OrderedCollection new
+	attributes := OrderedCollection new.
 ]
 
 { #category : #validation }
@@ -107,39 +116,48 @@ GlorpClassModel >> matches: anObject [
 	nil == subclasses ifTrue: [^false].
 	1 to: subclasses size do: [:i | theClass == (subclasses at: i)
 		ifTrue: [^true]].
-	^false
+	^false.
 ]
 
 { #category : #attributes }
 GlorpClassModel >> newAttributeNamed: aSymbol [
-	^self addAttribute: (GlorpAttributeModel named: aSymbol)
+	^self addAttribute: (GlorpAttributeModel named: aSymbol).
 ]
 
 { #category : #attributes }
 GlorpClassModel >> newAttributeNamed: aSymbol collection: collectionClass of: aClass [
-	^self addAttribute: (GlorpAttributeModel named: aSymbol collection: collectionClass of: aClass)
+	^self addAttribute: (GlorpAttributeModel named: aSymbol collection: collectionClass of: aClass).
 ]
 
 { #category : #attributes }
 GlorpClassModel >> newAttributeNamed: aSymbol collectionOf: aClass [
-	^self addAttribute: (GlorpAttributeModel named: aSymbol collectionOf: aClass)
+	^self addAttribute: (GlorpAttributeModel named: aSymbol collectionOf: aClass).
 ]
 
 { #category : #attributes }
 GlorpClassModel >> newAttributeNamed: aSymbol dictionaryFrom: keyClass to: valueClass [
-	^self addAttribute: (GlorpAttributeModel named: aSymbol dictionaryFrom: keyClass to: valueClass)
+	^self addAttribute: (GlorpAttributeModel named: aSymbol dictionaryFrom: keyClass to: valueClass).
 ]
 
 { #category : #attributes }
 GlorpClassModel >> newAttributeNamed: aSymbol type: aClass [
-	^self addAttribute: (GlorpAttributeModel named: aSymbol type: aClass)
+	^self addAttribute: (GlorpAttributeModel named: aSymbol type: aClass).
 ]
 
 { #category : #printing }
 GlorpClassModel >> printOn: aStream [
 	aStream nextPutAll: '~~'.
 	self describedClass isNil ifFalse: [aStream nextPutAll: self describedClass name].
-	aStream nextPutAll: '~~'
+	aStream nextPutAll: '~~'.
+]
+
+{ #category : #accessing }
+GlorpClassModel >> privateAndBasicSetDescribedClass: aClass [
+	"In theory, my parameter could answer true to glorpCanHaveDescriptorDirectly yet not understand subclasses. At time of writing, this is only possible in recursive queries."
+
+	aClass isBehavior
+		ifTrue: [self describedClass: aClass]
+		ifFalse: [describedClass := aClass].
 ]
 
 { #category : #accessing }
@@ -149,7 +167,7 @@ GlorpClassModel >> system [
 
 { #category : #accessing }
 GlorpClassModel >> system: aDescriptorSystem [
-	system := aDescriptorSystem
+	system := aDescriptorSystem.
 ]
 
 { #category : #validation }

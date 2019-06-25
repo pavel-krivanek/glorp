@@ -9,3 +9,12 @@ Class {
 	],
 	#category : #GlorpTestModels
 }
+
+{ #category : #'VisualWorks metadata' }
+Successor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]

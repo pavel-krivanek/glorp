@@ -5,13 +5,23 @@ This is a query intended to execute a SQLite3 PRAGMA command. The command behave
 Class {
 	#name : #SQLite3PragmaQuery,
 	#superclass : #SimpleQuery,
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
 SQLite3PragmaQuery class >> newQuery [
 	^SQLite3PragmaQuery new
 	"^super newQuery"
+]
+
+{ #category : #'VisualWorks metadata' }
+SQLite3PragmaQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'sql generation' }

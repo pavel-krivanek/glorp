@@ -3,11 +3,16 @@ MySQL clobs come back from the driver as binary data, so we need to make a subcl
 "
 Class {
 	#name : #GlorpMySQLClobType,
-	#superclass : #GlorpBlobType,
+	#superclass : #GlorpClobType,
 	#category : #GlorpDatabaseTypes
 }
 
-{ #category : #'as yet unclassified' }
-GlorpMySQLClobType >> impliedSmalltalkType [
-	^String
+{ #category : #'VisualWorks metadata' }
+GlorpMySQLClobType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]

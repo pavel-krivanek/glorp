@@ -5,8 +5,18 @@ Class {
 		'person',
 		'personId'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpOneToOneDBTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'tests-read' }
 GlorpOneToOneDBTest >> additionalTests [
@@ -206,7 +216,7 @@ GlorpOneToOneDBTest >> testReadPersonAndRemoveAddress [
 { #category : #'tests-read' }
 GlorpOneToOneDBTest >> testReadPersonAndReplaceAddress [
 	self inTransactionDo:
-		[self inUnitOfWorkDo:
+		[self inUnitOfWorkDo: 
 			[person address: ((GlorpAddress new) id: 12; street: 'foo'; number: '1234')].
 		self readPerson.
 		self checkPerson.
@@ -255,7 +265,7 @@ GlorpOneToOneDBTest >> testReadPersonAndReplaceAdressWithProxy [
 
 { #category : #'tests-read' }
 GlorpOneToOneDBTest >> testReadPersonAndUpdateName [
-	"Test to make sure that if we never instantiate the address, we don't have problems with that relationship."
+	"Test to make sure that if we update a person while deferring instantiating their address, we don't have problems with that relationship."
 
 	self inTransactionDo:
 		[self inUnitOfWorkDo: [person name: 'new name'].
@@ -264,8 +274,15 @@ GlorpOneToOneDBTest >> testReadPersonAndUpdateName [
 		self readPerson.
 		self assert: person name = 'new name'.
 		self assert: person address isGlorpProxy.
+		self deny: (session isNewObjectOrInstantiatedProxy: person address)
+			description: '#isNew: would DNU here but #isNewObjectOrInstantiatedProxy: should not'.
+		self assert: (session isUninstantiatedProxy: person address).
 		self assert: person address getValue id = 123.
 		self assert: person address getValue street = 'Paseo Montril'].
+		self deny: (session isUninstantiatedProxy: person address).
+		self deny: (session isNewObjectOrInstantiatedProxy: person address)
+			description: '#isNew: would DNU here but #isNewObjectOrInstantiatedProxy: should not'.
+		self deny: (session isNew: person address yourSelf).	"address getValue would also work but be less polymorphic"
 ]
 
 { #category : #'tests-read' }

@@ -5,8 +5,18 @@ Class {
 		'expression',
 		'compoundExpression'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpPrimaryKeyExpressionWithConstantTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpPrimaryKeyExpressionWithConstantTest >> setUp [

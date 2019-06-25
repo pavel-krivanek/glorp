@@ -10,8 +10,18 @@ Class {
 	#instVars : [
 		'children'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
+
+{ #category : #'VisualWorks metadata' }
+ExpressionGroup class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'instance creation' }
 ExpressionGroup class >> with: anExpression [
@@ -26,8 +36,20 @@ ExpressionGroup >> add: anExpression [
 
 { #category : #accessing }
 ExpressionGroup >> addAll: anExpressionCollection [
+	"Unlike other addAll:, this returns self, not its parameter, and callers use this.  (Rename it, to avoid confusion with the base parameter-returning addAll: in code-checking tools.)"
+
 	anExpressionCollection isNil ifTrue: [^self].
 	children addAll: anExpressionCollection.
+]
+
+{ #category : #converting }
+ExpressionGroup >> asExpressionGroup [
+	^self
+]
+
+{ #category : #accessing }
+ExpressionGroup >> canHaveBase [
+	^self children anySatisfy: [:each | each canHaveBase]
 ]
 
 { #category : #accessing }
@@ -56,6 +78,23 @@ ExpressionGroup >> isEmpty [
 	^self size = 0.
 ]
 
+{ #category : #mapping }
+ExpressionGroup >> mappedFields [
+	^self children
+		inject: OrderedCollection new
+		into: [:all :each | all addAll: each mappedFields. all]
+]
+
+{ #category : #'printing SQL' }
+ExpressionGroup >> printSQLOn: aStream withParameters: anArray [
+	aStream nextPutAll: '('.
+	GlorpHelper 
+		do: [:expr | expr printSQLOn: aStream withParameters: anArray]
+		for: self children
+		separatedBy: [aStream nextPutAll: ', '].
+	aStream nextPutAll: ')'.
+]
+
 { #category : #printing }
 ExpressionGroup >> printTreeOn: aStream [
 
@@ -66,12 +105,21 @@ ExpressionGroup >> printTreeOn: aStream [
 		aStream cr].
 ]
 
-{ #category : #accessing }
+{ #category : #navigating }
 ExpressionGroup >> queryLevelBaseExpression [
-	^nil.
+	^(self children
+		detect: [:each | each canHaveBase]
+		ifNone: [^nil]) queryLevelBaseExpression
 ]
 
 { #category : #accessing }
 ExpressionGroup >> size [
 	^children size.
+]
+
+{ #category : #navigating }
+ExpressionGroup >> ultimateBaseExpression [
+	^(self children
+		detect: [:each | each canHaveBase]
+		ifNone: [^nil]) ultimateBaseExpression
 ]

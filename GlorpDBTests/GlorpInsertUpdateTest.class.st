@@ -4,13 +4,23 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpInsertUpdateTest class >> resources [
 
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpInsertUpdateTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }

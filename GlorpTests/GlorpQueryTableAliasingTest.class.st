@@ -7,10 +7,20 @@ Class {
 		'elementBuilder',
 		'session'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
-{ #category : #'As yet unclassified' }
+{ #category : #'VisualWorks metadata' }
+GlorpQueryTableAliasingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
+{ #category : #utility }
 GlorpQueryTableAliasingTest >> helpTestPrintingWhereClause: anExpression [
 	| command |
 	query 
@@ -34,7 +44,7 @@ GlorpQueryTableAliasingTest >> setUp [
 	expression descriptor: (system descriptorFor: GlorpCustomer).
 	(expression descriptor mappingForAttributeNamed: #name) shouldProxy: false.
 	elementBuilder := ObjectBuilder for: expression in: query.
-	expression aliasTable: (system tableNamed: 'GR_CUSTOMER') to: 't1'.
+	expression assignTableAliasesStartingAt: 1 prefix: 't'.
 	session := GlorpSession new.
 	session system: system.
 	query session: system session.
@@ -106,5 +116,5 @@ GlorpQueryTableAliasingTest >> testQueryPrintingTables [
 	stream := String new writeStream.
 	query printTablesOn: stream.
 	string := stream contents.
-	self assert: string withUnixLineEndings = '<n> FROM GR_CUSTOMER t1' expandMacros withUnixLineEndings.
+	self assert: string = '<n> FROM GR_CUSTOMER t1' expandMacros.
 ]

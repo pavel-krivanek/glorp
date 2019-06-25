@@ -4,13 +4,23 @@ This is a trivial type resolver (and the default one) that just uses a single cl
 Class {
 	#name : #IdentityTypeResolver,
 	#superclass : #TypeResolver,
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+IdentityTypeResolver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 IdentityTypeResolver >> allTablesFor: aDescriptor [
 	"Return all tables used by this descriptor or its subclasses. For a non-inheritance descriptor, this is the same as tables."
-	^aDescriptor tables
+	^aDescriptor tables.
 ]
 
 { #category : #'type resolution' }
@@ -25,7 +35,7 @@ IdentityTypeResolver >> describedConcreteClassFor: aRow withBuilder: builder des
 
 { #category : #accessing }
 IdentityTypeResolver >> descriptorsRequiringIndependentQueriesFor: aClass [
-	^members
+	^members.
 ]
 
 { #category : #accessing }

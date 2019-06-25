@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpTimedExpiryCacheTest,
 	#superclass : #GlorpCacheTest,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTimedExpiryCacheTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpTimedExpiryCacheTest >> setUp [

@@ -6,3 +6,12 @@ Class {
 	#superclass : #Object,
 	#category : #GlorpDatabase
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseValueGenerator class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]

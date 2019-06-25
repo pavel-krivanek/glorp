@@ -22,6 +22,15 @@ GlorpThingOne class >> named: aString [
 	^self new name: aString.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpThingOne class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpThingOne >> <= aThingOne [
 	^self name <= aThingOne name.

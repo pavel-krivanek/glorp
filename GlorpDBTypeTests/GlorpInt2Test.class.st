@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpInt2Test,
 	#superclass : #GlorpDatabaseTypeIndividualDBTests,
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-GlorpDBTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpInt2Test class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #types }
 GlorpInt2Test >> defaultDatabaseType [

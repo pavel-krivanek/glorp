@@ -4,10 +4,10 @@ Class {
 	#instVars : [
 		'tasks'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpTaskedWorker class >> example1 [
 	"GlorpTaskedWorker example1"
 
@@ -25,11 +25,21 @@ GlorpTaskedWorker class >> example1 [
 	^workers
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpTaskedWorker class >> new [
 	"Answer a newly created and initialized instance."
 
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpTaskedWorker class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #comparing }

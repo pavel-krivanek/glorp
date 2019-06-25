@@ -9,7 +9,7 @@ Instance Variables:
 Class {
 	#name : #UniqueConstraint,
 	#superclass : #DatabaseTableConstraint,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-My Classes'
 }
 
 { #category : #'instance creation' }
@@ -19,6 +19,16 @@ UniqueConstraint class >> forTable: aTable fields: aCollectionOfFields [
 	instance := self new.
 	instance forTable: aTable fields: aCollectionOfFields.
 	^instance
+]
+
+{ #category : #'VisualWorks metadata' }
+UniqueConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #printing }

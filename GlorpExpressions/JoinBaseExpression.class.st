@@ -9,6 +9,16 @@ Class {
 	#category : #GlorpExpressions
 }
 
+{ #category : #'VisualWorks metadata' }
+JoinBaseExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 JoinBaseExpression >> asExpressionJoiningSource: source toTarget: target [
 	"Create a general expression which represents this relationship where the values of the targets (which are normally parameters) are supplied out of the context provided by 'target' and the source fields are referencing things out of the context of source. Produces something suitable for ANDing into an expression when doing a join

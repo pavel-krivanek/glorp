@@ -11,6 +11,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpRowMapForMementosCollectionTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpRowMapForMementosCollectionTest >> createRowMap [
 	rowMap := RowMapForMementos withCorrespondenceMap: transaction undoMap.

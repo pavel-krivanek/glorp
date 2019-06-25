@@ -7,14 +7,14 @@ Class {
 	#category : #GlorpDBTests
 }
 
-{ #category : #support }
-GlorpQueryUnionTest >> helpTestCompoundExpressionOnPlatform: platform [
-	| query union |
-	platform useBinding: false.
-	query := Query read: GlorpAddress.
-	union := query unionAll: query.
-	union session: session.
-	^(union sqlWith: Dictionary new) sqlString.
+{ #category : #'VisualWorks metadata' }
+GlorpQueryUnionTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }
@@ -115,24 +115,6 @@ GlorpQueryUnionTest >> testCompoundCommandCreate [
 ]
 
 { #category : #'tests-unit' }
-GlorpQueryUnionTest >> testCreateCompoundExpression [
-	| platform compoundString expectedString |
-	expectedString := 'SELECT DISTINCT * FROM (SELECT t1.ID, t1.STREET, t1.HOUSE_NUM
- FROM GR_ADDRESS t1 UNION ALL SELECT t1.ID, t1.STREET, t1.HOUSE_NUM
- FROM GR_ADDRESS t1) t1'.
-	platform := PostgreSQLPlatform new.
-	compoundString := self helpTestCompoundExpressionOnPlatform: platform.
-	self assert: compoundString equals: expectedString.
-	platform := SQLServerPlatform new.
-	compoundString := self helpTestCompoundExpressionOnPlatform: platform.
-	self assert: compoundString equals: expectedString.
-	platform := SQLite3Platform new.
-	compoundString := self helpTestCompoundExpressionOnPlatform: platform.
-	self assert: compoundString equals: expectedString.
-
-]
-
-{ #category : #'tests-unit' }
 GlorpQueryUnionTest >> testCreateCompoundQuery [
 	| query1 union |
 	query1 := Query read: GlorpAddress.
@@ -179,7 +161,7 @@ GlorpQueryUnionTest >> testUnionSQL [
 	union := query1 unionAll: query1.
 	union session: session.
 	command := union sqlWith: #().
-	self assert: ('SELECT * FROM (*SELECT *<n> FROM GR_ADDRESS t1<n> WHERE *t1.ID = * UNION ALL *SELECT *<n> FROM GR_ADDRESS t1<n> WHERE *t1.ID = *' expandMacros withUnixLineEndings match: command sqlString withUnixLineEndings).
+	self assert: ('SELECT * FROM (*SELECT *<n> FROM GR_ADDRESS t1<n> WHERE *t1.ID = * UNION ALL *SELECT *<n> FROM GR_ADDRESS t1<n> WHERE *t1.ID = *' expandMacros match: command sqlString).
 ]
 
 { #category : #'tests-functional' }

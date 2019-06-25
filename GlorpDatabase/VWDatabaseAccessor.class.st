@@ -14,7 +14,7 @@ Class {
 		'driverSession',
 		'preparedStatements'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp-VW3'
 }
 
 { #category : #'exception handling' }
@@ -22,6 +22,16 @@ VWDatabaseAccessor class >> errorsToCatch [
 	| pgError |
 	pgError := Smalltalk at: #PostgreSQLEXDIException ifAbsent: [^Error].
 	^Error, pgError.
+]
+
+{ #category : #'VisualWorks metadata' }
+VWDatabaseAccessor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #executing }

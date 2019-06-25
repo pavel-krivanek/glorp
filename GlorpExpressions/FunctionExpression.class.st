@@ -7,7 +7,7 @@ Instance Variables
 	alias <String> If we're to be selected as a field, what should we be selected as. Think SELECT t1.A + t1.B AS FRED.
 	symbol <Symbol> The original symbol used to create us. Helpful if recreating onto a different platform where the DB string can be different.
 	type <GlorpDatabaseType> Optional. If we have a type defined, then we can record it here. Otherwise, we will return the type of the field we are operating on.
-
+	
 
 "
 Class {
@@ -23,18 +23,18 @@ Class {
 	#classInstVars : [
 		'functions'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
-{ #category : #accessing }
+{ #category : #private }
 FunctionExpression class >> basicFunctions [
-	functions isNil ifTrue: [functions := self createBasicFunctionsFor: nil].
-	^functions.
+	functions isNil ifTrue: [functions := self createBasicFunctionsFor: DatabasePlatform new].
+	^functions
 ]
 
-{ #category : #setup }
-FunctionExpression class >> createBasicFunctionsFor: anObject [
-	| exists notExists defaultFunctions |
+{ #category : #private }
+FunctionExpression class >> createBasicFunctionsFor: aDatabasePlatform [
+	| defaultFunctions |
 	defaultFunctions := IdentityDictionary new.
 	defaultFunctions
 		at: #descending put: (PostfixFunction named: 'DESC');
@@ -49,34 +49,21 @@ FunctionExpression class >> createBasicFunctionsFor: anObject [
 		at: #, put: (InfixFunction named: '||');
 		at: #countStar put: (StandaloneFunction named: 'COUNT(*)');
 		at: #count put: (PrefixFunction named: 'COUNT');
-		at: #similarTo: put: (InfixFunction named: 'LIKE');
 		at: #between:and: put: (InfixFunction named: #('BETWEEN' 'AND'));
-		at: #isNil
-			put:
-				((RelationExpression new)
+		at: #isNil put: ((RelationExpression new)
 						relation: #=;
 						rightChild: nil asGlorpExpression);
-		at: #notNil
-			put:
-				((RelationExpression new)
+		at: #notNil put: ((RelationExpression new)
 						relation: #<>;
 						rightChild: nil asGlorpExpression);
-		at: #isNIL
-			put:
-				((RelationExpression new)
+		at: #isNIL put: ((RelationExpression new)
 						relation: #=;
 						rightChild: nil asGlorpExpression);
-		at: #notNIL
-			put:
-				((RelationExpression new)
+		at: #notNIL put: ((RelationExpression new)
 						relation: #<>;
 						rightChild: nil asGlorpExpression).
-	exists := InfixFunction named: 'EXISTS'.
-	anObject isNil ifFalse: [exists type: anObject boolean].
-	defaultFunctions at: #exists: put: exists.
-	notExists := InfixFunction named: 'NOT EXISTS'.
-	anObject isNil ifFalse: [notExists type: anObject boolean].
-	defaultFunctions at: #notExists: put: notExists.
+	defaultFunctions at: #exists: put: ((InfixFunction named: 'EXISTS') type: aDatabasePlatform boolean).
+	defaultFunctions at: #notExists: put: ((InfixFunction named: 'NOT EXISTS') type: aDatabasePlatform boolean).
 
 	defaultFunctions
 		at: #asUppercase put: (PrefixFunction named: 'UPPER');
@@ -84,8 +71,13 @@ FunctionExpression class >> createBasicFunctionsFor: anObject [
 		at: #replace:with: put: (PrefixFunction named: 'REPLACE');
 		at: #cast: put: ((Cast named: 'CAST') separator: ' AS ');
 		at: #copyFrom:to: put: (SubstringFunction named: 'SUBSTR').
+"		at: #+ put: (InfixFunction named: '+');
+		at: #- put: (InfixFunction named: '-');
+		at: #/ put: (InfixFunction named: '/');
+		at: #* put: (InfixFunction named: '*')."
+	defaultFunctions at: #length put: ((PrefixFunction named: 'LENGTH') type: aDatabasePlatform integer).
 
-	^defaultFunctions.
+	^defaultFunctions
 ]
 
 { #category : #'instance creation' }
@@ -109,7 +101,7 @@ FunctionExpression class >> for: aSymbol withArguments: anArray basedOn: anExpre
 	^newFunction.
 ]
 
-{ #category : #initializing }
+{ #category : #private }
 FunctionExpression class >> initialize [
 
 	self resetFunctions.
@@ -126,6 +118,16 @@ FunctionExpression class >> named: aString [
 FunctionExpression class >> resetFunctions [
 	"self resetFunctions"
 	functions := nil.
+]
+
+{ #category : #'VisualWorks metadata' }
+FunctionExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }
@@ -307,11 +309,6 @@ FunctionExpression >> isDistinct [
 { #category : #testing }
 FunctionExpression >> isGenerated [
 	^false.
-]
-
-{ #category : #testing }
-FunctionExpression >> isSameAliasedFieldAs: aFieldOrFunction [
-	^self == aFieldOrFunction.
 ]
 
 { #category : #accessing }

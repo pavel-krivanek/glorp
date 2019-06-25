@@ -5,7 +5,7 @@ Instance Variables:
 	base	<GlorpExpression>	Our base expression.
 	lookupKey	<DatabaseField | SomethingElse>	The thing based on which we look up our parameter value in the array or dictionary of parameters that's passed to the query. So it can be number (for positional usage), a field, or something else.
 
-.
+. 
 "
 Class {
 	#name : #ParameterExpression,
@@ -14,13 +14,23 @@ Class {
 		'base',
 		'lookupKey'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
 ParameterExpression class >> forField: aField basedOn: anObjectExpression [
 
 	^self new field: aField base: anObjectExpression; yourself
+]
+
+{ #category : #'VisualWorks metadata' }
+ParameterExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #preparing }
@@ -103,6 +113,11 @@ ParameterExpression >> getMapping: aMapping named: aSymbol [
 	aMapping mappedFields do: [:each |
 		expression := (each asGlorpExpressionOn: self) AND: expression].
 	^expression.
+]
+
+{ #category : #inspecting }
+ParameterExpression >> inspectorChildren [
+	^Array with: base
 ]
 
 { #category : #printing }

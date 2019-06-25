@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpLockingDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #other }
 GlorpLockingDescriptorSystem >> allTableNames [
 
@@ -125,14 +135,22 @@ GlorpLockingDescriptorSystem >> example2 [
 		.
 ]
 
+{ #category : #'optimization parameters' }
+GlorpLockingDescriptorSystem >> shouldUpdateOnlyChangedFieldsFor: aCommand [
+	"Allow testing of both cases by switching binding state."
+
+	^aCommand useBinding not
+]
+
 { #category : #tables }
 GlorpLockingDescriptorSystem >> tableForBOOK: aTable [
-
 	(aTable createFieldNamed: 'ID' type: platform serial) bePrimaryKey.
 	aTable createFieldNamed: 'TITLE' type: (platform varChar: 100).
 	aTable createFieldNamed: 'DESCRIPTION' type: (platform varChar: 255).
 	aTable createFieldNamed: 'COPIES_IN_STOCK' type: (platform int4).
-	(aTable createFieldNamed: 'VERSION' type: (platform versionFieldFor: platform int4)) beLockKey.
+	(aTable createFieldNamed: 'VERSION' type: (platform versionFieldFor: platform int4))
+		beLockKey;		"let's us test ordinary lock key behaviour"
+		beNullable: true.	"let's us testSuccessfulUpdateOntoNullVersionField"
 ]
 
 { #category : #tables }

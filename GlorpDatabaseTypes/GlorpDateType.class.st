@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpDateType,
 	#superclass : #GlorpDatabaseType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDateType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #converting }
 GlorpDateType >> converterForStType: aClass [

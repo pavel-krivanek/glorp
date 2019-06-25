@@ -1,6 +1,6 @@
 Extension { #name : #PGSequence }
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-private' }
 PGSequence >> backupReserveCommand: anInteger in: aSession [
 	| stream command |
 	stream := WriteStream on: (String new: 200).
@@ -17,7 +17,7 @@ PGSequence >> backupReserveCommand: anInteger in: aSession [
 	^command.
 ]
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-SQL' }
 PGSequence >> tableSelectCommandFor: aTable in: aSession reserving: anInteger [
 	| stream |
 	(tableSelectCommand notNil and: [tableSelectCommand parameters includes: anInteger]) ifFalse:

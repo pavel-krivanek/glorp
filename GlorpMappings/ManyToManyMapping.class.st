@@ -4,8 +4,18 @@ This is a to-many relationship in which we use a link table to the collection, r
 Class {
 	#name : #ManyToManyMapping,
 	#superclass : #ToManyMapping,
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+ManyToManyMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #initializing }
 ManyToManyMapping >> initialize [

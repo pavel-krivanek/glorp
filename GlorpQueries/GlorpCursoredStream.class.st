@@ -55,6 +55,15 @@ GlorpCursoredStream class >> on: aStream for: aCommand accessor: aDatabaseAccess
 		databaseAccessor: aDatabaseAccessor.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpCursoredStream class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 GlorpCursoredStream >> accessor [
 	^databaseAccessor.
@@ -242,8 +251,11 @@ GlorpCursoredStream >> next [
 
 { #category : #accessing }
 GlorpCursoredStream >> next: anInteger [
-
-	^super next: anInteger
+	| result |
+	Dialect isObjectStudio ifFalse: [^super next: anInteger].
+	result := OrderedCollection new: anInteger.
+	anInteger timesRepeat: [result add: self next].
+	^result.
 ]
 
 { #category : #'building objects' }
@@ -340,11 +352,6 @@ GlorpCursoredStream >> releaseCursor [
 			self accessor completedCommand: command].
 ]
 
-{ #category : #accessing }
-GlorpCursoredStream >> rowCount [
-	^ self cursor rowCount
-]
-
 { #category : #debugging }
 GlorpCursoredStream >> rows [
 	"This will extract all the rows and replace the internal stream with a regular stream on the rows. This is useful for debugging, but in real use rather destroys the purpose of the cursored stream"
@@ -380,4 +387,11 @@ GlorpCursoredStream >> upToEnd [
 			nextValue := self next.
 			nextValue == nil ifFalse: [	result nextPut: nextValue]].
 	^result contents
+]
+
+{ #category : #accessing }
+GlorpCursoredStream >> upToEndOfResultSet [
+	"If our statement has multiple result sets, we must use this call, not #upToEnd, to avoid the aggressive releasing of the cursor in #atEnd which would lose any remaining result sets.  This reads the current result set and advances the underlying cursor to the next result set.  (N.B. 'the next result set' does not necessarily mean the return of the next statement;  in a sequence of statements, some may return result sets while others return #noAnswerStream and these will be skipped.)  The cursor is released as part of reading the last result set."
+
+	^self accessor upToEndOfResultSet: self
 ]

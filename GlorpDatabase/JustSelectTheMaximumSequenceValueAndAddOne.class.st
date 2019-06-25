@@ -12,8 +12,18 @@ Class {
 		'field',
 		'table'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+JustSelectTheMaximumSequenceValueAndAddOne class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 JustSelectTheMaximumSequenceValueAndAddOne >> field [

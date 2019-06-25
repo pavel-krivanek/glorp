@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'assemblyCost'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpUnassembledItem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpUnassembledItem >> assemblyCost [

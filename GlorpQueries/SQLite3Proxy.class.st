@@ -5,8 +5,18 @@ SQLiteProxy is different from a normal proxy in that its >>glorpTriggerProxyActi
 Class {
 	#name : #SQLite3Proxy,
 	#superclass : #Proxy,
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+SQLite3Proxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 SQLite3Proxy >> class [

@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpBankExampleSystem,
 	#superclass : #GlorpExampleSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpBankExampleSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #examples }
 GlorpBankExampleSystem >> exampleGlorpAddressNumber1: anAddress [

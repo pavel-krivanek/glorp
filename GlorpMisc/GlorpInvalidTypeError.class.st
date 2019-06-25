@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpMisc
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpInvalidTypeError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpInvalidTypeError >> defaultMessageText [
 	^'Object being written does not match the type of the attribute: ''', self object printString,  ''' ~= ''' , self expectedType printString, ''''.

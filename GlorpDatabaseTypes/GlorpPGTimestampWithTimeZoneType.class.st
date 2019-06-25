@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpPGTimestampWithTimeZoneType,
 	#superclass : #GlorpDatabaseType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpPGTimestampWithTimeZoneType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'exdi specific' }
 GlorpPGTimestampWithTimeZoneType >> exdiType [

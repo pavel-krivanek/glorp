@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'rowMap'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpMappingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpMappingTest >> helperForMergedOneToOneReversingWriteOrder: aBoolean [ 

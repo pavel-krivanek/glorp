@@ -11,9 +11,19 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #Accessing }
 GlorpProxyEqualityTest class >> resources [
 	^Array with: GlorpSessionResource
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpProxyEqualityTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'initialize-release' }

@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDescriptorValidationTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #testing }
 GlorpDescriptorValidationTest >> testJoinDirection [
 	| descriptor table1 table2 mapping system descriptor2 |
@@ -87,7 +97,8 @@ GlorpDescriptorValidationTest >> testValidateSelectorAccessNonExisting [
 GlorpDescriptorValidationTest >> testValidatingExistingDescriptors [
 	| session |
 	session := GlorpSessionResource current newSession.
-	GlorpTestDescriptorSystem allSubclasses do: [:each |
-		session system: (each forPlatform: (OraclePlatform new)).
+	GlorpTestDescriptorSystem allSubclasses do:
+		[:each |
+		session system: (each forPlatform: OraclePlatform new).
 		session system validate].
 ]

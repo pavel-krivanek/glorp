@@ -1,6 +1,6 @@
 Extension { #name : #GlorpExpression }
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-As yet unclassified' }
 GlorpExpression >> sqlString [
 	| command |
 	command := QuerySelectCommand new

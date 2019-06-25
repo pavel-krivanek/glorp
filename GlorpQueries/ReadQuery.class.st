@@ -4,8 +4,18 @@ This represents a general read query. By general we mean that it might require m
 Class {
 	#name : #ReadQuery,
 	#superclass : #AbstractReadQuery,
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+ReadQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #converting }
 ReadQuery >> asQueryWithNullsForOtherClasses: aClass [
@@ -17,7 +27,7 @@ ReadQuery >> asQueryWithNullsForOtherClasses: aClass [
 		pseudoAttributeNameForClass: aClass.
 	newBase := newQuery baseExpression get: pseudoMappingName.
 	newBase bePhantom.
-	newQuery where: (newQuery whereClause rebuildOn: newBase).	
+	newQuery whereClause: (newQuery whereClause rebuildOn: newBase).	
 	"We don't want it to try and retrieve the parent class. Instead, we alsoFetch: each of the subclasses, and insert a special builder that will select from among the valid results. To prevent it from trying to do anything with the main class itself, remove that from the tracing, and replace it with a special constant marker that we know will generate only one field, that we can remove later."
 	newQuery tracing retrievalExpressions remove: newQuery tracing base.
 	newQuery tracing allTracings remove: newQuery tracing base.
@@ -56,7 +66,7 @@ ReadQuery >> asQueryWithNullsForOtherClasses: aClass [
 	tablesToIgnore := (fieldsToIgnore keys collect: [:each | each table]) asSet asArray.
 	tablesToIgnore := tablesToIgnore, (newQuery baseExpression tablesToPrint).
 	newQuery tablesToPrint: (newQuery tablesToPrint reject: [:each | tablesToIgnore includes: each]) asArray.	
-	^newQuery
+	^newQuery.
 ]
 
 { #category : #converting }
@@ -88,14 +98,14 @@ ReadQuery >> executeSubQueries: subQueries withParameters: anArray [
 
 { #category : #executing }
 ReadQuery >> executeSubQueriesCombined: subQueries withParameters: anArray [
-	"Execute out sub queries as a single query with a UNION ALL between the sub-queries. Then select from the results the one which has a value for that row. Used for horizontal inheritance queries."
+	"Execute our sub queries as a single query with a UNION ALL between the sub-queries. Then select from the results the one which has a value for that row. Used for horizontal inheritance queries."
+
 	| combinedQuery |
 	combinedQuery := CompoundQuery newUnionAll.
 	self copyAttributesTo: combinedQuery.
 	combinedQuery requiresDistinct: false.
-	subQueries 	do: 	[:eachQuery | 
-		combinedQuery addQuery: eachQuery].
-	^combinedQuery executeWithParameters: anArray in: session
+	subQueries do: [:eachQuery | combinedQuery addQuery: eachQuery].
+	^combinedQuery executeWithParameters: anArray in: session.
 ]
 
 { #category : #executing }

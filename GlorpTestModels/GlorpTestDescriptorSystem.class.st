@@ -4,5 +4,15 @@ This is an abstract superclass for all descriptor systems whose tables should be
 Class {
 	#name : #GlorpTestDescriptorSystem,
 	#superclass : #DescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTestDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

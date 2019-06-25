@@ -9,7 +9,7 @@ Class {
 		'title',
 		'author'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
 
 { #category : #examples }
@@ -58,6 +58,15 @@ GlorpBook class >> example4 [
 		description: 'A superb book';
 		copiesInStock: 5;
 		version: 2.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpBook class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

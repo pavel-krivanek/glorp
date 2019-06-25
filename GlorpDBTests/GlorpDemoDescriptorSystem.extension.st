@@ -1,6 +1,6 @@
 Extension { #name : #GlorpDemoDescriptorSystem }
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-support' }
 GlorpDemoDescriptorSystem >> writeCustomer1Rows [
 	| linkRow2 id2 id1 accountRow1 customerRow accountRow2 linkRow1 |
 	customerRow := self exampleCustomerRow1.
@@ -18,7 +18,7 @@ GlorpDemoDescriptorSystem >> writeCustomer1Rows [
 	^Array with: id1 with: id2.
 ]
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-support' }
 GlorpDemoDescriptorSystem >> writeCustomerWithDualAccountOwners [
 	| linkRow2 id2 id1 accountRow1 accountRow2 linkRow1 customer1Row customer2Row linkRow4 |
 	customer1Row := self exampleCustomerRow1.

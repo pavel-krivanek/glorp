@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpDictionaryDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDictionaryDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpDictionaryDescriptorSystem >> allTableNames [

@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDBTypeTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpClobTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #types }
 GlorpClobTest >> defaultDatabaseType [
 	^self platform clob.
@@ -33,8 +43,7 @@ GlorpClobTest >> testClob [
 { #category : #tests }
 GlorpClobTest >> testLargeClob [
 	"The long test here not only fails, it messes up the driver so that other tests fail"
-	self platform isUDBCSQLite3Platform ifTrue: [ ^ self skip. ].
-	"(session platform class == AccessPlatform and: [session useBinding not])
-		ifTrue: [^self]."
+	(session platform class == AccessPlatform and: [session useBinding not])
+		ifTrue: [^self].
 	self helpTestValue: self longString.
 ]

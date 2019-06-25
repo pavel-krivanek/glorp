@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'platform'
 	],
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTypeComparisonTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #running }
 GlorpTypeComparisonTest >> setUp [

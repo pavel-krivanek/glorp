@@ -5,10 +5,10 @@ Class {
 		'description',
 		'amount'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpServiceCharge class >> default [
 
 	^self new
@@ -16,10 +16,19 @@ GlorpServiceCharge class >> default [
 		description: 'additional overcharge'.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpServiceCharge class >> new [
 
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpServiceCharge class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

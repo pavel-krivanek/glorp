@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'exp'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpExpressionTableAliasingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpExpressionTableAliasingTest >> helpTestBasicAliasing: aTable [

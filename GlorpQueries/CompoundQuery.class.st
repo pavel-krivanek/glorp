@@ -5,9 +5,6 @@ Instance Variables:
 	operation	<String>	The name of the operation we are using to combine the queries.
 	primaryQuery	<Query>	The first query that we contain. This determines what objects we actually return. All of the queries should match up in terms of what they return, or the database is unlikely to accept this as a valid query.
 	queries	<(SequenceableCollection of: SimpleQuery)>	The queries we contain.
-	specialBuilders <Array of: ElementBuilder> If we want to do something to modify our result, we can add our own set of builders here, which will be added to those of the internal queries. Motivating example is doing a horizontal inheritance query, where we can end up with one of N different objects in the row, and we just want to return that one directly.
-
-
 "
 Class {
 	#name : #CompoundQuery,
@@ -16,7 +13,6 @@ Class {
 		'queries',
 		'operation',
 		'primaryQuery',
-		'specialBuilders',
 		'requiresDistinct'
 	],
 	#category : #GlorpQueries
@@ -35,6 +31,21 @@ CompoundQuery class >> newMinus [
 { #category : #'instance creation' }
 CompoundQuery class >> newUnionAll [
 	^self new operation: #'UNION ALL'.
+]
+
+{ #category : #'VisualWorks metadata' }
+CompoundQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
+{ #category : #preparing }
+CompoundQuery >> addBoundExpressionsIn: aCommand [
+	queries do: [:each | each addBoundExpressionsIn: aCommand].
 ]
 
 { #category : #accessing }
@@ -79,7 +90,7 @@ CompoundQuery >> isIntersect [
 
 { #category : #testing }
 CompoundQuery >> isMinus [
-	^operation = 'EXCEPT'
+	^operation = #EXCEPT.
 ]
 
 { #category : #testing }
@@ -146,7 +157,9 @@ CompoundQuery >> prepare [
 	ordering isNil ifFalse: [
 		ordering := ordering collect: [:each |
 			(self expressionBlockFor: each) asGlorpExpressionOn: queries first baseExpression]].
-	grouping isNil ifFalse: [grouping := (self expressionBlockFor: grouping) asGlorpExpressionOn: queries first baseExpression]
+	grouping isNil ifFalse: [
+		grouping := grouping collect: [:each |
+			(self expressionBlockFor: each) asGlorpExpressionOn: queries first baseExpression]].
 ]
 
 { #category : #accessing }
@@ -256,14 +269,9 @@ CompoundQuery >> rowsFromDatabaseWithParameters: anArray [
 		returnCursor: true.
 ]
 
-{ #category : #accessing }
+{ #category : #testing }
 CompoundQuery >> shortCircuitEmptyReturn [
-	^false
-]
-
-{ #category : #accessing }
-CompoundQuery >> shortCircuitEmptyReturn: parameters [
-	^false
+	^false.
 ]
 
 { #category : #accessing }
@@ -310,5 +318,5 @@ CompoundQuery >> unionAll: aQuery [
 CompoundQuery >> whereClause [
 	| allCriteria |
 	allCriteria := queries inject: #() into: [:sum :each | sum, each whereClause].
-	^ExpressionGroup new addAll: allCriteria
+	^ExpressionGroup new addAll: allCriteria	"this #addAll: returns self, not its parameter"
 ]

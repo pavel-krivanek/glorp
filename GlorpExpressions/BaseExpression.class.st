@@ -14,8 +14,18 @@ Class {
 		'descriptor',
 		'availableSubSelectNumber'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
+
+{ #category : #'VisualWorks metadata' }
+BaseExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 BaseExpression >> additionalExpressions [
@@ -113,6 +123,13 @@ BaseExpression >> hasDescriptor [
 { #category : #accessing }
 BaseExpression >> mappedFields [
 	^self descriptor mappedFields collect: [:each | self translateField: each].
+]
+
+{ #category : #accessing }
+BaseExpression >> mappingSequenceName [
+	"Terminate the concatenation."
+
+	^''
 ]
 
 { #category : #testing }

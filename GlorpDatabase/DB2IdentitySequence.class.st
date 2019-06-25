@@ -8,8 +8,18 @@ One can obtain the most recently installed number using a query like this.
 Class {
 	#name : #DB2IdentitySequence,
 	#superclass : #NamedSequence,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+DB2IdentitySequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #sequencing }
 DB2IdentitySequence >> getSequenceValueFromDatabaseFor: aDatabaseField in: aDatabaseRow using: anAccessor [

@@ -20,8 +20,18 @@ Class {
 		'tableSelectCommand',
 		'schema'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+NamedSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #SQL }
 NamedSequence >> availableReservedNumbers [

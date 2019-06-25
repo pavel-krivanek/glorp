@@ -6,14 +6,23 @@ Class {
 		'name',
 		'jobTitle'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpPublisherEmployee class >> new [
 	"Answer a newly created and initialized instance."
 
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpPublisherEmployee class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

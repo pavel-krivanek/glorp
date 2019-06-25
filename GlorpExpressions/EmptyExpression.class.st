@@ -14,12 +14,22 @@ Class {
 		'base',
 		'value'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
 EmptyExpression class >> on: aValue [
 	^self new value: aValue.
+]
+
+{ #category : #'VisualWorks metadata' }
+EmptyExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #api }

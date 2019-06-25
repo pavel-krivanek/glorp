@@ -8,7 +8,7 @@ Class {
 		'tableName',
 		'type'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-My Classes'
 }
 
 { #category : #'instance creation' }
@@ -16,6 +16,16 @@ PrimaryKeyConstraint class >> forTable: aDatabaseTable fields: collDatabaseField
 	^self new
 		forTable: aDatabaseTable  fields: collDatabaseFields;
 		yourself
+]
+
+{ #category : #'VisualWorks metadata' }
+PrimaryKeyConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #printing }

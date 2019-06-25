@@ -8,7 +8,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpWorkerTask class >> exampleTaskKeys [
 	| keys |
 	keys := OrderedCollection new.
@@ -20,7 +20,7 @@ GlorpWorkerTask class >> exampleTaskKeys [
 	^keys
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpWorkerTask class >> exampleTasks [
 	| tasks |
 	tasks := OrderedCollection new.
@@ -32,16 +32,18 @@ GlorpWorkerTask class >> exampleTasks [
 	^tasks
 ]
 
-{ #category : #'test-comparing' }
-GlorpWorkerTask >> <= aTask [ 
-	
-	^(self > aTask) not
+{ #category : #'VisualWorks metadata' }
+GlorpWorkerTask class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #comparing }
 GlorpWorkerTask >> = aTask [
 
-	self class = aTask class ifFalse:  [ ^false ].
 	self id = aTask id ifFalse: [^false].
 	self description = aTask description ifFalse: [^false].
 	^true

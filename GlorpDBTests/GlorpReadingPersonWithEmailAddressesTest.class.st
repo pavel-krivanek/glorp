@@ -11,12 +11,22 @@ Class {
 		'id2',
 		'oldReuseState'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpReadingPersonWithEmailAddressesTest class >> resources [
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpReadingPersonWithEmailAddressesTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }
@@ -84,10 +94,6 @@ GlorpReadingPersonWithEmailAddressesTest >> testPreparedStatementsAreReused [
 	"The tearDown ensures our forcing of reusePreparedStatements is reverted."
  
 	session useBinding ifFalse: [^self].	"test only makes sense if binding is on"
-	
-	"20160531, pierce: Skip this test for now."	
-	session accessor currentLogin database isUDBCSQLite3Platform ifTrue: [ ^ self ].
-	
 	oldReuseState := session reusePreparedStatements.
 	session reusePreparedStatements: true.
 	session reset.

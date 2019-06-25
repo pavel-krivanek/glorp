@@ -7,8 +7,18 @@ Class {
 	#instVars : [
 		'queries'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-My Classes'
 }
+
+{ #category : #'VisualWorks metadata' }
+CompositeQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 CompositeQuery >> addQuery: aQuery [

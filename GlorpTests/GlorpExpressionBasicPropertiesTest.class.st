@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'base'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpExpressionBasicPropertiesTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpExpressionBasicPropertiesTest >> setUp [

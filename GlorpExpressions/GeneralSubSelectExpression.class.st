@@ -24,11 +24,21 @@ GeneralSubSelectExpression class >> basedOn: anExpression [
 	^self new base: anExpression ultimateBaseExpression.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GeneralSubSelectExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
-GeneralSubSelectExpression >> addBoundExpressionsIn: aCommand to: boundExpressions [
+GeneralSubSelectExpression >> addBoundExpressionsIn: aCommand [
 	self query session: aCommand query session.
 	self query prepare.
-	self query addBoundExpressionsIn: aCommand to: boundExpressions.
+	self query addBoundExpressionsIn: aCommand
 ]
 
 { #category : #preparing }
@@ -123,11 +133,12 @@ GeneralSubSelectExpression >> printOnlySelfOn: aStream [
 ]
 
 { #category : #printing }
-GeneralSubSelectExpression >> printSQLOn: aStream withParameters: aDictionary [ 
+GeneralSubSelectExpression >> printSQLOn: aStream withParameters: aDictionary [
 	| command |
 	aStream nextPutAll: '('.
 	self query session: aStream query session.
 	command := self query sqlWith: aDictionary.
+	command boundExpressions: aStream boundExpressions.
 	aStream nextPutAll: command sqlString.
 	aStream nextPutAll: ')'.
 ]

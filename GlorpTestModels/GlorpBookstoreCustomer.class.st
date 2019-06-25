@@ -6,12 +6,21 @@ Class {
 		'accountNumber',
 		'booksOnOrder'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpBookstoreCustomer class >> new [
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpBookstoreCustomer class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

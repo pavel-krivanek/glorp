@@ -21,8 +21,18 @@ Class {
 		'customCommand',
 		'tablesToPrint'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+SimpleQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #preparing }
 SimpleQuery >> addAllOrderingsForBuilder: aBuilder [
@@ -33,17 +43,14 @@ SimpleQuery >> addAllOrderingsForBuilder: aBuilder [
 	fieldExpressions do: [:each | self addSingleOrderingForBuilder: each].
 ]
 
-{ #category : #accessing }
-SimpleQuery >> addBoundExpressionsIn: aCommand to: aCollection [
-	self joins , self fields, (Array with: self whereClause)
-		do:
-			[:eachBigExpression | 
-			eachBigExpression isGlorpExpression
-				ifTrue: [eachBigExpression do:
-					[:eachIndividualExpressionNode | 
-					eachIndividualExpressionNode
-						addBoundExpressionsIn: aCommand
-						to: aCollection]]]
+{ #category : #preparing }
+SimpleQuery >> addBoundExpressionsIn: aCommand [
+	self joins , self fields , (Array with: self whereClause) do:
+		[:eachBigExpression |
+		eachBigExpression isGlorpExpression ifTrue:
+			[eachBigExpression do:
+				[:eachIndividualExpressionNode |
+				eachIndividualExpressionNode addBoundExpressionsIn: aCommand]]].
 ]
 
 { #category : #fields }
@@ -57,14 +64,14 @@ SimpleQuery >> addFields: aliasedFields returningTranslationForFields: originalF
 		do:
 			[:aliased :original | 
 			| position fieldToAdd|
-			position := self findPositionofAliasedField: aliased.
+			position := self findPositionOfAliasedField: aliased.
 			position = 0
 				ifTrue:  
 					[fieldToAdd := isDistinct ifTrue: [aliased asDistinctFieldOn: self baseExpression] ifFalse: [aliased].
 					fields add: fieldToAdd .
 					position := fields size].
 			translation at: original put: position].
-	^translation
+	^translation.
 ]
 
 { #category : #preparing }
@@ -74,9 +81,9 @@ SimpleQuery >> addJoin: anExpression [
 
 { #category : #preparing }
 SimpleQuery >> addOrderingForToManyJoins [
-	"If we have a join to a to-many relation, then we need for all the joined bits to be grouped together in order in the result set."
+	"If we have a join to a to-many relation, then we need for all the joined bits to be grouped together in order in the result set.  If we alsoFetch a to-many relation, we avoid limiting the alsoFetch and preserve its order."
 
-	| toManyBuilders baseBuilders |
+	| toManyBuilders baseBuilders fetchedToManyExpressions |
 	toManyBuilders := builders select: [:each | each canCauseDuplicateRows].
 	baseBuilders := toManyBuilders collect:
 		[:each |
@@ -84,14 +91,17 @@ SimpleQuery >> addOrderingForToManyJoins [
 			detect: [:eachBuilder | eachBuilder expression == each expression base]
 			ifNone: [nil]].
 	baseBuilders do: [:each | each isNil ifFalse: [self addAllOrderingsForBuilder: each]].
-	"If a fetched expression matches that of a toMany builder, it may be ordered."
-	tracing alsoFetchExpressions do:
-		[:alsoFetchExp || orderFields |
-		((toManyBuilders anySatisfy: [:each | alsoFetchExp = each expression]) and:
-				[(orderFields := alsoFetchExp mapping orderBy) notNil]) ifTrue:
+	fetchedToManyExpressions := tracing alsoFetchExpressions select:
+		[:exp | toManyBuilders anySatisfy: [:each | exp = each expression]].
+	fetchedToManyExpressions isEmpty ifTrue: [^self].
+	"Fetching a toMany mapping interacts with setting a limit;  each base row can fetch many others."
+	self rewriteLimitFetchingToMany.
+	"A fetched toMany expression may be innately ordered in the descriptor system, even if not in the query."
+	fetchedToManyExpressions do:
+		[:alsoFetchExp || orderFields | orderFields := alsoFetchExp mapping orderBy.
+		orderFields isNil ifFalse:
 			[orderFields do:
-				[:orderField || orderExp |
-				orderExp := self expressionBlockFor: orderField.
+				[:orderField || orderExp | orderExp := self expressionBlockFor: orderField.
 				self addSingleOrderingForBuilder: (orderExp asGlorpExpressionOn: alsoFetchExp)]]].
 ]
 
@@ -151,14 +161,13 @@ SimpleQuery >> assignTableAliases [
 	| tableNumber allExpressions |
 	whereClause isJoin ifTrue: [^self].
 	tableNumber := 1.
-	allExpressions := ExpressionGroup with: whereClause.
+	allExpressions := whereClause asExpressionGroup.
 	allExpressions addAll: ordering.
 	allExpressions addAll: grouping.
 	allExpressions addAll: joins.
 	builders do: [:each | allExpressions add: each expression].
-	allExpressions
-		do:
-			[:each | tableNumber := each assignTableAliasesStartingAt: tableNumber prefix: self tablePrefix].
+	allExpressions do:
+		[:each | tableNumber := each assignTableAliasesStartingAt: tableNumber prefix: self tablePrefix].
 	"We've aliased tables, joins may now become independent"
 	joins := joins inject: OrderedCollection new into: [:sum :each | (sum addAll: each asIndependentJoins). sum].
 ]
@@ -183,6 +192,16 @@ SimpleQuery >> basicRebuildOn: aBaseExpression startingFrom: anExpression withOu
 SimpleQuery >> builders [
 
 	^builders.
+]
+
+{ #category : #copying }
+SimpleQuery >> cloneWithinQuery [
+	"Clone me to assist in rewriting an expression.  Make minimal changes to the shallowCopy's internals so the clone will not accidentally aquire later changes that only pertain to the original.  Specifically, flush the trace to drop any alsoFetch: (either we rewrite to pair the original query with a copy that does not fetch, or fetching is irrelevant) and copy the fields collection so any later changes to it will not be on the same collection."
+
+	^self shallowCopy
+		flushTracing;
+		privateSetFields: self fields shallowCopy;
+		yourself
 ]
 
 { #category : #accessing }
@@ -258,17 +277,13 @@ SimpleQuery >> fields [
 ]
 
 { #category : #fields }
-SimpleQuery >> findPositionofAliasedField: aField [
-	1 to: fields size do: [:i |
-		| existingField |
-		existingField := fields at: i.
-		existingField asField isNil
-			ifTrue: [
-				existingField isSameAliasedFieldAs: aField]
-			ifFalse: [		
-				(existingField asField isSameAliasedFieldAs: aField)
-			ifTrue: [^i]]].
-	^0.
+SimpleQuery >> findPositionOfAliasedField: aField [
+	1 to: fields size do:
+		[:i || existingField | existingField := fields at: i.
+		(existingField asField isNil
+			ifTrue: [existingField isSameAliasedFieldAs: aField]
+			ifFalse: [existingField asField isSameAliasedFieldAs: aField]) ifTrue: [^i]].
+	^0
 ]
 
 { #category : #preparing }
@@ -278,6 +293,11 @@ SimpleQuery >> fixJoins [
 	pseudoJoins do: [:each | whereClause := each AND: whereClause].
 	realJoins :=  joins select: [:each| each tablesForANSIJoin size >= 2].
 	joins := realJoins.
+]
+
+{ #category : #initialize }
+SimpleQuery >> flushTracing [
+	tracing := nil.
 ]
 
 { #category : #testing }
@@ -526,6 +546,42 @@ SimpleQuery >> requiresFullQuery [
 	^(independent size ~= 1) or: [(independent at: 1) ~= descriptor describedClass].
 ]
 
+{ #category : #preparing }
+SimpleQuery >> rewriteLimitFetchingToMany [
+	"If we are reading just a single object but also fetching one (or more) one-to-many relationships, we need to get an unknown number of rows, not just one.   We can do this by matching an unlimited outer query (that fetches) to a limit 1 inner query (that does not fetch) by converting me from  e.g.
+	myQuery := Query readOneOf: MyClass where: [my query code].
+	myQuery alsoFetch: #myToManyMapping.
+to
+	myQuery := Query readOneOf: MyClass where:
+		[:each | each = (Query readOneOf: MyClass where: [my query code])].
+	myQuery alsoFetch: #myToManyMapping.
+	myQuery limit: nil.
+which works unless MyClass maps to a composite primaryKey (see the commented error clause near the start of this method).  By having a limit only on the inner query, we return the right number of rows:  the single row of the inner query is joined to however many rows match it in the alsoFetched table(s).  The inner query must not fetch so the each = expression will return only the primaryKey column and so match.  (If readsOneObject and: [limit ~= 1], we assume the user has already written the query in safe form, so do not rewrite:.)
+	We shallowCopy ourselves (without tracing, to drop the alsoFetches), wrap the copy in a GeneralSubSelectExpression, then rebuild the copyied query's whereClause (and other contents) so they are all re-based to a SubSelectBaseExpression on the phantom mapping.  (Arguably the creation of the subselect should have done this rebasing of contents, but it doesn't;  perhaps it assumes the whereClause will always still be a block at this point, not a glorp expression?)  We use basicRebuildOn:..., not rebuildOn:... to ensure content update while avoiding making another copy of the query (the phantom mapping already exists and has the first copy as its name)."
+
+	| subSelect |
+	"If we don't support limit, we may be inefficient but we can't hit this problem."
+	self platform supportsLimit ifFalse: [^self].
+	"For now, only fix the readsOneObject case to do what's intended;  ignore other limits."
+	self readsOneObject ifFalse: [^self].
+	"A limit 1 is initialized by readOneOf:.  If it has been reset by the user, hope they meant what they set!"
+	self limit = 1 ifFalse:	[^self].	"(nil is OK, but anInteger gets that many rows, not that many objects)"
+	"We cannot alsoFetch a toMany relationship from a composite-keyed base until RelationExpression>>rewriteEquality can handle that case for #= or #in:
+	self baseExpression descriptor primaryTable primaryKeyFields size > 1 ifTrue:
+		[GlorpInvalidExpressionError signal: 'Cannot both limit query and alsoFetch a toMany relationship from a base whose table hasCompositePrimaryKey']."
+	"Set our copy's tracing to be nil, to get rid of the alsoFetched expressions."
+	subSelect := self cloneWithinQuery asGlorpExpressionOn: self baseExpression.
+	subSelect query
+		basicRebuildOn: subSelect query baseExpression
+		startingFrom: subSelect base
+		withOuterScopeBase: nil.
+	whereClause := RelationExpression
+		named: #=
+		basedOn: self baseExpression
+		withArguments: (Array with: subSelect).
+	self limit: nil.
+]
+
 { #category : #executing }
 SimpleQuery >> rowsFromDatabaseWithParameters: anArray [
 
@@ -615,6 +671,7 @@ SimpleQuery >> useANSIJoins [
 
 { #category : #accessing }
 SimpleQuery >> where: anExpression [
+	self deprecated: #(#version '8.2' #sunset '9.0' #use #whereClause:).
 	whereClause := anExpression.
-	self setUpBase
+	self setUpBase.
 ]

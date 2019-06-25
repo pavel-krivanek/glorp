@@ -8,7 +8,7 @@ Class {
 		'emailAddresses',
 		'hasEmail'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -63,6 +63,15 @@ GlorpPerson class >> example2 [
 		id: 2;
 		name: 'John Doe';
 		address: GlorpAddress example2.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpPerson class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

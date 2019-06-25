@@ -7,8 +7,18 @@ Class {
 	#instVars : [
 		'queryCache'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+ObjectBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'building objects' }
 ObjectBuilder >> buildObjectFrom: anArray [

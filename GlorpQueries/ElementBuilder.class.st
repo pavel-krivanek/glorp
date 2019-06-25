@@ -34,7 +34,7 @@ Class {
 		'row',
 		'query'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #private }
@@ -76,6 +76,15 @@ ElementBuilder class >> for: anExpression in: aQuery [
 ElementBuilder class >> new [
 
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+ElementBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'building objects' }

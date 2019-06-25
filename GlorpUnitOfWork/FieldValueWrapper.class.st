@@ -16,13 +16,22 @@ Class {
 		'hasValue',
 		'containedBy'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #public }
 FieldValueWrapper class >> new [
 
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+FieldValueWrapper class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

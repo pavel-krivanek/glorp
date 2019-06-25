@@ -5,9 +5,9 @@ Class {
 	#name : #NullSequence,
 	#superclass : #DatabaseSequence,
 	#classVars : [
-		'Singleton'
+		'NullSequence'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #defaults }
@@ -21,6 +21,16 @@ NullSequence class >> new [
 
 	Singleton isNil ifTrue: [Singleton := self basicNew].
 	^Singleton.
+]
+
+{ #category : #'VisualWorks metadata' }
+NullSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #public }

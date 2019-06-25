@@ -8,3 +8,13 @@ Class {
 	#superclass : #ValidationError,
 	#category : #GlorpMisc
 }
+
+{ #category : #'VisualWorks metadata' }
+InvalidSessionSetup class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

@@ -1,6 +1,6 @@
 Extension { #name : #UndefinedObject }
 
-{ #category : #'*GlorpTestModels' }
+{ #category : #'*GlorpTestModels-glorp' }
 UndefinedObject >> assertEqual: anObject [
 	GlorpTestModelClass new assert: anObject = nil.
 ]

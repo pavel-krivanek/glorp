@@ -4,26 +4,36 @@ This is a type resolver for inheritance where all of the classes are represented
 Class {
 	#name : #FilteredTypeResolver,
 	#superclass : #BasicTypeResolver,
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'instance creation' }
 FilteredTypeResolver class >> forRootClass: aClass [
-	^(self new)
+	^self new
 		rootClass: aClass;
 		yourself.
+]
+
+{ #category : #'VisualWorks metadata' }
+FilteredTypeResolver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }
 FilteredTypeResolver >> allTablesFor: aDescriptor [
 	"Return all tables used by this descriptor or its subclasses. Since all our subclasses use a single table, this is the same as for a normal descriptor."
-	^aDescriptor tables
+	^aDescriptor tables.
 ]
 
 { #category : #'type resolving' }
 FilteredTypeResolver >> askConcreteMembersForConcreteClassFor: row withBuilder: builder [
 	concreteMembers do: [:each |
-		each describedConcreteClassFor: row withBuilder: builder]
+		each describedConcreteClassFor: row withBuilder: builder].
 ]
 
 { #category : #accessing }
@@ -56,7 +66,7 @@ FilteredTypeResolver >> fieldsForSelectStatement [
 			each mappedFields do: [:eachSubField |
 				(rootFields includes: eachSubField) ifFalse: [
 					fields add: eachSubField]]]].
-	^fields
+	^fields.
 ]
 
 { #category : #'type resolving' }
@@ -73,11 +83,11 @@ FilteredTypeResolver >> register: aDescriptor abstract: aBoolean [
 			fakeTypeMapping := FilteredTypeMapping to: nil keyedBy: nil.
 			fakeTypeMapping attribute name: #filteredTypeResolverFilterMapping.
 			fakeTypeMapping readOnly: true.
-			aDescriptor typeMapping: fakeTypeMapping]
+			aDescriptor typeMapping: fakeTypeMapping].
 ]
 
 { #category : #registering }
 FilteredTypeResolver >> register: aDescriptor keyedBy: aKey field: aField [
 	self register: aDescriptor abstract: false.
-	aDescriptor typeMapping: (FilteredTypeMapping to: aField keyedBy: aKey)
+	aDescriptor typeMapping: (FilteredTypeMapping to: aField keyedBy: aKey).
 ]

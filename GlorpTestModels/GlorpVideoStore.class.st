@@ -11,11 +11,21 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpVideoStore class >> new [
 	"Answer a newly created and initialized instance."
 
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpVideoStore class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #testing }

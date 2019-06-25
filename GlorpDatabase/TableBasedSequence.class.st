@@ -12,13 +12,23 @@ Class {
 	#instVars : [
 		'sequenceTableName'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #defaults }
 TableBasedSequence class >> default [
 
 	^self new sequenceTableName: 'SEQUENCE'.
+]
+
+{ #category : #'VisualWorks metadata' }
+TableBasedSequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #testing }

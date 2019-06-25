@@ -4,13 +4,22 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpSessionResource class >> resources [
+	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource
+]
 
-	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource.
+{ #category : #'VisualWorks metadata' }
+GlorpSessionResource class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
 ]
 
 { #category : #setup }
@@ -23,9 +32,8 @@ GlorpSessionResource >> glorpTestsSystem [
 
 { #category : #accessing }
 GlorpSessionResource >> newSession [
-
 	self setUp.
-	^self session.
+	^self session
 ]
 
 { #category : #accessing }

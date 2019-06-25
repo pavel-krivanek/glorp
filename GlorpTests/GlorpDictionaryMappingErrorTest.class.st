@@ -4,8 +4,18 @@ Ensure that warning/error messages are raised by invalid acts in dictionary mapp
 Class {
 	#name : #GlorpDictionaryMappingErrorTest,
 	#superclass : #GlorpSessionBasedTest,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDictionaryMappingErrorTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpDictionaryMappingErrorTest >> setUp [

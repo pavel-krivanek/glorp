@@ -12,13 +12,23 @@ Class {
 	#instVars : [
 		'readBlock'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
 AdHocProxy class >> readBlock: aZeroArgumentBlock [
 
 	^self new glorpReadBlock: aZeroArgumentBlock
+]
+
+{ #category : #'VisualWorks metadata' }
+AdHocProxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

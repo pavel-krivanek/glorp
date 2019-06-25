@@ -14,8 +14,18 @@ Class {
 		'reversedCorrespondenceMap',
 		'collectionMementos'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+RowMapForMementos class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'instance creation' }
 RowMapForMementos class >> withCorrespondenceMap: aDictionary [

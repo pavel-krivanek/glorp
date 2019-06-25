@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpTextType,
 	#superclass : #GlorpAbstractStringType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTextType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'exdi specific' }
 GlorpTextType >> exdiType [

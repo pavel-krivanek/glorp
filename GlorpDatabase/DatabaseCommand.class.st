@@ -29,7 +29,7 @@ Class {
 		'sqlString',
 		'session'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
 { #category : #'instance creation' }
@@ -37,14 +37,23 @@ DatabaseCommand class >> new [
 	^super new initialize.
 ]
 
-{ #category : #accessing }
-DatabaseCommand >> arrayBoundFields [
-	self subclassResponsibility
+{ #category : #'VisualWorks metadata' }
+DatabaseCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }
 DatabaseCommand >> bindingTypes [
 	self subclassResponsibility.
+]
+
+{ #category : #accessing }
+DatabaseCommand >> bindingTypesForEXDI [
+	^self bindingTypes collect: [:each | each exdiType].
 ]
 
 { #category : #accessing }
@@ -124,6 +133,11 @@ DatabaseCommand >> nextPut: aCharacter [
 { #category : #'stream behaviour' }
 DatabaseCommand >> nextPutAll: aString [
 	^stream nextPutAll: aString.
+]
+
+{ #category : #executing }
+DatabaseCommand >> nextPutBindMarkerIn: aRelationExpressionOrNil [
+	self nextPut: $?.
 ]
 
 { #category : #'stream behaviour' }

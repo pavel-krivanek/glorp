@@ -1,6 +1,6 @@
 Extension { #name : #DatabaseRow }
 
-{ #category : #'*GlorpUnitOfWork' }
+{ #category : #'*GlorpUnitOfWork-private' }
 DatabaseRow >> at: aField forcePut: aValue [ 
 	"Write the value. If there's a previous value, overwrite it. Use with extreme caution."
 	| wrapper |
@@ -11,7 +11,7 @@ DatabaseRow >> at: aField forcePut: aValue [
 	^wrapper.
 ]
 
-{ #category : #'*GlorpUnitOfWork' }
+{ #category : #'*GlorpUnitOfWork-accessing' }
 DatabaseRow >> at: aField put: aValue [ 
 	
 	"For generated fields, we expect the real value to be provided later by the database, so don't write a nil value"
@@ -25,7 +25,7 @@ DatabaseRow >> at: aField put: aValue [
 	^wrapper.
 ]
 
-{ #category : #'*GlorpUnitOfWork' }
+{ #category : #'*GlorpUnitOfWork-accessing' }
 DatabaseRow >> numberOfFields [
 	^contents
 		inject: 0
@@ -33,7 +33,7 @@ DatabaseRow >> numberOfFields [
 			[:sum :each | sum + (each == self class emptySlot ifTrue: [0] ifFalse: [1])].
 ]
 
-{ #category : #'*GlorpUnitOfWork' }
+{ #category : #'*GlorpUnitOfWork-api' }
 DatabaseRow >> unifyField: eachSourceField withField: eachTargetField inRow: targetRow [
 	| sourceWrapper targetWrapper |
 	sourceWrapper := self wrapperAt: eachSourceField ifAbsent: [nil].

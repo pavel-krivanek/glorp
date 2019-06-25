@@ -8,12 +8,22 @@ Class {
 		'parameters',
 		'maximumBlobSizeToRetrieveDirectly'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 SQLStringCommand class >> for: aString [
 	^self new setSQLString: aString.
+]
+
+{ #category : #'VisualWorks metadata' }
+SQLStringCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

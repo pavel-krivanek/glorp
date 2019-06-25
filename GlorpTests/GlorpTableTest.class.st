@@ -5,8 +5,18 @@ Class {
 		'descriptors',
 		'dbPlatform'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTableTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpTableTest >> keywordForConstraintsWhenDropping: aConstraint onPlatform: aDatabasePlatform [
@@ -58,7 +68,7 @@ GlorpTableTest >> testConstraintCreation [
 	self assert: constraint creationString =
 		( 'CONSTRAINT ', constraint name, ' FOREIGN KEY (BANK_CODE) REFERENCES PERSON (ID)').
 	dropWord := self keywordForConstraintsWhenDropping: constraint onPlatform: dbPlatform.	
-	dbPlatform supportsAlterTableForConstraints ifTrue:
+	dbPlatform supportsConstraints ifTrue:
 		[self assert: constraint dropString =
 			( 'ALTER TABLE BANK_ACCT DROP ', dropWord, ' ', constraint name)].
 	constraint := ForeignKeyConstraint
@@ -66,7 +76,7 @@ GlorpTableTest >> testConstraintCreation [
 		targetField: ((system tableNamed: 'PERSON') fieldNamed: 'ID')
 		suffixExpression: 'ON DELETE CASCADE'.
 	self assert: constraint creationString = ('CONSTRAINT ', constraint name, ' FOREIGN KEY (BANK_CODE) REFERENCES PERSON (ID) ON DELETE CASCADE').
-	dbPlatform supportsAlterTableForConstraints ifTrue:
+	dbPlatform supportsConstraints ifTrue:
 		[self assert: constraint dropString = ('ALTER TABLE BANK_ACCT DROP ', dropWord, ' ',  constraint name)].
 ]
 

@@ -1,11 +1,18 @@
-"
-Pragma mapping for SQLite3
-"
 Class {
 	#name : #SQLite3PragmaMapping,
 	#superclass : #ToManyMapping,
 	#category : #GlorpMappings
 }
+
+{ #category : #'VisualWorks metadata' }
+SQLite3PragmaMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #mapping }
 SQLite3PragmaMapping >> buildQuery [
@@ -20,16 +27,7 @@ SQLite3PragmaMapping >> buildQuery [
 	self usesLinkTable ifTrue: [
 		query AND: (self expressionFromLinkToReferenceTableWithBase: query baseExpression)].
 	orderBy isNil ifFalse: [orderBy do: [:each | query orderBy: each]].
-	^query
-]
-
-{ #category : #'initialize-release' }
-SQLite3PragmaMapping >> initialize [
-	"Initialize a newly created instance. This method must answer the receiver."
-
-	super initialize.
-	" *** Replace this comment with the appropriate initialization code *** "
-	^self
+	^query.
 ]
 
 { #category : #public }

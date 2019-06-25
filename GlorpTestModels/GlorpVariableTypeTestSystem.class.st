@@ -4,8 +4,18 @@ This is a system for testing variable relationships. That is, where we have a re
 Class {
 	#name : #GlorpVariableTypeTestSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpVariableTypeTestSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #classes }
 GlorpVariableTypeTestSystem >> classModelForGlorpGallery: aClassModel [

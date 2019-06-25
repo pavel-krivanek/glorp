@@ -4,8 +4,17 @@ Class {
 	#instVars : [
 		'alue'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpObjectWithNoAccessors class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpObjectWithNoAccessors >> extremelyPrivateValue: aString [

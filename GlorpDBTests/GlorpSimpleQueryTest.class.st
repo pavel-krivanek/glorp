@@ -4,13 +4,23 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpSimpleQueryTest class >> resources [
 
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpSimpleQueryTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }
@@ -148,7 +158,7 @@ GlorpSimpleQueryTest >> testFieldAliasingForEmbeddedMappings [
 { #category : #tests }
 GlorpSimpleQueryTest >> testJoinExpressionWithMultipleTables [
 	| query sql sqlStream result command |
-	query := SimpleQuery readOneOf: GlorpPassenger where: [ :each | each id = 1 ].
+	query := SimpleQuery readOneOf: GlorpPassenger where: [:each | each id = 1].
 	query session: session.
 	query prepare.
 	command := query sqlWith: Dictionary new.
@@ -156,12 +166,11 @@ GlorpSimpleQueryTest >> testJoinExpressionWithMultipleTables [
 	sql := command sqlString.
 	sqlStream := ReadStream on: sql asLowercase.
 	sqlStream skipToAll: self skipToString.
+	Dialect isVisualWorks ifTrue: [sqlStream skip: self skipToString size].	"<Grumble grumble> stupid incompatibilities"
 	result := sqlStream upToEnd.
-	session platform supportsANSIJoins
-		ifTrue:
-			[ self
-				assert: ('*frequent_flyer t2 on *t1.id = t2.id*<n> where *t1.id = 1*' expandMacros withUnixLineEndings match: result withUnixLineEndings) ]
-		ifFalse: [ self assert: ('*(t1.id = 1) and ((t1.id = t2.id*' match: result) ]
+	session platform supportsANSIJoins ifTrue: [
+		self assert: ('*frequent_flyer t2 on *t1.id = t2.id*<n> where *t1.id = 1*' expandMacros match: result)]
+		ifFalse: [self assert:  ('*(t1.id = 1) and ((t1.id = t2.id*' match: result)].
 ]
 
 { #category : #'tests-ordering' }

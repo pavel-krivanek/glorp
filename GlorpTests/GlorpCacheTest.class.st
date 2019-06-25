@@ -5,12 +5,22 @@ Class {
 		'cache',
 		'session'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #Accessing }
 GlorpCacheTest class >> resources [
 	^Array with: GlorpSessionResource
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpCacheTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }

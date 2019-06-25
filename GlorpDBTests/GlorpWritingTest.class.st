@@ -7,6 +7,21 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #resources }
+GlorpWritingTest class >> resources [
+	^Array with: GlorpSessionResource
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpWritingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpWritingTest >> setUp [
 	super setUp.
@@ -23,12 +38,14 @@ GlorpWritingTest >> tearDown [
 { #category : #tests }
 GlorpWritingTest >> testLargeWrite [
 	"This is really just a performance test. No assertions. It should take on the order of 10 seconds. If it starts taking 10 minutes, it indicates a potential problem...."
+
 	| customer |
 	session beginTransaction.
 	[customer := GlorpCustomer new.
 	customer name: 'foo'.
      customer id: 123.
-	1 to: 5000 do: [:i | | transaction |
+	1 to: 5000 do:
+		[:i || transaction |
 		transaction := GlorpBankTransaction new.
 		transaction amount amount: i.
 		customer addTransaction: transaction].
@@ -58,7 +75,7 @@ GlorpWritingTest >> testMultipleWritesAndReads [
 									yourself)].
 	session commitUnitOfWork.
 	customers := session read: GlorpCustomer.
-	self assert: (names asSortedCollection hasEqualElements: (customers collect: [:ea | ea name]) asSortedCollection).
+	self assert: (names asSortedCollection isSameSequenceAs: (customers collect: [:ea | ea name]) asSortedCollection).
 	] 
 			ensure: [session rollbackTransaction]
 ]
@@ -81,5 +98,46 @@ GlorpWritingTest >> testRegistrationFromWrittenObject [
 	transactions := session accessor executeSQLString: 'SELECT ID FROM BANK_TRANS WHERE OWNER_ID = ', customer id printString.
 	self assert: transactions size = 1.
 	self assert: (trans id = (transactions first atIndex: 1))]
+		ensure: [session rollbackTransaction].
+]
+
+{ #category : #tests }
+GlorpWritingTest >> testWriteManyNoIdentityColumn [
+	"Test writing numbers that are on the edge of various platforms limits.  SQLite allows up to 500 rows and up to 1000 bound values, so 500 rows with 2 bound values each should check the exact limit of our grouping test for SQLite.  SQLServer imposed a 250 row limit."
+
+	session beginTransaction.
+	[| largeRowSize |
+	session beginUnitOfWork.
+	largeRowSize := 500.
+	1 to: largeRowSize do:
+		[:i || customer |
+		customer := GlorpCustomer new.
+		customer name: 'Mr_' , i printString.
+		customer id: 1230 + i.
+		session register: customer].
+	session commitUnitOfWork.
+	self assert: (session read: GlorpCustomer) size = largeRowSize]
+		ensure: [session rollbackTransaction]
+]
+
+{ #category : #tests }
+GlorpWritingTest >> testWriteManyWithIdentityColumn [
+	"If the database supports identity columns, GlorpBankTransaction will have one (GlorpCustomer will not) and so this will exercise insertion in that case."
+
+	| customer largeRowSize |
+	session beginTransaction.
+	[customer := GlorpCustomer new.
+	customer name: 'foo'.
+     customer id: 123.
+	largeRowSize := 500.
+	1 to: largeRowSize do:
+		[:i || transaction |
+		transaction := GlorpBankTransaction new.
+		transaction amount amount: i.
+		customer addTransaction: transaction].
+	session beginUnitOfWork.
+	session register: customer.
+	session commitUnitOfWork.
+	self assert: (session readOneOf: GlorpCustomer) transactions size = largeRowSize]
 		ensure: [session rollbackTransaction].
 ]

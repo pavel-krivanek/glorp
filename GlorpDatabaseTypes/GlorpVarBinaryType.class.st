@@ -1,13 +1,3 @@
-"
-Var binary type
-
-Instance Variables
-	width:		<Object>
-
-width
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpVarBinaryType,
 	#superclass : #GlorpDatabaseType,
@@ -16,6 +6,21 @@ Class {
 	],
 	#category : #GlorpDatabaseTypes
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpVarBinaryType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
+{ #category : #'exdi specific' }
+GlorpVarBinaryType >> exdiType [
+	^#ByteArray.
+]
 
 { #category : #testing }
 GlorpVarBinaryType >> hasParameters [

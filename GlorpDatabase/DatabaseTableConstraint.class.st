@@ -11,7 +11,7 @@ Class {
 		'shouldCreateInDatabase',
 		'fields'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-My Classes'
 }
 
 { #category : #'instance creation' }
@@ -24,6 +24,15 @@ DatabaseTableConstraint class >> forTable: aDatabaseTable [
 { #category : #'instance creation' }
 DatabaseTableConstraint class >> new [
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+DatabaseTableConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #printing }

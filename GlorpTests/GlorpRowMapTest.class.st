@@ -9,8 +9,18 @@ Class {
 		'row2',
 		'platform'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpRowMapTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpRowMapTest >> setUp [
@@ -55,7 +65,7 @@ GlorpRowMapTest >> testCollapseMatchingInsertsAndDeletes [
 
 { #category : #tests }
 GlorpRowMapTest >> testCollapseMatchingInsertsAndDeletesWithUnknownFields [
-	"In 8.0.1 and after, we no longer throw an error for unknown values in the update row, believing the condition can never happen in real life.  This test sets up the condition and now checks that no error is raised by it.  It stays here just as info, and for reuse if our assumption is ever wrong."
+	"In 8.1, we no longer throw an error for unknown values in the update row, believing the condition can never happen in real life.  This test sets up the condition and now checks that no error is raised by it.  It stays here just as info, and for reuse if our assumption is ever wrong."
 
 	| c1 key1 key2 row1 |
 	c1 := Object new.

@@ -5,12 +5,12 @@ Class {
 		'login'
 	],
 	#classVars : [
-		'NeedsSetup'
+		'GlorpDemoTablePopulatorResource'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #setup }
 GlorpDemoTablePopulatorResource class >> invalidateSetup [
 	"GlorpDemoTablePopulatorResource invalidateSetup"
 
@@ -18,22 +18,32 @@ GlorpDemoTablePopulatorResource class >> invalidateSetup [
 	self reset.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #setup }
 GlorpDemoTablePopulatorResource class >> needsSetup [
 	NeedsSetup isNil ifTrue: [NeedsSetup := true].
 	^NeedsSetup
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #setup }
 GlorpDemoTablePopulatorResource class >> needsSetup: aBoolean [
 
 	NeedsSetup := aBoolean.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #setup }
 GlorpDemoTablePopulatorResource class >> resources [
 
 	^Array with: GlorpDatabaseLoginResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpDemoTablePopulatorResource class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
 ]
 
 { #category : #setup }
@@ -48,15 +58,14 @@ GlorpDemoTablePopulatorResource >> populateStuffTable [
 
 { #category : #setup }
 GlorpDemoTablePopulatorResource >> setUp [
-	
 	super setUp.
 	login := GlorpDatabaseLoginResource current.
 	self class needsSetup ifFalse: [^self].
 	login accessor doDDLOperation:
-			[GlorpTestDescriptorSystem allSubclasses
-				do: [:eachSystemClass | 
-					self setUpSystem: (eachSystemClass forPlatform: login platform) setUpDefaults].
-			self populateStuffTable].
+		[GlorpTestDescriptorSystem allSubclasses do:
+			[:eachSystemClass |
+			self setUpSystem: (eachSystemClass forPlatform: login platform) setUpDefaults].
+		self populateStuffTable].
 ]
 
 { #category : #setup }

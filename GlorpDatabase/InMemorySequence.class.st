@@ -11,13 +11,23 @@ Class {
 	#instVars : [
 		'count'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #defaults }
 InMemorySequence class >> default [
 
 	^self new.
+]
+
+{ #category : #'VisualWorks metadata' }
+InMemorySequence class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #public }

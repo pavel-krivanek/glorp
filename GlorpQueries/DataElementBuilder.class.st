@@ -7,8 +7,18 @@ This makes building them quite simple.
 Class {
 	#name : #DataElementBuilder,
 	#superclass : #ElementBuilder,
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+DataElementBuilder class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'building objects' }
 DataElementBuilder >> buildObjectFrom: anArray [

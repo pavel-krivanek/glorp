@@ -6,8 +6,18 @@ This is the same as the demo descriptor system, but with small modifications to 
 Class {
 	#name : #GlorpLinkTableAnywhereDescriptorSystem,
 	#superclass : #GlorpDemoDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpLinkTableAnywhereDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'descriptors/bank' }
 GlorpLinkTableAnywhereDescriptorSystem >> classModelForGlorpCustomer: aClassModel [

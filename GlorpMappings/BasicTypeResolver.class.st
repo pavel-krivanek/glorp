@@ -18,8 +18,18 @@ Class {
 		'rootDescriptor',
 		'rootClass'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+BasicTypeResolver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #private }
 BasicTypeResolver >> allDescribedConcreteClasses [
@@ -83,7 +93,7 @@ BasicTypeResolver >> typeMappingRootDescriptor [
 
 { #category : #testing }
 BasicTypeResolver >> usesInheritance [
-	^true
+	^true.
 ]
 
 { #category : #validation }
@@ -92,6 +102,5 @@ BasicTypeResolver >> validate [
 	super validate.
 	tables := self concreteMembers collect: [:each | each primaryTable].
 	sequences := tables inject: #() into: [:sum :each | sum, ((each primaryKeyFields) collect: [:eachField | eachField type sequence])].
-	sequences := sequences reject: #isNil.
-	sequences asSet size > 1 ifTrue: [self error: 'When using inheritance, all tables must use the same sequence. Otherwise, the primary key references will be ambiguous.']
+	sequences asSet size > 1 ifTrue: [self error: 'When using inheritance, all tables must use the same sequence. Otherwise, the primary key references will be ambiguous.'].
 ]

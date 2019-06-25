@@ -4,12 +4,22 @@ This is a platform for the Microsoft Access database. It subclasses from SQL Ser
 Class {
 	#name : #AccessPlatform,
 	#superclass : #SQLServerPlatform,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #accessing }
 AccessPlatform class >> kind [
 	^'Access'
+]
+
+{ #category : #'VisualWorks metadata' }
+AccessPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #constants }

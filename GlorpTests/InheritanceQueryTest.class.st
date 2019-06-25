@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpTests
 }
 
+{ #category : #'VisualWorks metadata' }
+InheritanceQueryTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'utility - inner queries' }
 InheritanceQueryTest >> queryForCustomerStation [
 	| query |
@@ -35,8 +45,8 @@ InheritanceQueryTest >> queryForSuccessor [
 { #category : #running }
 InheritanceQueryTest >> setUp [
 	super setUp.
-	system := TESTDescriptorSystem forPlatform: session platform.
-	session system: system.
+	system := Glorp_TESTDescriptorSystem forPlatform: session platform.	"VW_TRANSLATION:Glorp.TESTDescriptorSystem:Glorp_TESTDescriptorSystem"
+	session system: system
 ]
 
 { #category : #running }

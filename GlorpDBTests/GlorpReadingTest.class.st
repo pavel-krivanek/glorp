@@ -14,13 +14,23 @@ Class {
 		'system',
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpReadingTest class >> resources [
 
 	^Array with: GlorpSessionResource with: GlorpDemoTablePopulatorResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpReadingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #support }
@@ -352,7 +362,7 @@ GlorpReadingTest >> testCustomSQLInAddressMapping [
 	rowToWrite := session system exampleAddressRow.
 	session writeRow: rowToWrite.
 	query := Query read: GlorpAddress.
-	query sql: 'select id, street, house_num from GR_ADDRESS where id = 123'.
+	query sql: 'select id, street, house_num from gr_address where id = 123'.
 	results := query executeIn: session] 
 			ensure: [session rollbackTransaction].
 	self assert: results size = 1.
@@ -422,10 +432,11 @@ GlorpReadingTest >> testDeletedObjectsNotReadInOneQuery [
 GlorpReadingTest >> testExpiryTimeNotReset [
 	| cachePolicy |
 	cachePolicy := TimedExpiryCachePolicy new.
-	cachePolicy timeoutSeconds: 3.
+	cachePolicy timeout: 3.
 	cachePolicy expiryAction: #refresh.
 	(session descriptorFor: GlorpAddress) cachePolicy: cachePolicy.
-	self checkExpiryTime: [:expiryTime :newExpiryTime :address | 
+	self checkExpiryTime:
+		[:expiryTime :newExpiryTime :address |
 		self assert: newExpiryTime = expiryTime.
 		self assert: address street = 'Paseo Montril'].
 ]
@@ -434,10 +445,11 @@ GlorpReadingTest >> testExpiryTimeNotReset [
 GlorpReadingTest >> testExpiryTimeReset [
 	| cachePolicy |
 	cachePolicy := TimedExpiryCachePolicy new.
-	cachePolicy timeoutSeconds: 4.
+	cachePolicy timeout: 4.
 	cachePolicy expiryAction: #remove.
 	(session descriptorFor: GlorpAddress) cachePolicy: cachePolicy.
-	self checkExpiryTime: [:expiryTime :newExpiryTime :address | 
+	self checkExpiryTime:
+		[:expiryTime :newExpiryTime :address |
 		self assert: newExpiryTime > expiryTime.
 		self assert: address street = 'Paseo Montril'].
 ]
@@ -446,10 +458,11 @@ GlorpReadingTest >> testExpiryTimeReset [
 GlorpReadingTest >> testExpiryTimeReset2 [
 	| cachePolicy |
 	cachePolicy := TimedExpiryCachePolicy new.
-	cachePolicy timeoutSeconds: 4.
+	cachePolicy timeout: 4.
 	cachePolicy expiryAction: #notifyAndRemove.
 	(session descriptorFor: GlorpAddress) cachePolicy: cachePolicy.
-	self checkExpiryTime: [:expiryTime :newExpiryTime :address | 
+	self checkExpiryTime:
+		[:expiryTime :newExpiryTime :address |
 		self assert: newExpiryTime > expiryTime.
 		self assert: address street = 'Paseo Montril'].
 ]
@@ -514,12 +527,11 @@ GlorpReadingTest >> testMin [
 GlorpReadingTest >> testNonIntrusiveAlsoFetch [
 	| alsoFetchQuery query results | 
 
-	"If a platform has no outer joins (!) we cannot execute
-	 this test."
-	(session system platform supportsANSIJoins or: [
-		session system platform useMicrosoftOuterJoins or: [
-		session system platform useOracleOuterJoins ]])
-			ifFalse: [ ^self ].
+	"If a platform has no outer joins (!) we cannot execute this test."
+	(session system platform supportsANSIJoins
+	or: [session system platform useMicrosoftOuterJoins
+	or: [session system platform useOracleOuterJoins ]])
+		ifFalse: [^self].
 
 	[session beginTransaction.
 	session beginUnitOfWork.
@@ -532,7 +544,7 @@ GlorpReadingTest >> testNonIntrusiveAlsoFetch [
 	alsoFetchQuery := Query
 						read: GlorpPerson
 						where: nil.
-	alsoFetchQuery alsoFetch: [:ea | ea address asOuterJoin].
+	alsoFetchQuery alsoFetch: [:ea | ea address beOuterJoin].
 	query := Query
 					read: GlorpPerson
 					where: nil.
@@ -899,17 +911,20 @@ GlorpReadingTest >> testReadAddressProxyAlreadyInMemory [
 
 { #category : #tests }
 GlorpReadingTest >> testReadAddressSubstring [
-	| object query results rowToWrite results2 |
+	| object query results rowToWrite results2 results3 |
 	
 	[session beginTransaction.
 	rowToWrite := session system exampleAddressRow.
 	session writeRow: rowToWrite.
-	query := Query read: GlorpAddress
-				where: [:address | (address street copyFrom: 1 to: 5) = 'Paseo'].
+	query := Query read: GlorpAddress where:
+		[:address | (address street copyFrom: 1 to: 5) = 'Paseo'].
 	results := query executeIn: session.
-	query := Query read: GlorpAddress
-				where: [:address | (address street copyFrom: 7 to: 13) = 'Montril'].
-	results2 := query executeIn: session] 
+	query := Query read: GlorpAddress where:
+		[:address | (address street copyFrom: 7 to: 13) = 'Montril'].
+	results2 := query executeIn: session.
+	query := Query read: GlorpAddress where:
+		[:address | (address street copyFrom: 3 to: 7) = 'seo M'].
+	results3 := query executeIn: session]
 			ensure: [session rollbackTransaction].
 	self assert: results size = 1.
 	object := results first.
@@ -919,6 +934,8 @@ GlorpReadingTest >> testReadAddressSubstring [
 	self assert: object number = '10185'.
 	self assert: results2 size = 1.
 	self assert: results2 first = results first.
+	self assert: results3 size = 1.
+	self assert: results3 first = results first.
 ]
 
 { #category : #'tests-sql' }
@@ -929,7 +946,7 @@ GlorpReadingTest >> testReadAddressWithCustomSQL [
 	rowToWrite := session system exampleAddressRow.
 	session writeRow: rowToWrite.
 	query := Query read: GlorpAddress.
-	query sql: 'select id, street, house_num from GR_ADDRESS where id = 123'.
+	query sql: 'select id, street, house_num from gr_address where id = 123'.
 	results := query executeIn: session] 
 			ensure: [session rollbackTransaction].
 	self assert: results size = 1.
@@ -1621,9 +1638,6 @@ GlorpReadingTest >> testRegexMatches [
 	"This will fail on SQLite unless an application-defined SQL function named 'regexp' is added at run-time.  It will likewise fail on DB2 and SQLServer unless both a database function and a glorp reference to its name (which need not be regexp) have been added;  these database do not offer regex support, just the ability to add functions."
 
 	| customers |
-	
-	session platform isUDBCSQLite3Platform ifTrue: [ ^ self skip. ].
-	
 	[session beginTransaction.
 	session beginUnitOfWork.
 	self writeCustomer1Rows.
@@ -1763,6 +1777,8 @@ GlorpReadingTest >> testSimilarTo [
 	self assert: customers size = 1.
 	customers := session read: GlorpCustomer where: [:each | each name similarTo: 'a_ustomer'].
 	self assert: customers size = 1.
+	customers := session read: GlorpCustomer where: [:each | each name similarTo: 'aCusto(m|e|r)*'].
+	self assert: customers size = 1.
 	customers := session read: GlorpCustomer where: [:each | each name similarTo: 'Not a customer'].
 	self assert: customers isEmpty.
 	] 
@@ -1860,10 +1876,14 @@ GlorpReadingTest >> writeCustomer1RowsWithTransactions [
 
 { #category : #support }
 GlorpReadingTest >> writeReservationData [
+	"This test inserts data that includes multiple rows with an identity column, namely the itinerary instances.  This can help testing isIdentiotyColumn-related effects.  If, with loggingEnabled, you see the test generating a single round trip to the database for both itineraries via a seqence of statements such as
+	INSERT INTO public.ITINERARY (ID,RES_ID)  VALUES (221,2); INSERT INTO public.ITINERARY (ID,RES_ID)  VALUES (222,7)
+or a single statement with a sequence of values or a bound array, then either the serial type of the platform under test does not use identity columns or the server-side assignment of ids is being retrieved by Glorp.  If separate statements are sent, with intervening statements that retrieve the id of each, then the serial type (or Glorp's use of it) is imposing a performance cost by preventing group writing."
+
 	session beginUnitOfWork.
 	session register: GlorpItinerary example1.
 	session register: GlorpItinerary example2.
 	session commitUnitOfWork.
 	session writeRow: session system examplePassengerRow.
-	session initializeCache
+	session initializeCache.
 ]

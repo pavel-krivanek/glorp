@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpAbstractIntegerType,
 	#superclass : #GlorpAbstractNumericType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpAbstractIntegerType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #converting }
 GlorpAbstractIntegerType >> converterForStType: aClass [
@@ -19,10 +29,4 @@ GlorpAbstractIntegerType >> exdiType [
 { #category : #converting }
 GlorpAbstractIntegerType >> impliedSmalltalkType [
 	^Integer.
-]
-
-{ #category : #'exdi specific' }
-GlorpAbstractIntegerType >> initialize [
-	super initialize.
-	typeString := 'integer'.
 ]

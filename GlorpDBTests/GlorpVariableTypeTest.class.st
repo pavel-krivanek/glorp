@@ -4,8 +4,18 @@ This exercises trying to map to objects that might be of multiple types, not rel
 Class {
 	#name : #GlorpVariableTypeTest,
 	#superclass : #GlorpMappingDBTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-My Classes'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpVariableTypeTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #Running }
 GlorpVariableTypeTest >> setUp [

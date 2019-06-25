@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'productionLine'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpLineWorker class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #comparing }
 GlorpLineWorker >> = aLineWorker [

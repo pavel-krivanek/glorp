@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpPGTimeWithTimeZoneType,
 	#superclass : #GlorpDatabaseType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpPGTimeWithTimeZoneType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'converting-times' }
 GlorpPGTimeWithTimeZoneType >> converterForStType: aClass [

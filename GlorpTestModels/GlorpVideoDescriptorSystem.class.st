@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpVideoDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpVideoDescriptorSystem >> allTableNames [
 	^#('VIDEO_STORE' 'VIDEO_PURCHASE' 'VIDEO_RENTAL' 'VIDEO_PURCHASE_LINK' 'VIDEO_CUSTOMER' 'VIDEO_CREDIT_STATUS').

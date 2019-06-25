@@ -11,6 +11,15 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTravelFile class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpTravelFile >> <= aTravelFile [
 	^self name <= aTravelFile name.

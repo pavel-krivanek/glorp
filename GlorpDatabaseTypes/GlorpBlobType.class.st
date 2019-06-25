@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpBlobType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpBlobType >> = aType [
 	super = aType ifFalse: [^false].
@@ -18,11 +28,9 @@ GlorpBlobType >> = aType [
 
 { #category : #types }
 GlorpBlobType >> converterForStType: aClass [
-	self platform isPostgreSQLPlatform ifTrue: [
-		(aClass includesBehavior: String) ifTrue: [^self platform converterNamed: #stringToSQLString].
-		^self platform converterNamed: #byteArrayToSQLString].
-	self platform isOcelotPlatform ifTrue: [^self platform converterNamed: #blobDataToStream].
 	(aClass includesBehavior: String) ifTrue: [^self platform converterNamed: #byteArrayToString].
+	self platform isPostgreSQLPlatform ifTrue: [^self platform converterNamed: #byteArrayToSQLString].
+	self platform isOcelotPlatform ifTrue: [^self platform converterNamed: #blobDataToStream].
 	^self platform nullConverter
 ]
 

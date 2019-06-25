@@ -14,7 +14,7 @@ Class {
 		'seenPostWrite',
 		'seenExpiry'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -57,10 +57,19 @@ GlorpCustomer class >> exampleD3 [
 		name: 'Pebbles Flintstone'
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpCustomer class >> new [
 
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpCustomer class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

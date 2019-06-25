@@ -7,7 +7,7 @@ Class {
 		'title',
 		'mediaType'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -26,9 +26,23 @@ GlorpEncyclopediaEntry class >> example2 [
 		text: 'The second number (comes after 1)'.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'As yet unclassified' }
 GlorpEncyclopediaEntry class >> new [
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaEntry class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
+{ #category : #accessing }
+GlorpEncyclopediaEntry >> <= aGlorpEncyclopediaEntry [
+	^self title <= aGlorpEncyclopediaEntry title.
 ]
 
 { #category : #accessing }

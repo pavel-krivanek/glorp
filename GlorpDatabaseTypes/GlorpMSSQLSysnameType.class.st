@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpMSSQLSysnameType,
 	#superclass : #GlorpDatabaseType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-GlorpDatabase'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpMSSQLSysnameType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'exdi specific' }
 GlorpMSSQLSysnameType >> exdiType [

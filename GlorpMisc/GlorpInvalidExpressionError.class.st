@@ -6,3 +6,13 @@ Class {
 	#superclass : #GlorpError,
 	#category : #GlorpMisc
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpInvalidExpressionError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

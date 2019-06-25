@@ -18,7 +18,7 @@ Class {
 		'sourceFields',
 		'targetFields'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -49,6 +49,16 @@ ForeignKeyConstraint class >> sourceFields: sourceFields targetFields: targetFie
 	^(self new)
 		sourceFields: sourceFields targetFields: targetFields suffixExpression: suffixExpression;
 		yourself.
+]
+
+{ #category : #'VisualWorks metadata' }
+ForeignKeyConstraint class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }
@@ -116,42 +126,79 @@ ForeignKeyConstraint >> isImaginary [
 	^self targetTable isImaginary or: [self sourceTable isImaginary].
 ]
 
-{ #category : #testing }
+{ #category : #comparing }
 ForeignKeyConstraint >> isSimilarForeignKeyConstraint: aConstraint [
+	"We need to sort source and target fields in unison because the ordering of source and targets is fixed. Example,
+		FK1 source(X, Y) => target(A, B)
+		FK2 source(Y, X) => target(A, B)
+Sorting the fields individually would hide the fact that X=>A in FK1, whereas X=>B in FK2.  But, not sorting,
+		FK1 source(X, Y) => target(A, B)
+		FK2 source(Y, X) => target(B, A)
+would miss the fact that these two fkeys are the same."
 
-	self sourceFields size ~= aConstraint sourceFields size ifTrue: [^false].
-	self sourceFields asSortedCollection with: aConstraint sourceFields asSortedCollection do: [:field1 :field2 | 
-		(field1 matchesField: field2) ifFalse: [^false]].
-
-	self targetFields size ~= aConstraint targetFields size ifTrue: [^false].
-	self targetFields asSortedCollection with: aConstraint targetFields asSortedCollection do: [:field1 :field2 | 
-		(field1 matchesField: field2) ifFalse: [^false]].
+	| fieldSize sortedSelfIndexes sortedConsIndexes |
+	"No need to check target fields as sizes always equal, so source good means both good"
+	(fieldSize := self sourceFields size) = aConstraint sourceFields size ifFalse: [^false].
+	"An = result in the last line of the sort should never happen since two identical constraints makes no sense"
+	sortedSelfIndexes := (1 to: fieldSize) sorted:
+		[:a :b |
+		(self sourceFields at: a) < (self sourceFields at: b) or:
+			[(self sourceFields at: a) = (self sourceFields at: b) and:
+				[(self targetFields at: a) < (self targetFields at: b)]]].
+	sortedConsIndexes := (1 to: fieldSize) sorted:
+		[:a :b |
+		(aConstraint sourceFields at: a) < (aConstraint sourceFields at: b) or:
+			[(aConstraint sourceFields at: a) = (aConstraint sourceFields at: b) and:
+				[(aConstraint targetFields at: a) < (aConstraint targetFields at: b)]]].
+	sortedSelfIndexes with: sortedConsIndexes do:
+		[:selfIndex :conIndex |
+		(((self sourceFields at: selfIndex) matchesField: (aConstraint sourceFields at: conIndex)) and:
+			[(self targetFields at: selfIndex) matchesField: (aConstraint targetFields at: conIndex)])
+				ifFalse: [^false]].
 	^true
 ]
 
 { #category : #comparing }
 ForeignKeyConstraint >> isTheSameAs: aForeignKeyConstraint [
-	"Validate that two constraints are exactly the same. Most useful for testing purposes, rather than normal usage, which is why we don't just use the #= method."
+	"Validate that two constraints are exactly the same. Most useful for testing purposes, rather than normal usage, which is why we don't just use the #= method.
+	All the code after the #shouldCreateInDatabase check is identical to the #isSimilarForeignKeyConstraint: method, except that it uses #matchesField: where we use #isTheSameAs:.  Ideally, we would merge the two methods and eliminate the nearly-cloned code."
+
+	| fieldSize sortedSelfIndexes sortedConsIndexes |
 	self name asUppercase = aForeignKeyConstraint name asUppercase ifFalse: [^false].
 	self suffixExpression = aForeignKeyConstraint suffixExpression ifFalse: [^false].
-	self sourceFields size ~= aForeignKeyConstraint sourceFields size ifTrue: [^false].
-	self sourceFields asSortedCollection with: aForeignKeyConstraint sourceFields asSortedCollection do: [:a :b | (a isTheSameAs: b) ifFalse: [^false]].	
-	self targetFields size ~= aForeignKeyConstraint targetFields size ifTrue: [^false].
-	self targetFields asSortedCollection with: aForeignKeyConstraint targetFields asSortedCollection do: [:a :b | (a isTheSameAs: b) ifFalse: [^false]].	
 	self shouldCreateInDatabase = aForeignKeyConstraint shouldCreateInDatabase ifFalse: [^false].
+	"No need to check target fields as sizes always equal, so source good means both good"
+	(fieldSize := self sourceFields size) = aForeignKeyConstraint sourceFields size ifFalse: [^false].
+	"An = result in the last line of the sort should never happen since two identical constraints makes no sense"
+	sortedSelfIndexes := (1 to: fieldSize) sorted:
+		[:a :b |
+		(self sourceFields at: a) < (self sourceFields at: b) or:
+			[(self sourceFields at: a) = (self sourceFields at: b) and:
+				[(self targetFields at: a) < (self targetFields at: b)]]].
+	sortedConsIndexes := (1 to: fieldSize) sorted:
+		[:a :b |
+		(aForeignKeyConstraint sourceFields at: a) < (aForeignKeyConstraint sourceFields at: b) or:
+			[(aForeignKeyConstraint sourceFields at: a) = (aForeignKeyConstraint sourceFields at: b) and:
+				[(aForeignKeyConstraint targetFields at: a) < (aForeignKeyConstraint targetFields at: b)]]].
+	sortedSelfIndexes with: sortedConsIndexes do:
+		[:selfIndex :conIndex |
+		(((self sourceFields at: selfIndex) isTheSameAs: (aForeignKeyConstraint sourceFields at: conIndex)) and:
+			[(self targetFields at: selfIndex) isTheSameAs: (aForeignKeyConstraint targetFields at: conIndex)])
+				ifFalse: [^false]].
 	^true.
 ]
 
-{ #category : #testing }
+{ #category : #comparing }
 ForeignKeyConstraint >> matchesForeignKeyConstraint: aConstraint [
-	name asUppercase = aConstraint name asUppercase ifFalse: [^false].
-	self sourceFields size ~= aConstraint sourceFields size ifTrue: [^false].
-	self sourceFields with: aConstraint sourceFields do: [:field1 :field2 | 
-		(field1 matchesField: field2) ifFalse: [^false]].
+	"This expects the constraints to have their fields in the same order.  To compare constraints that may be the same up to having been defined in different orders, use #isTheSameAs: or #isSimilarForeignKeyConstraint:."
 
-	self targetFields size ~= aConstraint targetFields size ifTrue: [^false].
-	self targetFields with: aConstraint targetFields do: [:field1 :field2 | 
-		(field1 matchesField: field2) ifFalse: [^false]].
+	name asUppercase = aConstraint name asUppercase ifFalse: [^false].
+	self sourceFields size = aConstraint sourceFields size ifFalse: [^false].
+	self sourceFields with: aConstraint sourceFields do:
+		[:field1 :field2 | (field1 matchesField: field2) ifFalse: [^false]].
+	self targetFields size = aConstraint targetFields size ifFalse: [^false].
+	self targetFields with: aConstraint targetFields do:
+		[:field1 :field2 | (field1 matchesField: field2) ifFalse: [^false]].
 	^true
 ]
 
@@ -238,7 +285,8 @@ ForeignKeyConstraint >> sourceFields: sourceFieldCollection targetFields: target
 { #category : #accessing }
 ForeignKeyConstraint >> sourceTable [
 	"All the source fields have to come from the same table, so just pick one"
-	^self sourceFields first table.
+
+	^self someSourceField table
 ]
 
 { #category : #accessing }

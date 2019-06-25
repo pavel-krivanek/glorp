@@ -14,8 +14,17 @@ Class {
 		'id',
 		'name'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpWorkingStiff class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #comparing }
 GlorpWorkingStiff >> = aWorkingStiff [

@@ -4,13 +4,22 @@ Class {
 	#instVars : [
 		'objects'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpExampleSystem class >> new [
 
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpExampleSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #initialize }

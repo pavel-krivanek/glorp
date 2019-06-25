@@ -16,6 +16,16 @@ Class {
 	#category : #GlorpCore
 }
 
+{ #category : #'VisualWorks metadata' }
+TimedExpiryCachePolicy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'wrap/unwrap' }
 TimedExpiryCachePolicy >> cacheEntryFor: anObject [
 
@@ -61,16 +71,6 @@ TimedExpiryCachePolicy >> timeout [
 { #category : #accessing }
 TimedExpiryCachePolicy >> timeout: seconds [
 	timeout := seconds
-]
-
-{ #category : #accessing }
-TimedExpiryCachePolicy >> timeoutSeconds [
-	^timeout
-]
-
-{ #category : #accessing }
-TimedExpiryCachePolicy >> timeoutSeconds: anInteger [
-	timeout := anInteger.
 ]
 
 { #category : #utility }

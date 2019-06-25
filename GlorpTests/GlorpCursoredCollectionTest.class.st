@@ -8,9 +8,19 @@ Class {
 	#category : #GlorpTests
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpCursoredCollectionTest class >> resources [
 	^Array with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpCursoredCollectionTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
 ]
 
 { #category : #support }

@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpEncyclopediaStockDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpEncyclopediaStockDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #other }
 GlorpEncyclopediaStockDescriptorSystem >> allTableNames [

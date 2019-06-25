@@ -1,6 +1,6 @@
 Extension { #name : #DB2Sequence }
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-private' }
 DB2Sequence >> backupReserveCommand: anInteger in: aSession [
 	"syscat.tables is a public view of all the tables.
 	Don't bind the number in the fetch first nn clause."
@@ -20,7 +20,7 @@ DB2Sequence >> backupReserveCommand: anInteger in: aSession [
 	^command.
 ]
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-SQL' }
 DB2Sequence >> tableSelectCommandFor: aTable in: aSession reserving: anInteger [
 	"Don't bind the number in the fetch first nn clause."
 	| stream |

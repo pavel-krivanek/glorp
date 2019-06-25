@@ -16,7 +16,7 @@ Class {
 		'tables',
 		'visitedTables'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -33,6 +33,15 @@ TableSorter class >> for: tables [
 TableSorter class >> new [
 
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+TableSorter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

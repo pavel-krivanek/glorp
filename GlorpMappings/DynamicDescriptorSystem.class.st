@@ -8,8 +8,18 @@ Class {
 	#instVars : [
 		'attributeNameToFieldNameBlock'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+DynamicDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 DynamicDescriptorSystem >> addEmptyDescriptorFor: aClass [ 
@@ -59,11 +69,11 @@ DynamicDescriptorSystem >> initializeClassModel: aClassModel [
 { #category : #private }
 DynamicDescriptorSystem >> privateDescriptorAt: aClass put: aDescriptor [
 	"Normally you don't want to be setting tables explicitly, as it may defeat the identity management but it's here if needed"
-	descriptors at: aClass put: aDescriptor
+	descriptors at: aClass put: aDescriptor.
 ]
 
 { #category : #private }
 DynamicDescriptorSystem >> privateTableAt: aString put: aTable [
 	"Normally you don't want to be setting tables explicitly, as it may defeat the identity management but it's here if needed"
-	tables at: aString asUppercase put: aTable
+	tables at: aString asUppercase put: aTable.
 ]

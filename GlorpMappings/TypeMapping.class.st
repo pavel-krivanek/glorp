@@ -13,6 +13,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+TypeMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #mapping }
 TypeMapping >> addTypeMappingCriteriaTo: collection in: expression [
 	^self
@@ -48,7 +58,7 @@ TypeMapping >> descriptorForSuperclass [
 { #category : #testing }
 TypeMapping >> hasAttribute [
 	"Return true if this maps an attribute, which is normally true"
-	^false
+	^false.
 ]
 
 { #category : #testing }

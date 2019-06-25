@@ -40,7 +40,7 @@ Class {
 	#classInstVars : [
 		'validateDescriptorSystem'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #utility }
@@ -51,16 +51,16 @@ DescriptorSystem class >> createTablesFor: aLogin [
 	session := self sessionForLogin: aLogin.
 	session login.
 	[session createTables] ensure: 
-		[session logout]
+		[session logout].
 ]
 
-{ #category : #configuration }
+{ #category : #'class defaults' }
 DescriptorSystem class >> databaseTableClass [
 
 	^DatabaseTable
 ]
 
-{ #category : #validation }
+{ #category : #'class defaults' }
 DescriptorSystem class >> defaultValidateValue [
 	"Subclasses can define this not answer #always, and to set it to be things like #firstTime, #never, etc."
 
@@ -74,7 +74,7 @@ DescriptorSystem class >> dropTablesFor: aLogin [
 	| session |
 	session := self sessionForLogin: aLogin.
 	session login.
-	[session dropTables] ensure: [session logout]
+	[session dropTables] ensure: [session logout].
 ]
 
 { #category : #'instance creation' }
@@ -87,13 +87,13 @@ DescriptorSystem class >> forPlatform: dbPlatform [
 { #category : #configuration }
 DescriptorSystem class >> includeAllClassesWithDescriptorMethods [
 	"If this is true, the descriptor system will automatically include all classes that define the #glorpSetupDescriptor:forSystem: method on the class side. If false, it will only include classes which have descriptor methods defined in this class, or those explicitly added in the #constructAllClasses method."
-	^false
+	^false.
 ]
 
 { #category : #'instance creation' }
 DescriptorSystem class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #utility }
@@ -103,18 +103,7 @@ DescriptorSystem class >> recreateTablesFor: aLogin [
 	| session |
 	session := self sessionForLogin: aLogin.
 	session login.
-	[session recreateTables] ensure: [session logout]
-]
-
-{ #category : #'instance creation' }
-DescriptorSystem class >> sessionForAccessor: aDatabaseAccesor. [
-	"Create a session associated with the given accesseor, and using us as a descriptor system. 
-	This is the easiest way to get a full blown session going."
-	
-	^(GlorpSession forSystem: (self forPlatform: aDatabaseAccesor platform))
-		accessor: aDatabaseAccesor;
-		yourself
-
+	[session recreateTables] ensure: [session logout].
 ]
 
 { #category : #'instance creation' }
@@ -125,10 +114,10 @@ DescriptorSystem class >> sessionForLogin: aGlorpLogin [
 	session := GlorpSession new.
 	session accessor: (DatabaseAccessor forLogin: aGlorpLogin).
 	session system: system.
-	^session
+	^session.
 ]
 
-{ #category : #validation }
+{ #category : #'class defaults' }
 DescriptorSystem class >> validateDescriptorSystem [
 	"Subclasses can define this to do other things, and add their own behavior to do things like only first time, never, etc."
 
@@ -136,11 +125,20 @@ DescriptorSystem class >> validateDescriptorSystem [
 	^validateDescriptorSystem == #always
 ]
 
-{ #category : #validation }
+{ #category : #'class defaults' }
 DescriptorSystem class >> validateDescriptorSystem: aSymbol [
 	"Typical values are #always and #never"
 
 	validateDescriptorSystem := aSymbol
+]
+
+{ #category : #'VisualWorks metadata' }
+DescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #api }
@@ -150,7 +148,7 @@ DescriptorSystem >> addClassModelFor: aClass [
 		ifAbsentPut: [self newClassModelFor: aClass]
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialization }
 DescriptorSystem >> addClassesFromDescriptorMethodsFor: aClass [
 	| match |
 	match := 'descriptorFor'.
@@ -164,10 +162,10 @@ DescriptorSystem >> addClassesFromDescriptorMethodsFor: aClass [
 						lookupClassNamed: className
 						inContextOf: self class
 						ifAbsent: [nil].
-					actualClass isNil ifFalse: [allClasses add: actualClass]]]
+					actualClass isNil ifFalse: [allClasses add: actualClass]]].
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialization }
 DescriptorSystem >> addTablesFromInitializeMethodsFor: aClass [
 	| match |
 	match := 'tableFor'. 
@@ -177,19 +175,19 @@ DescriptorSystem >> addTablesFromInitializeMethodsFor: aClass [
 				ifTrue:
 					[| tableName |
 					tableName := each copyFrom: match size + 1 to: each size - 1.
-					self tableNamed: tableName]]
+					self tableNamed: tableName]].
 ]
 
 { #category : #callbacks }
 DescriptorSystem >> additionalRelatedRowsFor: aRow in: aRowMap [
 	"This method serves as a hook. It is called when sorting rows before writing to the database, and can be used to return a list of additional related rows that aren't found by the normal foreign key constraints. These rows will act as an ordering constraint, and will have to be written before aRow."
-	^nil
+	^nil.
 ]
 
 { #category : #accessing }
 DescriptorSystem >> allClassModels [
 	^self allClasses collect: [:each | 
-		self classModelFor: each]
+		self classModelFor: each].
 ]
 
 { #category : #accessing }
@@ -202,7 +200,7 @@ DescriptorSystem >> allClasses [
 DescriptorSystem >> allDescriptors [
 
 	^self allClasses collect: [:each | 
-		self descriptorFor: each]
+		self descriptorFor: each].
 ]
 
 { #category : #accessing }
@@ -220,13 +218,13 @@ DescriptorSystem >> allSequencesFor: aCollection [
 	aCollection do: [:each |
 		each allSequences keysAndValuesDo: [:eachName :eachSequence |
 				result at: eachName put: eachSequence]].
-	^result
+	^result.
 ]
 
 { #category : #accessing }
 DescriptorSystem >> allTableNames [
 	"Return a list of all the table names that this system uses."
-	^#()
+	^#().
 ]
 
 { #category : #accessing }
@@ -244,24 +242,7 @@ DescriptorSystem >> cachePolicy [
 
 { #category : #accessing }
 DescriptorSystem >> cachePolicy: aCachePolicy [
-	cachePolicy := aCachePolicy
-]
-
-{ #category : #testing }
-DescriptorSystem >> canUseGroupedWrites [
-	"We can use grouped writes as long as there are no identity columns in use"
-	self platform usesIdentityColumns ifFalse: [^true].
-	^(self allTables anySatisfy: [:each |
-		each primaryKeyFields anySatisfy: [:eachField |
-			eachField type isSerial and: [eachField type sequence isIdentityColumn]]]) not.
-]
-
-{ #category : #testing }
-DescriptorSystem >> canUseGroupedWritesFor: aTable [
-	"We can use grouped writes as long as there are no identity columns in use"
-	self platform usesIdentityColumns ifFalse: [^true].
-	^(aTable primaryKeyFields anySatisfy: [:eachField |
-			eachField type isSerial and: [eachField type sequence isIdentityColumn]]) not
+	cachePolicy := aCachePolicy.
 ]
 
 { #category : #api }
@@ -364,7 +345,7 @@ DescriptorSystem >> databaseSequenceNamed: aString [
 { #category : #api }
 DescriptorSystem >> databaseSequenceNamed: aString ifAbsentPut: aBlock [
 
-	^sequences at: aString asUppercase ifAbsentPut: aBlock
+	^sequences at: aString asUppercase ifAbsentPut: aBlock.
 ]
 
 { #category : #api }
@@ -409,25 +390,13 @@ DescriptorSystem >> descriptorFor: aClassOrObject [
 				descriptors at: theClass put: newDescriptor.
 				self initializeDescriptor: newDescriptor.
 				newDescriptor.
-			]]
-]
-
-{ #category : #api }
-DescriptorSystem >> descriptorForTable: aTable [
-	"Return a descriptor that uses aTable. If there is more than one, the choice is random."
-	^descriptors detect: [:each | each tables includes: aTable] ifNone: [nil]
-]
-
-{ #category : #api }
-DescriptorSystem >> descriptorsForTable: aTable [
-	"Return all descriptors that use aTable."
-	^descriptors select: [:each | each tables includes: aTable]
+			]].
 ]
 
 { #category : #api }
 DescriptorSystem >> existingTableNamed: aString [
 
-	^tables at: aString asUppercase ifAbsent: [self error: 'missing table']
+	^tables at: aString asUppercase ifAbsent: [self error: 'missing table'].
 ]
 
 { #category : #callbacks }
@@ -451,16 +420,16 @@ DescriptorSystem >> findDescriptorsForTable: aTable [
 
 { #category : #api }
 DescriptorSystem >> flushAllClasses [
-	allClasses := OrderedCollection new
+	allClasses := OrderedCollection new.
 ]
 
 { #category : #api }
 DescriptorSystem >> hasDescriptorFor: aClassOrObject [ 
 
-	^(self descriptorFor: aClassOrObject) notNil
+	^(self descriptorFor: aClassOrObject) notNil.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialization }
 DescriptorSystem >> initialize [
 	descriptors := Dictionary new.
 	tables := Dictionary new.
@@ -468,7 +437,7 @@ DescriptorSystem >> initialize [
 	typeResolvers := Dictionary new.
 	sequences := Dictionary new.
 	useDirectAccessForMapping := true.
-	allClasses := OrderedCollection new
+	allClasses := OrderedCollection new.
 ]
 
 { #category : #private }
@@ -484,7 +453,7 @@ DescriptorSystem >> initializeClassModel: aClassModel [
 				glorpSetupClassModel: aClassModel
 				forSystem: self].
 	"Otherwise, just initialize it dynamically, so that old code with only descriptors will still work"
-	^aClassModel
+	^aClassModel.
 ]
 
 { #category : #private }
@@ -498,13 +467,13 @@ DescriptorSystem >> initializeDescriptor: aDescriptor [
 				ifTrue: [aDescriptor describedClass
 								glorpSetupDescriptor: aDescriptor
 								forSystem: self]
-				ifFalse: [self noDescriptorInitializerFound: aDescriptor]]
+				ifFalse: [self noDescriptorInitializerFound: aDescriptor]].
 ]
 
 { #category : #validation }
 DescriptorSystem >> initializeRuntimeMappings [
 
-	session isNil ifFalse: [session system == self ifFalse: [InvalidSessionSetup signal: 'Invalid session setup']].
+	session isNil ifFalse: [session system == self ifFalse: [InvalidSessionSetup raiseErrorString: 'Invalid session setup']].
 	self allTables.
 	self allDescriptors do: [:each | each initializeRuntimeMappings]
 ]
@@ -535,13 +504,14 @@ DescriptorSystem >> joinFor: aMapping toTables: toTables fromConstraints: fromCo
 			tables: toTables;
 			constraints: (toConstraints, fromConstraints);
 			signal: 'Cannot automatically determine join, too many constraints found.'].
-	^toConstraints isEmpty ifTrue: [fromConstraints first asReverseJoin] ifFalse: [toConstraints first asJoin]
+	^toConstraints isEmpty ifTrue: [fromConstraints first asReverseJoin] ifFalse: [toConstraints first asJoin].
 ]
 
 { #category : #'optimization parameters' }
-DescriptorSystem >> maximumSizeToGroupWriteFor: aCollectionOfDatabaseRows [
-	"If we are going to group write, how many rows of this collection should we do it for at once. Normally we delegate this to the platform, but we allow the system to intervene if desired"
-	^platform maximumSizeToGroupWriteFor: aCollectionOfDatabaseRows
+DescriptorSystem >> maximumSizeToGroupWriteFor: aRowBasedCommand [
+	"If we are going to group write, how many rows of the command should we do it for at once. Normally we delegate this to the platform, but we allow the system to intervene if desired.  For example, a system that knows it does not use serial types can ignore the question of identity columns."
+
+	^platform maximumSizeToGroupWriteFor: aRowBasedCommand
 ]
 
 { #category : #private }
@@ -552,7 +522,7 @@ DescriptorSystem >> newClassModelFor: aClass [
 	newClassModel system: self.
 	newClassModel describedClass: aClass.
 	self initializeClassModel: newClassModel.
-	^newClassModel
+	^newClassModel.
 ]
 
 { #category : #private }
@@ -563,7 +533,7 @@ DescriptorSystem >> newDescriptorFor: aClass [
 	newDescriptor := Descriptor new.
 	newDescriptor system: self.
 	newDescriptor classModel: (self classModelFor: aClass).
-	^newDescriptor
+	^newDescriptor.
 ]
 
 { #category : #private }
@@ -578,12 +548,12 @@ DescriptorSystem >> newTypeResolverFor: aClass [
 
 { #category : #validation }
 DescriptorSystem >> noDescriptorInitializerFound: aDescriptor [
-	self error: 'No descriptor initializer found for ', aDescriptor printString
+	self error: 'No descriptor initializer found for ', aDescriptor printString.
 ]
 
 { #category : #validation }
 DescriptorSystem >> noTableInitializerFound: aDatabaseTable [
-	self error: 'No table initializer found for ', aDatabaseTable printString
+	self error: 'No table initializer found for ', aDatabaseTable printString.
 ]
 
 { #category : #accessing }
@@ -598,11 +568,24 @@ DescriptorSystem >> platform: dbPlatform [
 	platform := dbPlatform
 ]
 
+{ #category : #initialization }
+DescriptorSystem >> postCopyForRecursion [
+	"If we add classModels, descriptors or tables, make sure these added items do not appear in the original."
+
+	classModels := classModels copy.
+	descriptors := descriptors copy.
+	tables := tables copy.
+"These are not changed in our current usage; copy them if later needed
+	typeResolvers := typeResolvers copy.
+	sequences := sequences copy.
+	allClasses := allClasses copy."
+]
+
 { #category : #private }
 DescriptorSystem >> privateAndBasicAddDescriptorFor: anObject as: aDescriptor [
 	"Just add the descriptor and don't try to validate. anObject may not actually even be a class. Assume the descriptor is already properly initialized"
 	descriptors at: anObject put: aDescriptor.
-	aDescriptor system: self
+	aDescriptor system: self.
 ]
 
 { #category : #sequences }
@@ -614,7 +597,7 @@ DescriptorSystem >> sequenceNameForField: aDatabaseField [
 { #category : #api }
 DescriptorSystem >> sequenceTypeNamed: aString [
 	"Return a sequence type whose sequence has the given name."
-	^self platform sequence sequence: (self databaseSequenceNamed: aString)
+	^self platform sequence sequence: (self databaseSequenceNamed: aString).
 ]
 
 { #category : #accessing }
@@ -634,7 +617,7 @@ DescriptorSystem >> sessionForLogin: aGlorpLogin [
 	| newSession |
 	platform isNil ifTrue: [self platform: aGlorpLogin database].
 	aGlorpLogin database class = self platform class ifFalse: [self error: 'Login is incompatible with the database specified in the descriptor system'].
-	session isNil ifFalse: [InvalidSessionSetup signal: 'DescriptorSystem already has a session; resume this error if this was intended.'].
+	session isNil ifFalse: [InvalidSessionSetup raiseErrorString: 'DescriptorSystem already has a session; resume this error if this was intended.'].
 	newSession := GlorpSession new.
 	newSession accessor: (DatabaseAccessor forLogin: aGlorpLogin).
 	newSession system: self.
@@ -643,13 +626,13 @@ DescriptorSystem >> sessionForLogin: aGlorpLogin [
 
 { #category : #initialization }
 DescriptorSystem >> setUpDefaults [
-	"For systems that are configurable, set them up for testing configuration"
+	"For systems that are configurable:  configure them with the default settings for their application."
 ]
 
 { #category : #settings }
 DescriptorSystem >> shouldForeignKeyValueBeTreatedAsNull: aValue [
 	"Return true if this foreign key value should be treated as null, meaning there's no relationship. Normally this means just nil, but descriptor systems can override if they have special values which they use (e.g. 0) that indicate a missing relationship. This can improve performance by avoiding unnecessary queries to the database for things we know will never return a result"
-	^aValue isNil
+	^aValue isNil.
 ]
 
 { #category : #settings }
@@ -662,15 +645,20 @@ DescriptorSystem >> shouldResetExpiryTimeForObjectOfClass: aClass readFrom: aQue
 ]
 
 { #category : #'optimization parameters' }
-DescriptorSystem >> shouldUpdateOnlyChangedFieldsFor: aRow [
-	"Return true if we should write only changed fields out in an update statement, or if we should write all of them. The tradeoff is that writing only the changed ones will produce less SQL, but make more variations of the statement, and require us to keep more prepared statements around if we're using binding. By default, use this option only if we're not using binding by default"
-	^aRow useBinding not
+DescriptorSystem >> shouldUpdateOnlyChangedFieldsFor: aCommand [
+	"Return true if we should write only changed fields out in an update statement, or if we should write all of them. There are various tradeoffs.  Writing only the changed fields will produce less SQL for any one statement, but may create more variations of the statement over time:  if we routinely update different subsets of fields in normal use, each such subset needs its own statement (so more prepared statements are cached if we're using binding);  if we group-write updates, Glorp must divide each group into compatible subgroups before sending each subgroup to the database.  As against this, a system may have permissions set limiting the columns that can be updated, so may only ever want to update the changed fields."
+
+	^true
+
+"The default was
+	aCommand useBinding not
+this could be restored at release, after the new default above has caused sufficient in-house testing."
 ]
 
 { #category : #api }
 DescriptorSystem >> tableNamed: aString [
 
-	^self tableNamed: aString ifNone: [NoTableFound new parameter: aString; signal]
+	^self tableNamed: aString ifNone: [NoTableFound new parameter: aString; raiseRequest].
 ]
 
 { #category : #api }
@@ -693,7 +681,7 @@ DescriptorSystem >> tableNamed: aString ifNone: aBlock [
 { #category : #'internal/writing' }
 DescriptorSystem >> tablesInCommitOrder [
 
-	^(TableSorter for: self allTables) sort
+	^(TableSorter for: self allTables) sort.
 ]
 
 { #category : #api }
@@ -720,7 +708,7 @@ DescriptorSystem >> unmappedInstanceVariables [
 				isNil ifTrue: [
 					(unmapped at: eachClass ifAbsentPut: [OrderedCollection new])
 						add: eachInstVarName]]].
-	^unmapped
+	^unmapped.
 ]
 
 { #category : #accessing }
@@ -741,12 +729,12 @@ DescriptorSystem >> useJoinsForAnySatisfy [
 
 { #category : #settings }
 DescriptorSystem >> useJoinsForAnySatisfy: aBoolean [
-	useJoinsForAnySatisfy := aBoolean
+	useJoinsForAnySatisfy := aBoolean.
 ]
 
 { #category : #validation }
 DescriptorSystem >> validate [
-	session isNil ifFalse: [session system == self ifFalse: [InvalidSessionSetup signal: 'Invalid session setup']].
+	session isNil ifFalse: [session system == self ifFalse: [InvalidSessionSetup  raiseErrorString:  'Invalid session setup']].
 	self allTables do: [:each | each validateIn: self].
 	self allClassModels do: [:each | each validateIn: self].
 	self allDescriptors do: [:each | each validate].
@@ -773,12 +761,12 @@ DescriptorSystem >> validateRowsPostWrite: aUnitOfWork [
 	"Validate after writing. This is a bit late, but some things may not be catchable ahead of time"
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialization }
 DescriptorSystem >> withAllSuperclassesDo: aBlock [
 	| currentClass |
 	currentClass := self class.
 	[currentClass == Object]
 		whileFalse:
 			[aBlock value: currentClass.
-			currentClass := currentClass superclass]
+			currentClass := currentClass superclass].
 ]

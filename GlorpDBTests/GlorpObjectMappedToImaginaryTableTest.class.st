@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpObjectMappedToImaginaryTableTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpObjectMappedToImaginaryTableTest >> db2testReadWithDateArithmeticInWhereClause [
 	"DB2 appears fussy in how it allows date arithmetic.  Constant durations must be labelled (i.e. + 2 days, not just + 2, and the root of an expression with a duration must be a date or timestamp.  This could be read to mean that
@@ -142,14 +152,13 @@ GlorpObjectMappedToImaginaryTableTest >> testReadCustomerWhereWithJoin [
 
 { #category : #tests }
 GlorpObjectMappedToImaginaryTableTest >> testReadWithDateArithmeticInWhereClause [
-	"Test date arithmetic using constant expressions and field expressions.  Trivially, we use the id field to get a positive integer - aim is just to verify the expression runs and returns the rows).
-	The rental data is set up and torn down each time the test is run so (ignoring cross-midnight runs) their dates will always be today's date."
+	"Test date arithmetic using constant expressions and field expressions.  Trivially, we use the id field to get a positive integer - aim is just to verify the expression runs and returns the rows.  The rental data is set up and torn down each time the test is run so (ignoring cross-midnight runs) their dates will always be today's date.
+	This test does not pass on SQLite."
 
 	| rentals |
 	"Check date +/- integer expressions;  DB2 will not accept this unlabelled, so is tested separately."
-	"session platform class == DB2Platform ifTrue:
-		[^self db2testReadWithDateArithmeticInWhereClause]."
-	session platform supportsArithmeticOperatorsOnDates ifFalse: [ self skip ].
+	session platform class == DB2Platform ifTrue:
+		[^self db2testReadWithDateArithmeticInWhereClause].
 	rentals := session read: GlorpVideoRental where:
 		[:each | each dueDate + 1 > Date today].
 	self deny: rentals isEmpty.

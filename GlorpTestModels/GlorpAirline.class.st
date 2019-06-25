@@ -5,21 +5,30 @@ Class {
 		'id',
 		'name'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpAirline class >> example1 [
 	^self new
 		id: 73;
 		name: 'Air Canada'.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpAirline class >> example2 [
 	^self new
 		id: 74;
 		name: 'Lufthansa'.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpAirline class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

@@ -9,7 +9,7 @@ Class {
 		'existingObject',
 		'newObject'
 	],
-	#category : #GlorpMisc
+	#category : #GlorpCore
 }
 
 { #category : #'instance creation' }
@@ -18,6 +18,16 @@ DuplicatePrimaryKeyException class >> new: newObject existing: existingObject [
 		newObject: newObject;
 		existingObject: existingObject;
 		yourself.
+]
+
+{ #category : #'VisualWorks metadata' }
+DuplicatePrimaryKeyException class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

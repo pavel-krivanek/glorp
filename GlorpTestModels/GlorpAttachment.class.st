@@ -6,10 +6,10 @@ Class {
 		'mimeType',
 		'attachmentBytes'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-AAGlorp'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpAttachment class >> glorpSetupClassModel: model forSystem: system [ 
 	model
 		newAttributeNamed: #index;
@@ -17,7 +17,7 @@ GlorpAttachment class >> glorpSetupClassModel: model forSystem: system [
 		newAttributeNamed: #attachmentBytes type: GlorpAttachmentBytes
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpAttachment class >> glorpSetupDescriptor: aDesc forSystem: system [ 
 	| t |
 	t := system tableNamed: 'attachment'.
@@ -27,6 +27,15 @@ GlorpAttachment class >> glorpSetupDescriptor: aDesc forSystem: system [
 	(aDesc newMapping: DirectMapping) from: #mimeType
 		to: (t fieldNamed: 'mimetype').
 	(aDesc newMapping: OneToOneMapping) attributeName: #attachmentBytes
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpAttachment class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

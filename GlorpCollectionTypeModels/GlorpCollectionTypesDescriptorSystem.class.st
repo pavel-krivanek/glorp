@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpCollectionTypeModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpCollectionTypesDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpCollectionTypesDescriptorSystem >> allTableNames [
 

@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'unitOfWork'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDeleteInUnitOfWorkTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #support }
 GlorpDeleteInUnitOfWorkTest >> setUp [

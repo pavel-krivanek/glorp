@@ -1,6 +1,6 @@
 Extension { #name : #CompoundQuery }
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-executing' }
 CompoundQuery >> sqlWith: aDictionary [
 
 	self prepare.
@@ -12,5 +12,5 @@ CompoundQuery >> sqlWith: aDictionary [
 		forQuery: self
 		parameters: aDictionary
 		useBinding: session useBinding
-		session: session
+		session: session.
 ]

@@ -1,8 +1,18 @@
 Class {
 	#name : #GlorpDatabaseIndexTest,
 	#superclass : #GlorpMappingDBTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseIndexTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #tests }
 GlorpDatabaseIndexTest >> testNameGeneration [

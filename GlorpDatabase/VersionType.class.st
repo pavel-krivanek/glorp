@@ -15,7 +15,7 @@ Class {
 		'generator',
 		'generatesOverExistingValues'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-My Classes'
 }
 
 { #category : #'instance creation' }
@@ -26,6 +26,16 @@ VersionType class >> underlyingType: aDatabaseType [
 { #category : #'instance creation' }
 VersionType class >> underlyingType: aDatabaseType generator: aGenerator [
 	^self new underlyingType: aDatabaseType generator: aGenerator.
+]
+
+{ #category : #'VisualWorks metadata' }
+VersionType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #converting }

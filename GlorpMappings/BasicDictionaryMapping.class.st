@@ -4,5 +4,15 @@ This class is obsolete, but exists only so that people using the old name will n
 Class {
 	#name : #BasicDictionaryMapping,
 	#superclass : #DictionaryMapping,
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+BasicDictionaryMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

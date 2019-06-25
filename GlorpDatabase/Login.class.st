@@ -15,19 +15,15 @@ Class {
 	#name : #Login,
 	#superclass : #Object,
 	#instVars : [
-		'encodingStrategy',
 		'database',
 		'username',
 		'password',
 		'connectString',
 		'name',
 		'schema',
-		'databaseName',
-		'host',
-		'port',
 		'secure'
 	],
-	#category : #GlorpCore
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -35,13 +31,22 @@ Login class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+Login class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 Login >> = aLogin [ 
-	^self class == aLogin class and: 
-			[self name = aLogin name and: 
-					[self database class = aLogin database class and: 
-							[self username = aLogin username and: 
-									[self connectString = aLogin connectString]]]]
+	^self class == aLogin class 
+		and: [self database class = aLogin database class 
+		and: [self username = aLogin username 
+		and: [self connectString = aLogin connectString
+		and: [self schema = aLogin schema]]]]
 ]
 
 { #category : #converting }
@@ -72,78 +77,17 @@ Login >> database: aDatabasePlatform [
 ]
 
 { #category : #accessing }
-Login >> databaseName [
-	"connect string looks like hostname:portNumber_db-name.
-	:portNumber is optional"
-	
-	| str portIndex index dbIndex |
-	
-	databaseName == nil
-		ifFalse: [^ databaseName].
-	databaseName == nil
-		ifTrue: [str := self connectString.
-			portIndex := index := str indexOf: $:.
-			dbIndex := str indexOf: $_.
-			index = 0
-				ifTrue: [index := dbIndex].
-			databaseName := str copyFrom: dbIndex + 1 to: str size.
-			^ databaseName]
-]
-
-{ #category : #accessing }
-Login >> databaseName: aDatabaseName [
-	databaseName := aDatabaseName
-]
-
-{ #category : #accessing }
-Login >> discardPassword [
-
-	password := nil
-]
-
-{ #category : #accessing }
-Login >> encodingStrategy [
-	^encodingStrategy
-]
-
-{ #category : #accessing }
-Login >> encodingStrategy: anEncodingStrategy [
-	encodingStrategy := anEncodingStrategy.
-]
-
-{ #category : #accessing }
 Login >> hash [
 	^self name hash + self database class hash + self username hash + self connectString hash
 ]
 
-{ #category : #accessing }
-Login >> host [
-	"connect string looks like hostname:portNumber_db-name.
-	:portNumber is optional"
-	| str portIndex index dbIndex |
-	host == nil
-		ifFalse: [^ host].
-	host == nil
-		ifTrue: [str := self connectString.
-			portIndex := index := str indexOf: $:.
-			dbIndex := str indexOf: $_.
-			index = 0 ifTrue: [index := dbIndex].
-			host := index > 0
-				ifTrue: [ str copyFrom: 1 to: index - 1 ].
-			^ host]
-]
-
-{ #category : #accessing }
-Login >> host: aHost [
-	host := aHost.
-]
-
 { #category : #'initialize-release' }
 Login >> initialize [
-	"My schema supplies the schema to my accessor, to its session and to that session's descriptor system.  Since a DatabaseTable's schema is initialized to the empty string, not nil (and that of a StoreLogin must never be nil), initialize to the empty string here, so that calling code need not check for nil."
+	"My schema supplies the schema to my accessor, to its session and to that session's descriptor system.  Since a DatabaseTable's schema is initialized to the empty string, not nil (and that of a StoreLogin must never be nil), initialize to the empty string here, so that calling code need not check for nil.
+	Initialize secure to true, so that only if the creating code then explicitly resets it to false will the login keep the password in the image beyond the point of first use."
 
 	schema := ''.
-	secure := false
+	secure := true.
 ]
 
 { #category : #accessing }
@@ -175,28 +119,14 @@ Login >> platform [
 	^self database.
 ]
 
-{ #category : #accessing }
-Login >> port [
-	"connect string looks like hostname:portNumber_db-name.
-	:portNumber is optional"
-	| str portIndex index dbIndex |
-	port == nil
-		ifFalse: [^ port].
-	port == nil
-		ifTrue: [str := self connectString.
-			portIndex := index := str indexOf: $:.
-			dbIndex := str indexOf: $_.
-			index = 0
-				ifTrue: [index := dbIndex].
-			port := portIndex = 0
-						ifTrue: [self platform defaultPort asString]
-						ifFalse: [(str copyFrom: portIndex + 1 to: dbIndex - 1) asString].
-			^ port]
+{ #category : #login }
+Login >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	self database postLoginInitializeFromAccessor: aDatabaseAccessor.
 ]
 
-{ #category : #accessing }
-Login >> port: aPort [
-	port := aPort.
+{ #category : #login }
+Login >> preLoginInitializeFromAccessor: anAccessor [
+	anAccessor connection initializeFromLogin: self.
 ]
 
 { #category : #printing }
@@ -247,4 +177,9 @@ Login >> username [
 { #category : #accessing }
 Login >> username: aString [ 
 	username := aString
+]
+
+{ #category : #'session creation' }
+Login >> vwConnectionClass [
+	^self database vwConnectionClass
 ]

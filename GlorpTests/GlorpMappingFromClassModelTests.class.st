@@ -5,12 +5,22 @@ Class {
 		'system',
 		'platform'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTestModels'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpMappingFromClassModelTests class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #running }
 GlorpMappingFromClassModelTests >> setUp [
-	platform := PostgreSQLPlatform new.
+	platform := PostgresSocketPlatform new.
 	system := DynamicDescriptorSystem forPlatform: platform
 ]
 

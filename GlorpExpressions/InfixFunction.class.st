@@ -1,5 +1,5 @@
 "
-This is a function that is infix. That is, it prints its name in between its arguments. For example, + for string concatenation, || for logical OR.
+This is a function that is infix. That is, it prints its name in between its arguments. For example, + for string concatenation, || for logical OR. 
 
 Instance Variables:
 	arguments	<Collection of GlorpExpression>	Our post-arguments (the first one being the base).
@@ -28,6 +28,16 @@ InfixFunction class >> named: aStringOrArray [
 			trimmedName := aStringOrArray copyFrom: 2 to: aStringOrArray size.
 			instance function: (trimmedName inject: aStringOrArray first into: [:sum :each | sum, ' ', each])].
 	^instance.
+]
+
+{ #category : #'VisualWorks metadata' }
+InfixFunction class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

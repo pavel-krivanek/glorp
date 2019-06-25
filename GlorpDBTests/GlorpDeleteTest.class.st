@@ -7,14 +7,25 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDeleteTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #'delete-insert-update tests' }
 GlorpDeleteTest >> assertDeleteCopy: aBlock ofInsertUpdatesFields: anInteger [
 	"If the test is run bound then #shouldUpdateOnlyChangedFields will by default return false and all 3 fields will be updated regardless of which have been changed.  We therefore check the row's opinion of fieldsNeedingUpdate, not the UpdateCommand's opinion."
 
 	| person oldAddress address otherSession triedToWrite |
+	triedToWrite := false.
 	person := GlorpPerson example2.
 	person address: nil.
 	[address := self setUpPersonWithAddress address getValue.
@@ -22,7 +33,7 @@ GlorpDeleteTest >> assertDeleteCopy: aBlock ofInsertUpdatesFields: anInteger [
 	address street: 'Change Street'.
 	otherSession := GlorpDemoDescriptorSystem sessionForLogin: GlorpDatabaseLoginResource current login.
 	otherSession  accessor: GlorpDatabaseLoginResource current accessor.
-	otherSession accessor denyWrites.
+	otherSession accessor denyWrites.	"raise GlorpIllegalCommand so we can check write state"
 	otherSession beginUnitOfWork.
 	otherSession delete: oldAddress.
 	person address: address.
@@ -39,7 +50,8 @@ GlorpDeleteTest >> assertDeleteCopy: aBlock ofInsertUpdatesFields: anInteger [
 			[session rollbackTransaction.
 			otherSession rollbackTransaction.
 			otherSession resetPermissions].
-	self assert: triedToWrite.
+	self assert: triedToWrite
+		description: 'The important asserts of this test were not reached'.
 ]
 
 { #category : #tests }
@@ -304,7 +316,7 @@ GlorpDeleteTest >> testDeleteKeyValCopy [
 
 { #category : #'delete-insert-update tests' }
 GlorpDeleteTest >> testDeleteKeyValCopyInsertIsUpdate [
-	"By definition, the key value(s) must be the same for the delete and insert are merged into an update.  In this test, the deleted object has no values for the two non-key fields."
+	"By definition, the key value(s) must be the same for the delete and insert to be merged into an update.  In this test, the deleted object has no values for the two non-key fields (even if it did and they matched those of the inserted one, the current implementation of #collapseMatchingInsertsAndDeletesFor: would still update all non-key fields, not trusting the user to supply a fully-formed object to delete since deletion only requires the primary key values)."
 
 	self
 		assertDeleteCopy: [:addr | GlorpAddress new id: addr id; yourself]
@@ -359,7 +371,7 @@ GlorpDeleteTest >> testDeleteMultipleTableWithOneMissing [
 
 { #category : #'delete-insert-update tests' }
 GlorpDeleteTest >> testDeleteOldCopyInsertNewIsUpdate [
-	"This shows how a user can mimic Glorp's memento management while deferring creating a session.  You capture a shallowCopy of the object of interest, then change the original as you wish.  By deleting the old copy and registering the changed original in the same session, you achieve the same effect as if you had registered the original in the session before you changed it:  the session treats it as an update.  The user is responsible for ensuring it is, i.e. an object of that key is already in the database.  Only the changed field would be regarded as needing update by the row if the deleted row were its oldVersion, but collapseMatchingInsertsAndDeletesFor: does not set this for fear a user could carelessly provide a deleted object that matched a changed field in the inserted object, so would not be updated.  Thus all non-key fields are always updated, even when not differing between delete and insert."
+	"This shows how a user can mimic Glorp's memento management while deferring creating a session.  You capture a shallowCopy of the object of interest, then change the original as you wish.  By deleting the old copy and registering the changed original in the same session, you achieve the same effect as if you had registered the original in the session before you changed it:  the session treats it as an update.  The user is responsible for ensuring it is in fact an update, not an insert, i.e. an object of that key is already in the database.  Only the changed field would be regarded as needing update by the row if the deleted row were its oldVersion, but #collapseMatchingInsertsAndDeletesFor: does not set this for fear a user could carelessly provide a deleted object that matched a changed field in the inserted object, so would not be updated.  Thus all non-key fields are always updated, even when not differing between delete and insert."
 
 	self
 		assertDeleteCopy: [:addr | addr shallowCopy]

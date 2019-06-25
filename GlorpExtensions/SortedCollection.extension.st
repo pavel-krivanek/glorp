@@ -1,6 +1,6 @@
 Extension { #name : #SortedCollection }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-streams' }
 SortedCollection >> writeStream [
 	^AddingWriteStream on: self.
 ]

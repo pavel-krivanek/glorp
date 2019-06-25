@@ -6,14 +6,23 @@ Class {
 		'name',
 		'folders'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-Glorp TestModels'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpUser class >> new [
 	"Answer a newly created and initialized instance."
 
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpUser class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

@@ -20,6 +20,16 @@ SubSelectBaseExpression class >> on: aBaseExpression [
 	^self new trueBase: aBaseExpression.
 ]
 
+{ #category : #'VisualWorks metadata' }
+SubSelectBaseExpression class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 SubSelectBaseExpression >> additionalExpressions [
 	"We effectively take over the join for the thing we're based on, because we want it to happen in the subselect, not in the main one."

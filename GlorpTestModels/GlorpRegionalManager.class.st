@@ -4,8 +4,18 @@ Class {
 	#instVars : [
 		'region'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpRegionalManager class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #comparing }
 GlorpRegionalManager >> = aRegionalManager [

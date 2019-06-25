@@ -8,12 +8,22 @@ Class {
 		'session',
 		'table'
 	],
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpDatabaseTypeIndividualDBTests class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseTypeIndividualDBTests class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #helpers }
@@ -122,37 +132,35 @@ GlorpDatabaseTypeIndividualDBTests >> helpTestValue: anObject compareWith: aBloc
 
 { #category : #helpers }
 GlorpDatabaseTypeIndividualDBTests >> helpTestValueWithSQLWrite: anObject compareModelWith: modelBlock compareWith: aBlock [
+
 	| dbInValue readObject row converter dbOutValue typeTestModel system dbInValue2 readObject2 command |
+
 	system := self systemFor: table.
 	session system: system.
 	row := DatabaseRow newForTable: table.
 	row owner: GlorpTypeTestsModelClass new.
-	converter := type
-		converterForStType:
-			(stType isNil
-				ifTrue: [ anObject class ]
-				ifFalse: [ stType ]).
+	converter := type converterForStType: (stType isNil ifTrue: [anObject class] ifFalse: [stType]).
 	dbOutValue := converter convert: anObject toDatabaseRepresentationAs: type.
 	row atFieldNamed: 'test' put: dbOutValue.
-	self
-		inTransactionDo: [ session writeRow: row.
-			command := SQLStringCommand new setSQLString: 'SELECT test, id FROM ' , self tableName.
-			command
-				maximumLobSizeToRetrieveDirectly:
-					((dbOutValue class = ByteArray or: [ dbOutValue isString ])
-						ifTrue: [ dbOutValue size ]
-						ifFalse: [ 42 ]).
-			dbInValue := (session accessor executeCommand: command) first atIndex: 1.
-			readObject := converter convert: dbInValue fromDatabaseRepresentationAs: type.
-			(session platform canUseInWhereClause: dbOutValue type: type)
-				ifTrue: [ dbInValue2 := self helpTestExplicitReadBackFor: dbOutValue.
-					readObject2 := converter convert: dbInValue2 fromDatabaseRepresentationAs: type ].
-			(session platform canUseInWhereClause: anObject type: type)
-				ifTrue: [ typeTestModel := self readBackModelWithValue: anObject.
-					self assert: (modelBlock value: typeTestModel value: anObject) ] ].
+	self inTransactionDo: [
+	session writeRow: row.
+
+	command := SQLStringCommand new setSQLString: 'SELECT test, id FROM ', self tableName.
+	command maximumLobSizeToRetrieveDirectly: ((dbOutValue class = ByteArray or: [dbOutValue isString]) ifTrue: [dbOutValue size] ifFalse: [42]).
+	dbInValue := (session accessor executeCommand: command) first atIndex: 1.
+	readObject := converter convert: dbInValue fromDatabaseRepresentationAs: type.
+
+	(session platform canUseInWhereClause: dbOutValue type: type) ifTrue: [
+		dbInValue2 := self helpTestExplicitReadBackFor: dbOutValue.
+		readObject2 := converter convert: dbInValue2 fromDatabaseRepresentationAs: type].
+
+	(session platform canUseInWhereClause: anObject type: type) ifTrue: [
+		typeTestModel := self readBackModelWithValue: anObject.
+		self assert: (modelBlock value: typeTestModel value: anObject)]
+	].
 	self assert: (aBlock value: readObject value: anObject).
-	readObject2 isNil
-		ifFalse: [ self assert: (aBlock value: readObject2 value: anObject) ]
+	readObject2 isNil ifFalse: [
+		self assert: (aBlock value: readObject2 value: anObject)].
 ]
 
 { #category : #helpers }
@@ -239,7 +247,11 @@ GlorpDatabaseTypeIndividualDBTests >> systemFor: aTable [
 
 { #category : #setUp }
 GlorpDatabaseTypeIndividualDBTests >> tableName [
-	^'TYPETESTS', self defaultDatabaseType selector.
+	"Oracle's table, column and constraint name limit is 30.  Since our constraint names append _PK, _UNQ to tablename, make the prefix five chars shorten and limit the whole to 25 or so."
+
+	^connection platform isOraclePlatform
+		ifTrue: ['TYPT' , self selector , self class name first: 25]
+		ifFalse: ['TYPETESTS' , self selector , self class name]
 ]
 
 { #category : #setUp }

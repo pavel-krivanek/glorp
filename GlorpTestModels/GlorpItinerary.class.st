@@ -9,7 +9,7 @@ Class {
 		'id',
 		'reservation'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -22,6 +22,15 @@ GlorpItinerary class >> example1 [
 GlorpItinerary class >> example2 [
 	^self new
 		reservation: GlorpReservation example2.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpItinerary class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

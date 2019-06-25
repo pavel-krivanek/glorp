@@ -1,27 +1,22 @@
-"
-Serial type
-
-Instance Variables
-	generated:		<Object>
-	sequence:		<Object>
-
-generated
-	- xxxxx
-
-sequence
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpSerialType,
 	#superclass : #GlorpAbstractIntegerType,
 	#instVars : [
-		'generated',
 		'sequence',
 		'increment'
 	],
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpSerialType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpSerialType >> hasParameters [
@@ -44,29 +39,18 @@ GlorpSerialType >> increment: anInteger [
 ]
 
 { #category : #initialize }
-GlorpSerialType >> initialize [
-	super initialize.
-	generated := true.
-]
-
-{ #category : #initialize }
 GlorpSerialType >> initializeForField: aDatabaseField in: aDescriptorSystem [
-	sequence isNil
-		ifFalse: [ ^ self ].
-	aDatabaseField table name = 'PARENT' ifTrue: [ Halt now ].
-	sequence := aDescriptorSystem
-		databaseSequenceNamed: (aDescriptorSystem sequenceNameForField: aDatabaseField).
-	aDatabaseField platform supportsSettingSequenceIncrement
-		ifTrue: [ increment := aDatabaseField type increment isNil
-				ifFalse: [ sequence sequenceIncrement: increment ] ].
-	sequence schema: aDatabaseField table schema
+	sequence isNil ifFalse: [^self].
+	sequence := aDescriptorSystem databaseSequenceNamed: (aDescriptorSystem sequenceNameForField: aDatabaseField).
+	aDatabaseField platform supportsSettingSequenceIncrement ifTrue:
+		[increment := aDatabaseField type increment isNil ifFalse:
+			[sequence sequenceIncrement: increment]].
+	sequence schema: aDatabaseField table schema.
 ]
 
 { #category : #accessing }
 GlorpSerialType >> isGenerated [
-	"answer if we should autogenerate a value for this type, i.e. if it is a database-generated primary key column"
-
-	^generated
+	^true
 ]
 
 { #category : #testing }
@@ -85,6 +69,11 @@ GlorpSerialType >> isSerial [
 GlorpSerialType >> postWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor [
 
 	^sequence postWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor.
+]
+
+{ #category : #sequencing }
+GlorpSerialType >> postWriteAssignSequenceValueFor: aDatabaseField inRows: someDatabaseRows using: anAccessor [
+	^sequence postWriteAssignSequenceValueFor: aDatabaseField inRows: someDatabaseRows using: anAccessor
 ]
 
 { #category : #sequencing }

@@ -18,10 +18,11 @@ Class {
 	#category : #GlorpCore
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 CachePolicy class >> default [
-	"Use of the WeakVWCache is tied in with Ephemera which we do not expect to get working in VW3."
+	"Use of the WeakVWCachePolicy is tied in with Ephemera which we do not expect to get working in VW3."
 
+	Dialect isVWWithNameSpaces ifTrue: [^WeakVWCachePolicy new].
 	^self new
 ]
 
@@ -29,6 +30,15 @@ CachePolicy class >> default [
 CachePolicy class >> new [
 
 	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+CachePolicy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'wrap/unwrap' }

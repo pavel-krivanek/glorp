@@ -5,12 +5,22 @@ Class {
 		'system',
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }
 GlorpReadingDifferentCollectionsThroughMappingsTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource with: GlorpSessionResource.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpReadingDifferentCollectionsThroughMappingsTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #setup }

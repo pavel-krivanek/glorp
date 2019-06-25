@@ -14,8 +14,18 @@ Class {
 		'stToDb',
 		'dbToSt'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp-PostgreSQL'
 }
+
+{ #category : #'VisualWorks metadata' }
+PluggableDatabaseConverter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #converting }
 PluggableDatabaseConverter >> convert: anObject fromDatabaseRepresentationAs: aDatabaseType [ 

@@ -7,7 +7,7 @@ Class {
 		'frequentFlyerMiles',
 		'airline'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -28,6 +28,15 @@ GlorpPassenger class >> example2 [
 		name: 'Some Other Passenger';
 		frequentFlyerPoints: 7;
 		airline: GlorpAirline example2.
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpPassenger class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

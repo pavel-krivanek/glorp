@@ -26,6 +26,15 @@ DatabaseConverter class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+DatabaseConverter class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 DatabaseConverter >> convert: anObject fromDatabaseRepresentationAs: aDatabaseType [ 
 	self subclassResponsibility

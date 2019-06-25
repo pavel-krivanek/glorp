@@ -14,8 +14,17 @@ Class {
 		'name',
 		'agents'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpTravelAgency class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
 
 { #category : #comparing }
 GlorpTravelAgency >> = aGlorpTravelAgency [

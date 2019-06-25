@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'supportsGroupWritingValues'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #accessing }
@@ -15,11 +15,21 @@ SQLServerPlatform class >> kind [
 	^'Microsoft SQL Server'
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #constants }
 SQLServerPlatform class >> reservedWords [
 
 	^#('@@identity' 'add' 'all' 'alter' 'and' 'any' 'as' 'asc' 'authorization' 'avg' 'backup' 'begin' 'between' 'break' 'browse' 'bulk' 'by' 'cascade' 'case' 'check' 'checkpoint' 'close' 'clustered' 'coalesce' 'collate' 'column' 'commit' 'compute' 'constraint' 'contains' 'containstable' 'continue' 'convert' 'count' 'create' 'cross' 'current' 'current_date' 'current_time' 'current_timestamp' 'current_user' 'cursor' 'database' 'databasepassword' 'dateadd' 'datediff' 'datename' 'datepart' 'dbcc' 'deallocate' 'declare' 'default' 'delete' 'deny' 'desc' 'disk' 'distinct' 'distributed' 'double' 'drop' 'dump' 'else' 'encryption' 'end' 'errlvl' 'escape' 'except' 'exec' 'execute' 'exists' 'exit' 'expression' 'fetch' 'file' 'fillfactor' 'for' 'foreign' 'freetext' 'freetexttable' 'from' 'full' 'function' 'goto' 'grant' 'group' 'having' 'holdlock' 'identity' 'identity_insert' 'identitycol' 'if' 'in' 'index' 'inner' 'insert' 'intersect' 'into' 'is' 'join' 'key' 'kill' 'left' 'like' 'lineno' 'load' 'max' 'min' 'national' 'nocheck' 'nonclustered' 'not' 'null' 'nullif' 'of' 'off' 'offsets' 'on' 'open' 'opendatasource' 'openquery' 'openrowset' 'openxml' 'option' 'or' 'order' 'outer' 'over' 'percent' 'plan' 'precision' 'primary' 'print' 'proc' 'procedure' 'public' 'raiserror' 'read' 'readtext' 'reconfigure' 'references' 'replication' 'restore' 'restrict' 'return' 'revoke' 'right' 'rollback' 'rowcount' 'rowguidcol' 'rule' 'save' 'schema' 'select' 'session_user' 'set' 'setuser' 'shutdown' 'some' 'statistics' 'sum' 'system_user' 'table' 'textsize' 'then' 'to' 'top' 'tran' 'transaction' 'trigger' 'truncate' 'tsequal' 'union' 'unique' 'update' 'updatetext' 'use' 'user' 'values' 'varying' 'view' 'waitfor' 'when' 'where' 'while' 'with' 'writetext')
 		asSet
+]
+
+{ #category : #'VisualWorks metadata' }
+SQLServerPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
 ]
 
 { #category : #constants }
@@ -30,8 +40,7 @@ SQLServerPlatform >> areSequencesExplicitlyCreated [
 
 { #category : #binding }
 SQLServerPlatform >> bindingsForGroupWritingFor: aCommand [
-	"Return the bindings array for a group write. This can be in different formats, depending on the database and perhaps the mechanism in place."
-	^aCommand batchStatementBindings.
+	^aCommand arrayBindings
 ]
 
 { #category : #types }
@@ -61,8 +70,6 @@ SQLServerPlatform >> booleanToBooleanConverter [
 
 { #category : #constants }
 SQLServerPlatform >> capitalWritingOfTableName [
-	"^<Boolean>"
-
 	^false
 ]
 
@@ -120,18 +127,17 @@ SQLServerPlatform >> createAlterColumnStatement: aField setDefault: anObject [
 		nextPutAll:  'ALTER TABLE';
 		space.
 	self printDDLTableNameFor: aField table on: sqlStatementStream.
-
 	sqlStatementStream
 		nextPutAll:  ' ALTER COLUMN';
 		space;
 		nextPutAll: (self nameForColumn: aField name);
 		space;
-		nextPutAll:  'DEFAULT ';
+		nextPutAll:  'DEFAULT';
 		space.
 	anObject printOn: sqlStatementStream.
 	sqlStatementStream
-		nextPutAll:  ' WITH VALUES'.
-	
+		space;
+		nextPutAll:  'WITH VALUES'.
 	^sqlStatementStream contents
 ]
 
@@ -196,6 +202,42 @@ SQLServerPlatform >> createAlterColumnStatementSetNotNull: aField [
 
 	
 	^sqlStatementStream contents
+]
+
+{ #category : #'services constraints' }
+SQLServerPlatform >> createConstraintAddStatement: aConstraint [
+	| sqlStatementStream strings |
+	aConstraint shouldCreateInDatabase ifFalse: [^''].
+	sqlStatementStream := WriteStream on: String new.
+	sqlStatementStream
+		nextPutAll: 'ALTER TABLE';
+		space.
+	self printDDLTableNameFor: aConstraint table on: sqlStatementStream.
+	strings := aConstraint creationStringFor: self.
+	sqlStatementStream nextPutAll: ' ADD ' , strings first.
+	(strings allButFirst: 1) do:
+		[:each |
+		sqlStatementStream
+			nextPut: $,;
+			nextPutAll: each].
+	^sqlStatementStream contents
+]
+
+{ #category : #'services constraints' }
+SQLServerPlatform >> createConstraintDropStatement: aConstraint [
+	"On SQLServerPlatform, if aConstraint is a primary key constraint then there will also be a unique constraint."
+
+	| nonPkConstraintDropString |
+	nonPkConstraintDropString := super createConstraintDropStatement: aConstraint.
+	nonPkConstraintDropString isEmpty ifTrue: [^nonPkConstraintDropString].
+	"If it's not a primary key, we're done."
+	aConstraint isPrimaryKeyConstraint ifFalse: [^nonPkConstraintDropString].
+	^(String new: 32) writeStream
+		nextPutAll: nonPkConstraintDropString;
+		nextPutAll: ', CONSTRAINT ';
+		nextPutAll: aConstraint table name;
+		nextPutAll: '_UNIQ';
+		contents
 ]
 
 { #category : #sequences }
@@ -303,12 +345,31 @@ SQLServerPlatform >> initializeFunctions [
 	dbSpecificNotExists selectListVersion: selectList.
 	dbSpecificNotExists type: self integer.
 	functions at: #notExists: put: dbSpecificNotExists.
+	"Overwrite existing LENGTH() function as LEN()."
+	functions at: #length put: ((PrefixFunction named: 'LEN') type: self integer).
 ]
 
 { #category : #constants }
 SQLServerPlatform >> initializeReservedWords [
 	super initializeReservedWords.
 	reservedWords add: 'key'.
+]
+
+{ #category : #commands }
+SQLServerPlatform >> insertCommandForRows: aCollectionOfDatabaseRows binding: aBoolean session: aSession [
+	"I can group ;-separated INSERT statements or (if I am new enough - version 10 or later) ,-separated values following a single INSERT statement.  When bound, the same applies but I can also bind an array of values to a single INSERT statement. As array binding is fastest, use an array of values when bound, a sequence of values when unbound.  I answer true to usesIdentityColumns;  if I am writing to a serial type (an identity column), the server will assign the value(s) which I retrieve in the same round-trip (when the round trip has multiple rows, retrieving assigned values in the same round trip is the only way I can retrieve them)."
+
+	^(aBoolean or: [self supportsGroupWritingValues])
+		ifTrue: [InsertSelectRowsCommand
+				forRows: aCollectionOfDatabaseRows
+				useBinding: aBoolean
+				session: aSession
+				ifNoIdentityColumn: InsertMultiValuesCommand]
+		ifFalse: [InsertSelectRowCommand
+				forRows: aCollectionOfDatabaseRows
+				useBinding: aBoolean
+				session: aSession
+				ifNoIdentityColumn: InsertCommand]
 ]
 
 { #category : #types }
@@ -366,9 +427,8 @@ SQLServerPlatform >> maximumLengthOfTableName [
 ]
 
 { #category : #binding }
-SQLServerPlatform >> maximumSizeToGroupWriteFor: aCollectionOfDatabaseRows [
-	"If we are going to group write, how many rows of this collection should we do it for at once"
-	^aCollectionOfDatabaseRows size min: 250.
+SQLServerPlatform >> maximumSizeToGroupWriteFor: aRowBasedCommand [
+	^250 min: (super maximumSizeToGroupWriteFor: aRowBasedCommand)
 ]
 
 { #category : #types }
@@ -395,6 +455,15 @@ SQLServerPlatform >> numeric [
 { #category : #types }
 SQLServerPlatform >> nvarchar [
 	^self typeNamed: #nvarchar ifAbsentPut: [GlorpVarCharType new typeString: 'nvarchar'].
+]
+
+{ #category : #login }
+SQLServerPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	"SQL Server began supporting group writing with the VALUES clause in version 10.0"
+
+	| dbmsVersion |
+	dbmsVersion := aDatabaseAccessor connection dbmsVersion tokensBasedOn: $..
+	supportsGroupWritingValues := dbmsVersion first asNumber > 9.
 ]
 
 { #category : #'conversion-strings' }
@@ -456,6 +525,18 @@ SQLServerPlatform >> printSqlStatementToListTablesInSchema: schemaString on: aSt
 		nextPutAll: schema;
 		nextPutAll: 'INFORMATION_SCHEMA.TABLES ';
 		nextPut: $;
+]
+
+{ #category : #'services tables' }
+SQLServerPlatform >> printSqlStatementToTestExistenceOfSQLServerDatabase: schemaString on: aStream [
+	"This query will check only for the existence of a database that the logged on user has access to (eg., NEWBERN1)."
+
+	aStream
+		nextPutAll: 'SELECT count(*) FROM ';
+		nextPutAll: 'sys.databases WHERE name = ';
+		nextPut: $';
+		nextPutAll: schemaString;
+		nextPut: $'
 ]
 
 { #category : #'services tables' }
@@ -555,6 +636,16 @@ SQLServerPlatform >> serial [
 	^self typeNamed: #serial ifAbsentPut: [GlorpSerialType new typeString: 'int  IDENTITY (1, 1) '].
 ]
 
+{ #category : #'services tables' }
+SQLServerPlatform >> sqlStatementToTestExistenceOfSchema: schemaString [
+	"Although the method name indicates 'schema', the equivalent in SQL Server is called a 'database', and yet there is also a schema concept in SQL Server, which is more like 'owner', and can include mutliple databases. For example, BERN might be the owner and also the schema, which would include databases NEWBERN1, NEWBERN2.  This method presumes that the sender is interested in databases, and the query will test only for databases that the logged on user has access to."
+
+	| stream |
+	stream := WriteStream on: String new.
+	self printSqlStatementToTestExistenceOfSQLServerDatabase: schemaString on: stream.
+	^stream contents
+]
+
 { #category : #constants }
 SQLServerPlatform >> sqlTextCurrentServerUTCTimestamp [
 
@@ -575,6 +666,13 @@ SQLServerPlatform >> supportsANSIJoins [
 ]
 
 { #category : #testing }
+SQLServerPlatform >> supportsBinding [
+	"Binding works only with VW EXDI so far.  Reuse of prepared statements is set to false by default (see my class-side)."
+
+	^Dialect isVisualWorks.
+]
+
+{ #category : #testing }
 SQLServerPlatform >> supportsDecimalsOnAllNumerics [
 	"Return true if a general 'numeric' type will allow numbers after the decimal place"
 	^false.
@@ -582,7 +680,15 @@ SQLServerPlatform >> supportsDecimalsOnAllNumerics [
 
 { #category : #testing }
 SQLServerPlatform >> supportsGroupWritingFor: aCommand [
-	^aCommand supportsGroupWriting.
+	^aCommand supportsGroupWriting and:
+		[self useBinding or: [aCommand needsRowCount not]]
+]
+
+{ #category : #testing }
+SQLServerPlatform >> supportsGroupWritingValues [
+	"I support it in version 10 and after."
+
+	^supportsGroupWritingValues ifNil: [false]
 ]
 
 { #category : #testing }
@@ -601,6 +707,14 @@ SQLServerPlatform >> supportsMillisecondsInTimes [
 SQLServerPlatform >> supportsMultipleOpenCursors [
 	"Can this database support multiple open cursors at once"
 	^false.
+]
+
+{ #category : #testing }
+SQLServerPlatform >> supportsRowCountFor: aRowBasedCommand [
+	"If SQLServer is not bound then it can send batched insert and update statements to te server but will only return the result set and rowCount of the last statement in the batch.  (Strangely, when it sends batched selects, it can recover the answer sets for each select and recover the rowCount of each _except_ the last select in the batch, for which rowCount returns zero.)  Thus its rowCount is unreliable when unbound if more than one batched statement is involved: a batch of several attempted UPDATEs wil return a rowCount of 0 or 1 for the last UPDATE only, and will return #noMoreAnswers if #answer is sent again."
+
+	^(self useBinding and: [aRowBasedCommand useBinding])
+		or: [aRowBasedCommand expectedNumberOfModifiedRows < 2]
 ]
 
 { #category : #testing }
@@ -667,15 +781,10 @@ SQLServerPlatform >> useMicrosoftOuterJoins [
 ]
 
 { #category : #testing }
-SQLServerPlatform >> usesArrayBindingRatherThanGroupWriting [
-	"Return true if we use array binding for grouped writes rather than printing the sql multiple times. Only applies if we support grouped writes"
-	^false.
-]
+SQLServerPlatform >> usesArrayBindingToGroupWrite [
+	"SQLServer supports array binding to group-write when bound.  As it is the most performant way to group-write, we use it in that case."
 
-{ #category : #testing }
-SQLServerPlatform >> usesArrayBindingRatherThanGrouping [
-	"Return true if we use array binding for grouped writes rather than printing the sql multiple times. Only applies if we support grouped writes"
-	^false.
+	^true
 ]
 
 { #category : #testing }

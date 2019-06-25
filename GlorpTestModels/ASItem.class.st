@@ -9,9 +9,18 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 ASItem class >> new [
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+ASItem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

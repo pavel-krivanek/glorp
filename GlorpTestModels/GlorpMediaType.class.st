@@ -5,12 +5,21 @@ Class {
 		'name',
 		'mimeType'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpMediaType class >> text [
 	^self new name: 'text'; mimeType: 'text/plain'
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpMediaType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

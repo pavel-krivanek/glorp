@@ -6,3 +6,12 @@ Class {
 	#superclass : #Object,
 	#category : #GlorpCollectionTypeModels
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpCollectionTypeModelsPackage class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]

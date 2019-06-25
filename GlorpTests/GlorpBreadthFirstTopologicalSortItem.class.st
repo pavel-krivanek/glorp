@@ -10,11 +10,20 @@ Class {
 	#category : #GlorpTests
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpBreadthFirstTopologicalSortItem class >> new [
 	"Answer a newly created and initialized instance."
 
 	^super new initialize
+]
+
+{ #category : #'VisualWorks metadata' }
+GlorpBreadthFirstTopologicalSortItem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #accessing }

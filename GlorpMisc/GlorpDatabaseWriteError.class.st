@@ -16,8 +16,18 @@ Class {
 		'databaseError',
 		'accessor'
 	],
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-GlorpCore'
 }
+
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseWriteError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #accessing }
 GlorpDatabaseWriteError >> accessor [

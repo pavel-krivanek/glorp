@@ -12,8 +12,18 @@ Class {
 	#instVars : [
 		'isInTransaction'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp-VW3'
 }
+
+{ #category : #'VisualWorks metadata' }
+SqueakDatabaseAccessor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #executing }
 SqueakDatabaseAccessor >> basicExecuteSQLString: aString [

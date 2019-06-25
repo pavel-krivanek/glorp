@@ -21,8 +21,18 @@ Class {
 		'otherwiseCase',
 		'conditionalFieldMapping'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
+
+{ #category : #'VisualWorks metadata' }
+ConditionalMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
 
 { #category : #mapping }
 ConditionalMapping >> applicableMappingForConditionalValue: rowValue [
@@ -33,14 +43,14 @@ ConditionalMapping >> applicableMappingForConditionalValue: rowValue [
 				ifTrue: [each key value: rowValue]
 				ifFalse: [self descriptor system perform: each key with: rowValue])
 				ifTrue: [^each value]].
-	^otherwiseCase
+	^otherwiseCase.
 ]
 
 { #category : #mapping }
 ConditionalMapping >> applicableMappingForObject: anObject [
 	| conditionalValue |
 	conditionalValue := self conditionalValueFor: anObject.
-	^self applicableMappingForConditionalValue: conditionalValue
+	^self applicableMappingForConditionalValue: conditionalValue.
 ]
 
 { #category : #mapping }
@@ -50,31 +60,31 @@ ConditionalMapping >> applicableMappingForRow: anArray in: anElementBuilder [
 	rowValue := conditionalField isNil
 		ifFalse: [anElementBuilder valueOfField: conditionalField in: anArray]
 		ifTrue: [anArray].
-	^self applicableMappingForConditionalValue: rowValue
+	^self applicableMappingForConditionalValue: rowValue.
 ]
 
 { #category : #accessing }
 ConditionalMapping >> attributeName [
-	^self representativeMapping attributeName
+	^self representativeMapping attributeName.
 ]
 
 { #category : #accessing }
 ConditionalMapping >> cases [
-	^cases
+	^cases.
 ]
 
 { #category : #accessing }
 ConditionalMapping >> casesDo: aBlock [
 	"Iterate over all of our cases"
 	cases do: [:each | aBlock value: each value].
-	aBlock value: otherwiseCase
+	aBlock value: otherwiseCase.
 ]
 
 { #category : #accessing }
 ConditionalMapping >> conditionalField: aField [
 
 	(conditionalField notNil and: [conditionalField ~~ aField]) ifTrue: [self error: 'You can only test one field in a conditional mapping'].
-	conditionalField := aField
+	conditionalField := aField.
 ]
 
 { #category : #accessing }
@@ -87,25 +97,25 @@ ConditionalMapping >> conditionalFieldMapping: aMapping [
 	"This is a write-only mapping for the conditional field value, which writes out the result of performing the conditional method"
 	conditionalFieldMapping := aMapping.
 	descriptor isNil ifFalse: [aMapping descriptor: descriptor].
-	(descriptor mappings includes: aMapping) ifTrue: [self error: 'Mapping is part of a conditional and part of the main descriptor. Be sure to send newMapping: to the conditional, not to the descriptor']
+	(descriptor mappings includes: aMapping) ifTrue: [self error: 'Mapping is part of a conditional and part of the main descriptor. Be sure to send newMapping: to the conditional, not to the descriptor'].
 ]
 
 { #category : #accessing }
 ConditionalMapping >> conditionalMethod: aSymbol [
 	(conditionalMethod notNil and: [conditionalMethod ~~ aSymbol]) ifTrue: [self error: 'You can only test one attribute in a conditional mapping'].
-	conditionalMethod := aSymbol
+	conditionalMethod := aSymbol.
 ]
 
 { #category : #mapping }
 ConditionalMapping >> conditionalValueFor: anObject [
 	^(Dialect isBlock: conditionalMethod)
 		ifTrue: [conditionalMethod value: anObject]
-		ifFalse: [anObject perform: conditionalMethod]
+		ifFalse: [anObject perform: conditionalMethod].
 ]
 
 { #category : #testing }
 ConditionalMapping >> controlsTables [
-	^self cases first value controlsTables
+	^self cases first value controlsTables.
 ]
 
 { #category : #accessing }
@@ -114,24 +124,24 @@ ConditionalMapping >> descriptor: aDescriptor [
 	super descriptor: aDescriptor.
 	cases do: [:each | each value descriptor: aDescriptor].
 	otherwiseCase isNil ifFalse: [otherwiseCase descriptor: aDescriptor].
-	conditionalFieldMapping isNil ifFalse: [conditionalFieldMapping descriptor: aDescriptor]
+	conditionalFieldMapping isNil ifFalse: [conditionalFieldMapping descriptor: aDescriptor].
 ]
 
 { #category : #accessing }
 ConditionalMapping >> field [
-	^self mappedFields asArray first
+	^self mappedFields asArray first.
 ]
 
 { #category : #conditions }
 ConditionalMapping >> forField: aField attribute: attributeBlock if: testBlock useMapping: aMapping [
 	self conditionalField: aField.
 	self conditionalMethod: attributeBlock.
-	self if: testBlock then: aMapping
+	self if: testBlock then: aMapping.
 ]
 
 { #category : #testing }
 ConditionalMapping >> hasField [
-	^self mappedFields size = 1
+	^self mappedFields size = 1.
 ]
 
 { #category : #conditions }
@@ -139,7 +149,7 @@ ConditionalMapping >> if: conditionSelector then: aMapping [
 
 	cases add: (Association key: conditionSelector value: aMapping).
 	descriptor isNil ifFalse: [aMapping descriptor: descriptor].
-	(descriptor mappings includes: aMapping) ifTrue: [self error: 'Mapping is part of a conditional and part of the main descriptor. Be sure to send newMapping: to the conditional, not to the descriptor']
+	(descriptor mappings includes: aMapping) ifTrue: [self error: 'Mapping is part of a conditional and part of the main descriptor. Be sure to send newMapping: to the conditional, not to the descriptor'].
 ]
 
 { #category : #'initialize/release' }
@@ -158,7 +168,7 @@ ConditionalMapping >> isRelationship [
 { #category : #preparing }
 ConditionalMapping >> joinExpressionFor: anExpression [
 
-	^self representativeMapping joinExpressionFor: anExpression
+	^self representativeMapping joinExpressionFor: anExpression.
 ]
 
 { #category : #mapping }
@@ -177,7 +187,7 @@ ConditionalMapping >> mapFromObject: anObject intoRowsIn: aRowMap [
 ConditionalMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
 	(self applicableMappingForRow: anElementBuilder row in: anElementBuilder)
 		mapObject: anObject
-		inElementBuilder: anElementBuilder
+		inElementBuilder: anElementBuilder.
 ]
 
 { #category : #accessing }
@@ -186,11 +196,11 @@ ConditionalMapping >> mappedFields [
 	| all |
 	all := Set new.
 	conditionalFieldMapping isNil 
-		ifTrue: [conditionalField ifNotNil: [all add: conditionalField]]
+		ifTrue: [all add: conditionalField]
 		ifFalse: [all addAll: conditionalFieldMapping mappedFields].
 	cases do: [:each |
 		all addAll: each value mappedFields].
-	^all
+	^all.
 ]
 
 { #category : #mapping }
@@ -200,12 +210,12 @@ ConditionalMapping >> newMapping: aMappingClass [
 	mapping := aMappingClass new.
 	mapping descriptor: self descriptor.
 	descriptor resetMappedFields.
-	^mapping
+	^mapping.
 ]
 
 { #category : #accessing }
 ConditionalMapping >> otherwise [
-	^otherwiseCase
+	^otherwiseCase.
 ]
 
 { #category : #conditions }
@@ -213,12 +223,12 @@ ConditionalMapping >> otherwise: aMapping [
 
 	otherwiseCase := aMapping.
 	descriptor isNil ifFalse: [otherwiseCase descriptor: descriptor].
-	(descriptor mappings includes: aMapping) ifTrue: [self error: 'Mapping is part of a conditional and part of the main descriptor. Be sure to send newMapping: to the conditional, not to the descriptor']
+	(descriptor mappings includes: aMapping) ifTrue: [self error: 'Mapping is part of a conditional and part of the main descriptor. Be sure to send newMapping: to the conditional, not to the descriptor'].
 ]
 
 { #category : #accessing }
 ConditionalMapping >> referenceClass [
-	^self representativeMapping referenceClass
+	^self representativeMapping referenceClass.
 ]
 
 { #category : #mapping }
@@ -228,13 +238,13 @@ ConditionalMapping >> referencedIndependentObjectsFrom: anObject [
 	allReferencedObjects := OrderedCollection new.
 	cases do: [:each | 
 		allReferencedObjects addAll: (each value referencedIndependentObjectsFrom: anObject)].
-	^allReferencedObjects
+	^allReferencedObjects.
 ]
 
 { #category : #accessing }
 ConditionalMapping >> representativeMapping [
 	"At some points we may need to have this mapping behave some way without knowing yet which of its cases is satisfied. We assume that there is some basic level of similarity so that we can use one mapping as a representative to discover, e.g. what the reference class is. This works all right for cases where we have a mapping or a constant. It wouldn't work very well if we have a one to one mapping to one class in case (a) but a many-many to an entirely different class in the other"
-	^cases first value
+	^cases first value.
 ]
 
 { #category : #conditions }
@@ -244,7 +254,7 @@ ConditionalMapping >> trace: aTracing context: anExpression [
 	conditionalFieldMapping isNil ifFalse: [
 		conditionalFieldMapping trace: aTracing context: anExpression].
 	cases do: [:each |
-		each value trace: aTracing context: anExpression]
+		each value trace: aTracing context: anExpression].
 ]
 
 { #category : #validation }
