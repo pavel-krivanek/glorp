@@ -19,6 +19,7 @@ BaselineOfGlorp >> baseline: spec [
 			package: 'GlorpMappings';
 			package: 'GlorpMisc';
 			package: 'GlorpQueries';
+			package: 'GlorpQueries-Pharo';
 			package: 'GlorpUnitOfWork';
 
 			package: 'GlorpPharoPort';
