@@ -76,6 +76,16 @@ Proxy class >> returningOneOf: aClass where: aBlock in: aSession [
 	^self readOneOf: aClass where: aBlock in: aSession
 ]
 
+{ #category : #'VisualWorks metadata' }
+Proxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 Proxy >> = anObject [
 	"In VA we inherit this as identity. Need to override"

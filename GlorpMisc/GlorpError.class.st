@@ -39,6 +39,15 @@ GlorpError class >> signal: aString [
 	^self new signal: aString.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #testing }
 GlorpError >> ancestorOf: anExceptionThingy [
 	"VA Compatibility"

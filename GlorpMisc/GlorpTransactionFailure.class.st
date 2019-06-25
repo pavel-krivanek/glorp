@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpMisc
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTransactionFailure class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpTransactionFailure >> defaultMessageText [
 	^'Optimistic Lock Conflict'.

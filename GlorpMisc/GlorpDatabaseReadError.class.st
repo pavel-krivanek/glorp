@@ -24,6 +24,16 @@ GlorpDatabaseReadError class >> mayResume [
 	^true.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseReadError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpDatabaseReadError >> accessor [
 	^accessor

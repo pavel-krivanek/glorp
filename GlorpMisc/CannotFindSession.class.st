@@ -13,6 +13,16 @@ CannotFindSession class >> mayResume [
 	^true.
 ]
 
+{ #category : #'VisualWorks metadata' }
+CannotFindSession class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #printing }
 CannotFindSession >> defaultMessageText [
 	^'Cannot find the right session to use - send the #session: message first.'.

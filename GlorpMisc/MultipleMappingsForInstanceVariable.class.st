@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpMisc
 }
 
+{ #category : #'VisualWorks metadata' }
+MultipleMappingsForInstanceVariable class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 MultipleMappingsForInstanceVariable >> attributeNames [
 	^attributeNames

@@ -15,6 +15,16 @@ ValidationError class >> mayResume [
 	^true
 ]
 
+{ #category : #'VisualWorks metadata' }
+ValidationError class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #printing }
 ValidationError >> description [
 	^self messageText

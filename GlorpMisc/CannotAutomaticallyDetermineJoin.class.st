@@ -18,6 +18,16 @@ Class {
 	#category : #GlorpMisc
 }
 
+{ #category : #'VisualWorks metadata' }
+CannotAutomaticallyDetermineJoin class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 CannotAutomaticallyDetermineJoin >> constraints [
 	constraints isNil ifTrue: [constraints := #()].

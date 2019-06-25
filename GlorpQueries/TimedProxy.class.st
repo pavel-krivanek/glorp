@@ -23,6 +23,16 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+TimedProxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 TimedProxy >> class [
 	^TimedProxy.

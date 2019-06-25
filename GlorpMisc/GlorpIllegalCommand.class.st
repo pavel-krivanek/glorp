@@ -15,6 +15,16 @@ Class {
 	#category : #GlorpMisc
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpIllegalCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpIllegalCommand >> command [
 	^command

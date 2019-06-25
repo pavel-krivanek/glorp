@@ -12,7 +12,7 @@ Class {
 		'lastSystemTime',
 		'lastServerTime'
 	],
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-Kernel-Support'
 }
 
 { #category : #dates }
@@ -411,6 +411,15 @@ Dialect class >> totalSeconds [
 Dialect class >> unbindableClassNames [
 
 	^ #()
+]
+
+{ #category : #'VisualWorks metadata' }
+Dialect class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #'general portability' }

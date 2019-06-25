@@ -15,6 +15,16 @@ Class {
 	#category : #GlorpMisc
 }
 
+{ #category : #'VisualWorks metadata' }
+NoTableFound class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 NoTableFound >> expectedTables [
 	^expectedTables

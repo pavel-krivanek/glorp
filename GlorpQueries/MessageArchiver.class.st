@@ -36,6 +36,15 @@ MessageArchiver class >> receiver: aMessageCollector selector: aSymbol arguments
 		arguments: aCollection.
 ]
 
+{ #category : #'VisualWorks metadata' }
+MessageArchiver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #doesNotUnderstand }
 MessageArchiver >> = anObject [
 	"Needed because VA's abtObservableWrapper implements =. Should be portable."

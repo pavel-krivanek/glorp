@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+SQLite3Proxy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 SQLite3Proxy >> class [
 	^SQLite3Proxy

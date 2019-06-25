@@ -35,6 +35,15 @@ Tracing class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+Tracing class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 Tracing >> addExpression: anExpression [
 	self addExpression: anExpression andDo: [:ignore |].

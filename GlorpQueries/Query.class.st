@@ -122,6 +122,15 @@ Query class >> returningOneOf: aClass where: anExpression [
 	^self readOneOf: aClass where: anExpression
 ]
 
+{ #category : #'VisualWorks metadata' }
+Query class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 Query >> collectionType [
 	"Note that queries default the collection type to array, while mappings default to OrderedCollection. I think it makes sense"

@@ -82,6 +82,16 @@ RecursiveQuery class >> read: aClass where: anExpression retrieveAll: anArray th
 		yourself
 ]
 
+{ #category : #'VisualWorks metadata' }
+RecursiveQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 RecursiveQuery >> addBoundExpressionsIn: aCommand [
 	unionQuery addBoundExpressionsIn: aCommand.

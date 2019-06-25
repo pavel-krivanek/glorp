@@ -24,6 +24,16 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+SimpleQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #preparing }
 SimpleQuery >> addAllOrderingsForBuilder: aBuilder [
 	

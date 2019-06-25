@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpQueries
 }
 
+{ #category : #'VisualWorks metadata' }
+ReadQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 ReadQuery >> asQueryWithNullsForOtherClasses: aClass [
 	"Construct a specialized form of the query that's set up to retrieve instances of aClass, but with a bunch of empty fields that get populated with nulls, so we can retrieve several different classes at the same go."

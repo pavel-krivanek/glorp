@@ -22,6 +22,16 @@ GlorpWriteFailure class >> mayResume [
 	^true.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpWriteFailure class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpWriteFailure >> command [
 	^command

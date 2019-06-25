@@ -14,6 +14,16 @@ SQLite3PragmaQuery class >> newQuery [
 	"^super newQuery"
 ]
 
+{ #category : #'VisualWorks metadata' }
+SQLite3PragmaQuery class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'sql generation' }
 SQLite3PragmaQuery >> printWhereClauseOn: aCommand [
 
