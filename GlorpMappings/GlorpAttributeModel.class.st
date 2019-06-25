@@ -73,6 +73,15 @@ GlorpAttributeModel class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpAttributeModel class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #knitting }
 GlorpAttributeModel >> add: anObject to: aCollection in: ourObject [
 	"If this is an array we can't just add to it, we must concatenate and re-set the value"

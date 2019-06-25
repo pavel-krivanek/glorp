@@ -11,6 +11,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+DynamicDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 DynamicDescriptorSystem >> addEmptyDescriptorFor: aClass [ 
 	| descriptor |

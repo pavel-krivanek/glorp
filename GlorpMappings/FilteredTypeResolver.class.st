@@ -14,6 +14,16 @@ FilteredTypeResolver class >> forRootClass: aClass [
 		yourself.
 ]
 
+{ #category : #'VisualWorks metadata' }
+FilteredTypeResolver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 FilteredTypeResolver >> allTablesFor: aDescriptor [
 	"Return all tables used by this descriptor or its subclasses. Since all our subclasses use a single table, this is the same as for a normal descriptor."

@@ -24,6 +24,15 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+TypeResolver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 TypeResolver >> addMember: aDescriptor [
 	members isNil ifTrue: [members := OrderedCollection new].

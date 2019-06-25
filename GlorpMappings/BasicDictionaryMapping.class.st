@@ -6,3 +6,13 @@ Class {
 	#superclass : #DictionaryMapping,
 	#category : #GlorpMappings
 }
+
+{ #category : #'VisualWorks metadata' }
+BasicDictionaryMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

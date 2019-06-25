@@ -21,6 +21,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+BasicTypeResolver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #private }
 BasicTypeResolver >> allDescribedConcreteClasses [
 	self subclassDescriptorsBuilt ifFalse: [self forceSubclassDescriptorLoads].

@@ -19,6 +19,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+ConstantMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 ConstantMapping >> constantValue [
 	^constantValue

@@ -17,6 +17,16 @@ HorizontalTypeResolver class >> forRootClass: aClass [
 		yourself
 ]
 
+{ #category : #'VisualWorks metadata' }
+HorizontalTypeResolver class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 HorizontalTypeResolver >> allTablesFor: aDescriptor [
 	"Return all tables used by this descriptor or its subclasses."

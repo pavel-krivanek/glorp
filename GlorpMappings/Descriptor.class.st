@@ -40,6 +40,15 @@ Descriptor class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+Descriptor class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 Descriptor >> addMapping: aMapping [ 
 	self basicAddMapping: aMapping.

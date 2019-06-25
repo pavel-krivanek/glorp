@@ -24,6 +24,16 @@ HorizontalTypeMapping class >> forClass: aClass [
 		yourself
 ]
 
+{ #category : #'VisualWorks metadata' }
+HorizontalTypeMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #mapping }
 HorizontalTypeMapping >> allDescribedConcreteClasses [
 	| col |

@@ -17,6 +17,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+ToManyMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #mapping }
 ToManyMapping >> buildGeneralQueryIn: anObjectBuilder [
 	| newQuery |

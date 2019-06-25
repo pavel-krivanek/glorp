@@ -8,3 +8,13 @@ Class {
 	#superclass : #ToManyMapping,
 	#category : #GlorpMappings
 }
+
+{ #category : #'VisualWorks metadata' }
+OneToManyMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

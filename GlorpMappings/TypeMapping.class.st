@@ -13,6 +13,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+TypeMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #mapping }
 TypeMapping >> addTypeMappingCriteriaTo: collection in: expression [
 	^self

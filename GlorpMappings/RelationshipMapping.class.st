@@ -37,6 +37,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+RelationshipMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #mapping }
 RelationshipMapping >> addPhantomMappingExpressionOn: base [ 
 	| phantomMapping phantomMappingName phantomExpression |

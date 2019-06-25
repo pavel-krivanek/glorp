@@ -15,6 +15,16 @@ Class {
 	#category : #GlorpMappings
 }
 
+{ #category : #'VisualWorks metadata' }
+DirectToManyMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 DirectToManyMapping >> attributeName: anAttributeName [
 	^self attributeName: anAttributeName referenceClass: nil

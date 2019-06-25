@@ -25,6 +25,16 @@ FilteredTypeMapping class >> to: field keyedBy: key [
 		field: field keyedBy: key
 ]
 
+{ #category : #'VisualWorks metadata' }
+FilteredTypeMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #mapping }
 FilteredTypeMapping >> addTypeMappingCriteriaTo: collection in: base [
 	| singleRightValue r l |

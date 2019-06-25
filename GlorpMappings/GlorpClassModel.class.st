@@ -31,6 +31,15 @@ GlorpClassModel class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpClassModel class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpClassModel >> addAttribute: anAttributeDescription [
 	attributes add: anAttributeDescription.

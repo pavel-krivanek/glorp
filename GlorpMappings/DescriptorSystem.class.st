@@ -40,7 +40,7 @@ Class {
 	#classInstVars : [
 		'validateDescriptorSystem'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #utility }
@@ -107,7 +107,7 @@ DescriptorSystem class >> recreateTablesFor: aLogin [
 ]
 
 { #category : #'instance creation' }
-DescriptorSystem class >> sessionForAccessor: aDatabaseAccesor. [
+DescriptorSystem class >> sessionForAccessor: aDatabaseAccesor [.
 	"Create a session associated with the given accesseor, and using us as a descriptor system. 
 	This is the easiest way to get a full blown session going."
 	
@@ -141,6 +141,15 @@ DescriptorSystem class >> validateDescriptorSystem: aSymbol [
 	"Typical values are #always and #never"
 
 	validateDescriptorSystem := aSymbol
+]
+
+{ #category : #'VisualWorks metadata' }
+DescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #api }

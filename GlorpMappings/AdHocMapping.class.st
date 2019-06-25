@@ -30,6 +30,16 @@ AdHocMapping class >> forAttribute: aSymbol fromDb: fromBlock toDb: toBlock mapp
 		mappingFields: aFieldCollection
 ]
 
+{ #category : #'VisualWorks metadata' }
+AdHocMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'printing SQL' }
 AdHocMapping >> allRelationsFor: rootExpression [
 	"We may have multiple relationships."

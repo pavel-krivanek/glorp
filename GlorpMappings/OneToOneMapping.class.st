@@ -6,3 +6,13 @@ Class {
 	#superclass : #RelationshipMapping,
 	#category : #GlorpMappings
 }
+
+{ #category : #'VisualWorks metadata' }
+OneToOneMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

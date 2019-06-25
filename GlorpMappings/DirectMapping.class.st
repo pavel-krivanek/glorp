@@ -53,6 +53,16 @@ DirectMapping class >> fromPseudoVariable: attributeName type: aClass to: field 
 		beForPseudoVariable
 ]
 
+{ #category : #'VisualWorks metadata' }
+DirectMapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #mapping }
 DirectMapping >> buildQuery [
 	"We just want to read our main object back again. So we create a join from our primary key fields to themselves. One side will remain field references, the other side will turn into parameters when it's converted to a where clause."

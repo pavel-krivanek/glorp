@@ -20,6 +20,15 @@ AddingWriteStream class >> on: aCollection [
 	^self new target: aCollection.
 ]
 
+{ #category : #'VisualWorks metadata' }
+AddingWriteStream class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 AddingWriteStream >> contents [
 	^target

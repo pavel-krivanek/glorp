@@ -43,6 +43,15 @@ Mapping class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+Mapping class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'printing SQL' }
 Mapping >> allRelationsFor: rootExpression do: aBlock andBetweenDo: anotherBlock [
 	"Normal mappings just operate on a single expression"
