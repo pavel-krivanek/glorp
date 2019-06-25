@@ -13,6 +13,16 @@ GlorpConstantValueInRelationshipTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpConstantValueInRelationshipTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpConstantValueInRelationshipTest >> idsFor: aCollection [
 

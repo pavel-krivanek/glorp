@@ -124,6 +124,16 @@ GlorpDatabaseLoginResource class >> defaultSQLiteLocalLogin [
 
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseLoginResource class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #accessing }
 GlorpDatabaseLoginResource >> accessor [
 	^accessor

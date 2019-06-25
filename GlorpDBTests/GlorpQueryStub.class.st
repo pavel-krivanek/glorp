@@ -20,6 +20,16 @@ GlorpQueryStub class >> newQuery [
 	^self new.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpQueryStub class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #executing }
 GlorpQueryStub >> executeWithParameters: parameterArray in: aSession [ 
 

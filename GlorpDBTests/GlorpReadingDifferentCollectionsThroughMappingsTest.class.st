@@ -13,6 +13,16 @@ GlorpReadingDifferentCollectionsThroughMappingsTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpReadingDifferentCollectionsThroughMappingsTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #setup }
 GlorpReadingDifferentCollectionsThroughMappingsTest >> descriptorClass [
 	^GlorpCollectionTypesDescriptorSystem.

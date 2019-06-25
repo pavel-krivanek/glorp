@@ -12,6 +12,16 @@ GlorpSessionBasedTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpSessionResource with: GlorpDemoTablePopulatorResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpSessionBasedTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpSessionBasedTest >> setUp [
 	super setUp.

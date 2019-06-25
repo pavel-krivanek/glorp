@@ -18,6 +18,16 @@ GlorpMappingDBTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpMappingDBTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpMappingDBTest >> inTransactionDo: aBlock [
 	[session beginTransaction.

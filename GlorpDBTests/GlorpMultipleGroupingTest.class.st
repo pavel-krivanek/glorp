@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpMultipleGroupingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpMultipleGroupingTest >> setUp [
 	"We beginTransaction to be already in transaction on entering #transact:, so #transact will not commit if the transaction succeeds;  instead, #tearDown will roll it back, clean for the next test run."

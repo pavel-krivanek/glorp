@@ -8,6 +8,15 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpOrderedDeleteTest class >> visualWorksMetadata [
+
+	^ #(
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #running }
 GlorpOrderedDeleteTest >> setUp [
 	super setUp.

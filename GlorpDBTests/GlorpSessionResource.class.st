@@ -13,6 +13,16 @@ GlorpSessionResource class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpSessionResource class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #setup }
 GlorpSessionResource >> glorpTestsSystem [
 	"We want to prep the GlorpDemoTablePopulatorResource but subclasses using different systems may not;  put it here where it will be overridden."

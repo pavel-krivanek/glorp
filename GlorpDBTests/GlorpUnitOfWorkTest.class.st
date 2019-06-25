@@ -13,6 +13,16 @@ GlorpUnitOfWorkTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpUnitOfWorkTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpUnitOfWorkTest >> exampleCustomerProxy [
 	| p |

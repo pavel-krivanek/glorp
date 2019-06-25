@@ -19,6 +19,16 @@ GlorpReadingPersonWithEmailAddressesTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpReadingPersonWithEmailAddressesTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpReadingPersonWithEmailAddressesTest >> setUp [
 	super setUp.

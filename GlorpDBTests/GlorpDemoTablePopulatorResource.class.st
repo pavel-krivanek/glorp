@@ -36,6 +36,16 @@ GlorpDemoTablePopulatorResource class >> resources [
 	^Array with: GlorpDatabaseLoginResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDemoTablePopulatorResource class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #setup }
 GlorpDemoTablePopulatorResource >> populateStuffTable [
  

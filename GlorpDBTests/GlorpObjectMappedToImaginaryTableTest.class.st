@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpObjectMappedToImaginaryTableTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #tests }
 GlorpObjectMappedToImaginaryTableTest >> db2testReadWithDateArithmeticInWhereClause [
 	"DB2 appears fussy in how it allows date arithmetic.  Constant durations must be labelled (i.e. + 2 days, not just + 2, and the root of an expression with a duration must be a date or timestamp.  This could be read to mean that

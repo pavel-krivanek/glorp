@@ -10,6 +10,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+AnySatisfyTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'XProgramming.SUnit'
+	)
+
+]
+
 { #category : #'example data' }
 AnySatisfyTest >> createTestData: aSession [
 	| bonus itemBonus |

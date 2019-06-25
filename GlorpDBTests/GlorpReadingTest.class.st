@@ -23,6 +23,16 @@ GlorpReadingTest class >> resources [
 	^Array with: GlorpSessionResource with: GlorpDemoTablePopulatorResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpReadingTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpReadingTest >> checkExpiryTime [
 	""

@@ -8,6 +8,15 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTypeTestsModelClass class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'As yet unclassified' }
 GlorpTypeTestsModelClass >> test [
 	^test.

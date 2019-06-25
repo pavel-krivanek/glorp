@@ -14,6 +14,16 @@ GlorpDatabaseLoginTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseLoginTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpDatabaseLoginTest >> accessor [
 

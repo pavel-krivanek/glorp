@@ -12,6 +12,16 @@ GlorpDatabaseBasicTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpDatabaseBasicTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpDatabaseBasicTest >> accessor [
 	^self databaseLoginResource accessor

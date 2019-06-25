@@ -11,6 +11,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpOneToManyDBTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #support }
 GlorpOneToManyDBTest >> checkEmailAddresses: emailAddresses [
 	| sorted numberOfAddresses |

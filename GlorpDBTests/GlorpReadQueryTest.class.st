@@ -13,6 +13,16 @@ GlorpReadQueryTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpReadQueryTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'tests-ordering' }
 GlorpReadQueryTest >> helpTestSingleOrderingBy: aBlock setup: setupBlock [
 

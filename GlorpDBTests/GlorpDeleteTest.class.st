@@ -10,6 +10,16 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpDeleteTest class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'delete-insert-update tests' }
 GlorpDeleteTest >> assertDeleteCopy: aBlock ofInsertUpdatesFields: anInteger [
 	"If the test is run bound then #shouldUpdateOnlyChangedFields will by default return false and all 3 fields will be updated regardless of which have been changed.  We therefore check the row's opinion of fieldsNeedingUpdate, not the UpdateCommand's opinion."
