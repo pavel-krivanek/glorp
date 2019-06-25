@@ -14,6 +14,15 @@ GlorpBookstoreCustomer class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+GlorpBookstoreCustomer class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 GlorpBookstoreCustomer >> accountNumber [
 	^accountNumber

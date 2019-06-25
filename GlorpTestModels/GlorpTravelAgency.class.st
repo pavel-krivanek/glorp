@@ -17,6 +17,15 @@ Class {
 	#category : #GlorpTestModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpTravelAgency class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpTravelAgency >> = aGlorpTravelAgency [
 	^self name = aGlorpTravelAgency name.
