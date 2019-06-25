@@ -13,10 +13,12 @@ Subclasses must implement the following messages:
 		logout
 		showDialog:
 
-Instance Variables:
+Instance Variables
 	connection	<varies>	The underlying database connection
 	currentLogin	<Login> The glorp-level login we are using
-	logging	<Boolean>	Is logging on or off
+	logging	<Boolean>	(default is false) Is logging on or off
+	logOnly <Boolean> (default is false) If logging is true, and logOnly is true, then the commands are ONLY logged and not executed.
+	logger <TextCollector> (default is Transcript) The user can put any TextCollector API supporting class in here to collect information. It must support #show: and #cr.
 	permittedCommands	<Collection of: DatabaseCommand class>	The list of commands we are permitted to use. This allows us to filter commands, indicating that a particular session should only be doing inserts right now, not updates, deletes, or queries. Or that it should only be doing writes, not reads.
 	reusePreparedStatements	<Boolean>	Should we try to reuse prepared statements,that have the same SQL, or just re-prepare each time.
 
@@ -29,12 +31,12 @@ Class {
 		'connection',
 		'currentLogin',
 		'logging',
+		'logger',
+		'logOnly',
 		'reusePreparedStatements',
 		'deniedCommands',
 		'mutex',
-		'dependents',
-		'logOnly',
-		'logger'
+		'dependents'
 	],
 	#classVars : [
 		'LoggingEnabled'
@@ -95,9 +97,9 @@ DatabaseAccessor >> addConstraint: aConstraint [
 DatabaseAccessor >> addConstraint: aConstraint ifError: aBlock [
 	| addString |
 	addString := self platform createConstraintAddStatement: aConstraint.
-	addString isEmpty ifTrue: [^self].
+	addString isEmpty ifTrue: [^self].	"If platform does not support constraints, silently do nothing."
 	^self
-		executeInDDLOperation: [ self executeSQLStringNoResult: addString ]
+		executeInDDLOperation: [self executeSQLStringNoResult: addString]
 		ifError: aBlock
 ]
 
@@ -124,19 +126,24 @@ DatabaseAccessor >> addFields: aCollection ifError: aBlock [
 
 { #category : #permissions }
 DatabaseAccessor >> allowCommand: aCommand during: aBlock [
+	"If deniedCommands is nil, everything is already permitted;  just evaluate the block.  Otherwise, permit the command and any subclasses, evaluate the block, then revert."
+
 	| oldCommands |
-	oldCommands := self deniedCommands.
-	((self deniedCommands ifNil: [#()]) includes: aCommand)
-		ifTrue: [deniedCommands := deniedCommands copyWithout: aCommand].
-	aBlock ensure: [deniedCommands := oldCommands].
+	oldCommands := deniedCommands ifNil: [^aBlock value].
+	aCommand withAllSubclasses do:
+		[:each |
+		(deniedCommands includes: each) ifTrue:
+			[deniedCommands := deniedCommands copyWithout: aCommand]].
+	^aBlock ensure: [deniedCommands := oldCommands]
 ]
 
 { #category : #permissions }
 DatabaseAccessor >> alsoDenyCommand: aCommand [
+	"Use this method, not denyCommand: when you want to add to, not override, the current permissions state."
+
 	self deniedCommands isNil
 		ifTrue: [self denyCommand: aCommand]
-		ifFalse:
-			[self deniedCommands: self deniedCommands , (Array with: aCommand)].
+		ifFalse: [deniedCommands := deniedCommands , aCommand withAllSubclasses].
 ]
 
 { #category : #executing }
@@ -379,13 +386,12 @@ DatabaseAccessor >> createTableFKConstraints: aGLORBDatabaseTable ifError: aBloc
 ]
 
 { #category : #executing }
-DatabaseAccessor >> createTableIndexes: aGlorpDatabaseTable ifError: aBlock [ 
+DatabaseAccessor >> createTableIndexes: aGlorpDatabaseTable ifError: aBlock [
 	"Create all indexes for this table"
 
-	self execute: 
-			[(self platform createTableIndexStatementStringsFor: aGlorpDatabaseTable) 
-				do: [:ea | self executeSQLStringNoResult: ea]]
-		ifError: aBlock.
+	aGlorpDatabaseTable indexes do: 
+		[:eachIndex |
+		self createIndex: eachIndex forTable: aGlorpDatabaseTable ifError: aBlock].
 ]
 
 { #category : #accessing }
@@ -419,15 +425,11 @@ DatabaseAccessor >> deniedCommands [
 	^deniedCommands.
 ]
 
-{ #category : #accessing }
-DatabaseAccessor >> deniedCommands: aCollection [
-	deniedCommands := aCollection.
-]
-
 { #category : #permissions }
 DatabaseAccessor >> denyCommand: aCommand [
-	(aCommand isBehavior) ifFalse: [self error: 'invalid command type'].
-	self denyCommands: (Array with: aCommand).
+	"Use this method, not alsoDenyCommand: when you want to override, not just add to, the current permissions state."
+
+	self denyCommands: aCommand withAllSubclasses.
 ]
 
 { #category : #permissions }
@@ -445,21 +447,19 @@ DatabaseAccessor >> doDDLOperation: aBlock [
 ]
 
 { #category : #executing }
-DatabaseAccessor >> dropConstraint: aConstraint [ 
-	
+DatabaseAccessor >> dropConstraint: aConstraint [
 	^self 
 		dropConstraint: aConstraint 
-		ifError:  [ :ex | 	| msg|
+		ifError: [ :ex || msg |
 				msg := ex messageText.
 				msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
-				Transcript cr; show: ('Drop constraint <1s> ERROR: (<2s>'  expandMacrosWith: aConstraint name with: msg).
+				self log: ('Drop constraint <1s> ERROR: (<2s>'  expandMacrosWith: aConstraint name with: msg).
 				ex return: nil].
 ]
 
 { #category : #executing }
 DatabaseAccessor >> dropConstraint: aConstraint ifError: aBlock [
 	| dropString |
-	self platform supportsConstraints ifFalse: [^self].
 	dropString := self platform createConstraintDropStatement: aConstraint.
 	dropString isEmpty ifTrue: [^self].
 	self
@@ -491,7 +491,7 @@ DatabaseAccessor >> dropFields: aCollection ifError: aBlock [
 { #category : #executing }
 DatabaseAccessor >> dropForeignKeyConstraintsForTable: aTable ifError: aBlock [ 
 	aTable isImaginary ifTrue: [^self].
-	aTable  foreignKeyConstraints do: [:each | self dropConstraint: each ifError: [ :ex | aBlock value: ex]].
+	aTable foreignKeyConstraints do: [:each | self dropConstraint: each ifError: [ :ex | aBlock value: ex]].
 ]
 
 { #category : #executing }
@@ -503,15 +503,14 @@ DatabaseAccessor >> dropSequence: aDatabaseSequence ifAbsent: aBlock [
 
 { #category : #executing }
 DatabaseAccessor >> dropSequences: anArray [
-	anArray
-		do:
-			[:each | 
-			self
-				dropSequence: each
-				ifAbsent:
-					[:ex | 
-					Transcript show: (ex messageText ifNil: [ex printString]).
-					ex return: nil]].
+	anArray do:
+		[:each |
+		self
+			dropSequence: each
+			ifAbsent:
+				[:ex | 
+				self log: (ex messageText ifNil: [ex printString]).
+				ex return: nil]].
 ]
 
 { #category : #executing }
@@ -550,17 +549,16 @@ DatabaseAccessor >> dropTableNamed: aString ifAbsent: aBlock [
 ]
 
 { #category : #executing }
-DatabaseAccessor >> dropTables: anArray [ 
+DatabaseAccessor >> dropTables: anArray [
 	anArray do: [:eachTable |
-				eachTable foreignKeyConstraints 
-					do: [:eachConstraint | self dropConstraint: eachConstraint ifError: [nil]]].
-
-	anArray do: [:each | 
-				self dropTableDefinition: each 
-					ifError: [ :ex | 	| msg|
+				eachTable foreignKeyConstraints
+					do: [:eachConstraint | self dropConstraint: eachConstraint]].
+	anArray do: [:each |
+				self dropTableDefinition: each
+					ifError: [ :ex || msg |
 							msg := ex messageText.
 							msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
-							Transcript cr; show: 'ERROR : (', msg, ' )'.
+							self log: 'ERROR : (', msg, ' )'.
 							ex return: nil]].
 ]
 
@@ -631,7 +629,8 @@ DatabaseAccessor >> executeCommandBound: command [
 { #category : #executing }
 DatabaseAccessor >> executeCommandUnbound: aCommand [
 	| cursor |
-	self logCommand: aCommand bound: false.
+	self logCommand: aCommand sqlString bound: false.
+	self logOnly ifTrue: [^self].
 	cursor := self basicExecuteSQLString: aCommand sqlString.
 	cursor command: aCommand.
 	^cursor.
@@ -651,6 +650,7 @@ DatabaseAccessor >> executeInDDLOperation: aBlock ifError: errorBlock [
 DatabaseAccessor >> executeSQLString: aString [
 	| result block time |
 	self log: aString.
+	self logOnly ifTrue: [^self].
 	block := [result := (self basicExecuteSQLString: aString) upToEnd].
 	time := self logging
 		ifTrue: [Time millisecondsToRun: block]
@@ -665,6 +665,7 @@ DatabaseAccessor >> executeSQLString: aString [
 DatabaseAccessor >> executeSQLString: aString binding: aBindingArray [
 	| result block time |
 	self log: aString.
+	self logOnly ifTrue: [^self].
 	block := [ 
 		result := (self basicExecuteSQLString: aString binding: aBindingArray) upToEnd].
 	time := self logging
@@ -690,6 +691,7 @@ DatabaseAccessor >> executeSQLStringNoResult: aString doing: aBlock forCommand: 
 
 	| block time |
 	aCommand isNil ifTrue: [self log: aString] ifFalse: [self logCommand: aCommand bound: false].
+	self logOnly ifTrue: [^self].
 	block := [self basicExecuteSQLStringNoResult: aString doing: aBlock].
 	time := self logging
 		ifTrue: [Time millisecondsToRun: block]
@@ -707,6 +709,8 @@ DatabaseAccessor >> externalDatabaseErrorSignal [
 
 { #category : #executing }
 DatabaseAccessor >> handleError: exception for: command [
+	"Signal a GlorpDatabase... error.  If it is handled to return true (any handler or defaultAction had better not return true in response to an error that logging in or logging out could reraise and on which it would again return true) and we have a reusable login, try to logout and in again and restart, otherwise exit."
+
 	| errorClass error |
 	errorClass := command isReadCommand
 		ifTrue: [GlorpDatabaseReadError]
@@ -715,13 +719,13 @@ DatabaseAccessor >> handleError: exception for: command [
 	error command: command.
 	error databaseError: (self innerExceptionFor: exception).
 	error accessor: self.
-	error signal = true
-		ifTrue:
+	(error signal ~~ true or: [currentLogin isNil or: [currentLogin secure]])
+		ifTrue: [exception return: nil]
+		ifFalse:
 			[self reset.
 			self logout.
-			self login.
-			exception restart]
-		ifFalse: [error return: nil].
+			self reLogin.
+			exception restart].
 ]
 
 { #category : #transactions }
@@ -759,11 +763,22 @@ DatabaseAccessor >> isCursorAtEnd: aCursor [
 
 { #category : #testing }
 DatabaseAccessor >> isExistingTable: tableName inSchema: schemaName [
+	"When the platform is SQL Server, the statement returned is of the form
+
+SELECT count(*) FROM schema_name.INFORMATION_SCHEMA.TABLES WHERE lower(table_name) = 'tw_databaseidentifier';
+
+If schema_name is absent, the above statement produces an error (e.g. an unableToExecuteSQLSignal in VW).  The correct and dialect-neutral fix is for this method to guard-test for owner/schema existence where used."
+
 	| databasePlatform sqlStatement result targetSchemaName |
 	databasePlatform := self currentLogin platform.
 	targetSchemaName := databasePlatform supportsInformationSchema
 		ifTrue: [schemaName]
 		ifFalse: [''].
+	databasePlatform isSQLServerPlatform ifTrue:
+		[sqlStatement := databasePlatform sqlStatementToTestExistenceOfSchema: schemaName.	
+		result := self executeSQLString: sqlStatement.
+		result notEmpty ifTrue:
+			[result first first > 0 ifFalse: [^false]]].
 	sqlStatement := databasePlatform sqlStatementToTestExistenceOfTable: tableName inSchema: targetSchemaName.
 	result := self executeSQLString: sqlStatement.
 	^result notEmpty
@@ -774,6 +789,11 @@ DatabaseAccessor >> isExistingTable: tableName inSchema: schemaName [
 { #category : #transactions }
 DatabaseAccessor >> isInTransaction [
 	^self subclassResponsibility.
+]
+
+{ #category : #login }
+DatabaseAccessor >> isLoggedIn [
+	^self subclassResponsibility
 ]
 
 { #category : #'queries metadata' }
@@ -796,10 +816,7 @@ DatabaseAccessor >> log: aStringOrBlock [
 	string := aStringOrBlock isString
 		ifTrue: [aStringOrBlock]
 		ifFalse: [aStringOrBlock value].
-	string size > 4000 ifTrue: [string := string copyFrom: 1 to: 4000].
-	Transcript
-		cr;
-		show: string.
+	self logString: string.
 ]
 
 { #category : #logging }
@@ -811,10 +828,7 @@ DatabaseAccessor >> logCommand: aDatabaseCommand bound: aBoolean [
 	self logging ifFalse: [^self].
 	string := aDatabaseCommand sqlString.
  	aBoolean ifTrue: [string := string , '  ' , aDatabaseCommand bindings printString].
-	string size > 4000 ifTrue: [string := string copyFrom: 1 to: 4000].
-	Transcript
-		cr;
-		show: string.
+	self logString: string.
 ]
 
 { #category : #logging }
@@ -861,14 +875,13 @@ DatabaseAccessor >> logString: aString [
 { #category : #logging }
 DatabaseAccessor >> logTime: aTimeOrBlock [
 	| time |
+	self logOnly ifTrue: [^self].
 	self changed: #time: with: aTimeOrBlock.
 	self logging ifFalse: [^self].
 	time := (Dialect isBlock: aTimeOrBlock)
 		ifTrue: [aTimeOrBlock value]
 		ifFalse: [aTimeOrBlock].
-	Transcript
-		cr;
-		show: '(' , (time / 1000.0) printString , ' s)'.
+	self logString: '(' , (time / 1000.0) printString , ' s)'.
 ]
 
 { #category : #logging }
@@ -896,12 +909,9 @@ DatabaseAccessor >> logging: aBoolean [
 
 { #category : #login }
 DatabaseAccessor >> login [
-	
-	| |
-	self loginIfError: [:ex | 
-		ex pass].
-	"Just to help avoid confusion if someone thinks they're getting a login object back from this"
-	^nil.
+	"In 8.1 and earlier, this return nil.  It now returns self, as #loginIfError: does."
+
+	self loginIfError: [:ex | ex pass].
 ]
 
 { #category : #login }
@@ -946,6 +956,17 @@ DatabaseAccessor >> populateField: aDatabaseField with: aValue ifError: errorBlo
 
 { #category : #copying }
 DatabaseAccessor >> postCopy [
+]
+
+{ #category : #login }
+DatabaseAccessor >> reLogin [
+	"Attempt to re-login to a database that's not responding. Give it a maximum of 5 attempts."
+
+	| attempts |
+	attempts := 0.
+	[attempts < 5 and: [self isLoggedIn not]] whileTrue: [
+		attempts := attempts + 1.
+		self loginIfError: [:ex | nil]].
 ]
 
 { #category : #executing }
@@ -1012,6 +1033,13 @@ DatabaseAccessor >> schema [
 DatabaseAccessor >> showDialog: aString [
 
 	self subclassResponsibility.
+]
+
+{ #category : #cursors }
+DatabaseAccessor >> upToEndOfResultSet: aGlorpCursoredStream [
+	"The statement may have multiple result sets.  If the caller sends #upToEnd, the aggressive releasing of the cursor in #atEnd will lose any remaining result sets.  We therefore read the current result set and advance the underlying cursor to the next result set, releasing the Glorp cursor if we're called on the last result set.  (N.B. 'the next result set' does not necessarily mean the return of the next statement;  in a sequence of statements, some may return result sets while others return #noAnswerStream and these will be skipped)."
+
+	^self subclassResponsibility
 ]
 
 { #category : #accessing }

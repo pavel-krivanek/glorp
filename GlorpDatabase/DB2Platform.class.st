@@ -8,7 +8,7 @@ Class {
 	#instVars : [
 		'supportsGroupWritingValues'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #accessing }

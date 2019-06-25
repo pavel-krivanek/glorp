@@ -14,7 +14,7 @@ Class {
 		'value',
 		'alias'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

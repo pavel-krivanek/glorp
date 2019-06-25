@@ -14,7 +14,7 @@ Instance Variables
 Class {
 	#name : #DB2Sequence,
 	#superclass : #OracleSequence,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }
