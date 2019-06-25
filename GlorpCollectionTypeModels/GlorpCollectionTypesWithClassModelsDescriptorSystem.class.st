@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpCollectionTypeModels
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpCollectionTypesWithClassModelsDescriptorSystem class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'class models' }
 GlorpCollectionTypesWithClassModelsDescriptorSystem >> classModelForGlorpThingWithLotsOfDifferentCollections: aClassModel [
 

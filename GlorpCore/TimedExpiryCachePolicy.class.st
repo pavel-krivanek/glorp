@@ -16,6 +16,16 @@ Class {
 	#category : #GlorpCore
 }
 
+{ #category : #'VisualWorks metadata' }
+TimedExpiryCachePolicy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #'wrap/unwrap' }
 TimedExpiryCachePolicy >> cacheEntryFor: anObject [
 

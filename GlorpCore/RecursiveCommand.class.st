@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpCore
 }
 
+{ #category : #'VisualWorks metadata' }
+RecursiveCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #executing }
 RecursiveCommand >> printSQL [
 	| recursionTable |

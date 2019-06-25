@@ -40,6 +40,15 @@ TimedProxyReaper class >> new [
 	^super new initialize
 ]
 
+{ #category : #'VisualWorks metadata' }
+TimedProxyReaper class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #caching }
 TimedProxyReaper >> add: aTimedProxy [
 	[mutex wait.

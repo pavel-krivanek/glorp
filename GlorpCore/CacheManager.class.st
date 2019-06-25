@@ -29,6 +29,15 @@ CacheManager class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+CacheManager class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #adding }
 CacheManager >> at: aKey insert: anObject [
 

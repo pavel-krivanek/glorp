@@ -38,6 +38,16 @@ Cache class >> newFor: aClass in: aCacheManager [
 	^newCache.
 ]
 
+{ #category : #'VisualWorks metadata' }
+Cache class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #lookup }
 Cache >> at: key ifAbsent: aBlock [ 
 	| item value |

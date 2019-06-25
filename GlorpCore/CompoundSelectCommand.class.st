@@ -13,6 +13,16 @@ Class {
 	#category : #GlorpCore
 }
 
+{ #category : #'VisualWorks metadata' }
+CompoundSelectCommand class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #accessing }
 CompoundSelectCommand >> arrayBoundFields [
 	" *** This method was defined by Glorp.DatabaseCommand as a subclass responsibility.

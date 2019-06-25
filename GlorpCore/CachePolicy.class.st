@@ -31,6 +31,15 @@ CachePolicy class >> new [
 	^super new initialize.
 ]
 
+{ #category : #'VisualWorks metadata' }
+CachePolicy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #'wrap/unwrap' }
 CachePolicy >> cacheEntryFor: anObject [
 

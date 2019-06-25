@@ -20,6 +20,15 @@ Class {
 	#category : #GlorpCore
 }
 
+{ #category : #'VisualWorks metadata' }
+UnmanagedCache class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #lookup }
 UnmanagedCache >> at: key ifAbsent: aBlock [
 	| item value |

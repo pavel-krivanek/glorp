@@ -9,6 +9,16 @@ Class {
 	#category : #GlorpCore
 }
 
+{ #category : #'VisualWorks metadata' }
+WeakVWCachePolicy class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #expiry }
 WeakVWCachePolicy >> collectionForExtraReferences [
 

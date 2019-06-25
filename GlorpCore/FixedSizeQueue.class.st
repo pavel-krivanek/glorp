@@ -30,6 +30,15 @@ FixedSizeQueue class >> new: anInteger [
 	^self maximumSize: anInteger.
 ]
 
+{ #category : #'VisualWorks metadata' }
+FixedSizeQueue class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
 { #category : #api }
 FixedSizeQueue >> add: anObject [
 	items add: anObject.
