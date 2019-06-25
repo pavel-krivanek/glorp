@@ -7,6 +7,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpAbstractNumericType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 GlorpAbstractNumericType >> impliedSmalltalkType [
 	^Number.

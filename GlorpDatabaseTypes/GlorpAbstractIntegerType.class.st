@@ -4,6 +4,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpAbstractIntegerType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #converting }
 GlorpAbstractIntegerType >> converterForStType: aClass [
 	(aClass includesBehavior: Boolean) ifTrue: [^self platform converterNamed: #booleanToInteger].

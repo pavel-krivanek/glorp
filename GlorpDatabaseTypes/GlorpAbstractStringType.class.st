@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+GlorpAbstractStringType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #comparing }
 GlorpAbstractStringType >> = aType [
 	super = aType ifFalse: [^false].

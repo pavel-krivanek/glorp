@@ -11,3 +11,13 @@ Class {
 SAPDBPlatform class >> kind [
 	^'SAP'
 ]
+
+{ #category : #'VisualWorks metadata' }
+SAPDBPlatform class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]

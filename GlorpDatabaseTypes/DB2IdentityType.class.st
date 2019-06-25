@@ -8,6 +8,16 @@ Class {
 	#category : #GlorpDatabaseTypes
 }
 
+{ #category : #'VisualWorks metadata' }
+DB2IdentityType class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+		'superclassNamespace' 'Glorp'
+	)
+
+]
+
 { #category : #initialize }
 DB2IdentityType >> initializeForField: aDatabaseField in: aDescriptorSystem [
 
