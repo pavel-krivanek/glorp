@@ -33,7 +33,7 @@ Class {
 		'missingFieldIndicator',
 		'emptySlot'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #private }
@@ -64,6 +64,15 @@ DatabaseRow class >> newForTable: aTable [
 DatabaseRow class >> newForTable: aTable withOwner: anObject [
 
 	^self new table: aTable; owner: anObject.
+]
+
+{ #category : #'VisualWorks metadata' }
+DatabaseRow class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
 ]
 
 { #category : #comparing }
