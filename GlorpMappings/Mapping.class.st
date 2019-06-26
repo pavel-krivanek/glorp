@@ -34,7 +34,7 @@ Class {
 		'debugRead',
 		'debugWrite'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -55,7 +55,7 @@ Mapping class >> visualWorksMetadata [
 { #category : #'printing SQL' }
 Mapping >> allRelationsFor: rootExpression do: aBlock andBetweenDo: anotherBlock [
 	"Normal mappings just operate on a single expression"
-	aBlock value: rootExpression leftChild value: rootExpression rightChild
+	aBlock value: rootExpression leftChild value: rootExpression rightChild.
 ]
 
 { #category : #accessing }
@@ -67,7 +67,6 @@ Mapping >> allTables [
 { #category : #mapping }
 Mapping >> applicableMappingForObject: anObject [ 
 	"For polymorphism with conditional mappings"
-	
 	^self
 ]
 
@@ -79,12 +78,12 @@ Mapping >> attribute [
 
 { #category : #accessing }
 Mapping >> attributeAccessor [
-	^self attribute
+	^self attribute.
 ]
 
 { #category : #accessing }
 Mapping >> attributeName [
-	^self attribute name
+	^self attribute name.
 ]
 
 { #category : #accessing }
@@ -95,7 +94,7 @@ Mapping >> attributeName: aSymbol [
 	attribute := self classModel attributeNamed: symbolName.
 	oldAttribute isNil
 		ifTrue: [self initializeAttribute]
-		ifFalse: [attribute copyFrom: oldAttribute]
+		ifFalse: [attribute copyFrom: oldAttribute].
 ]
 
 { #category : #api }
@@ -122,17 +121,17 @@ Mapping >> canBeUsedForRetrieve [
 
 { #category : #accessing }
 Mapping >> canRead [
-	^self attribute canRead
+	^self attribute canRead.
 ]
 
 { #category : #accessing }
 Mapping >> canWrite [
-	^self attribute canWrite
+	^self attribute canWrite.
 ]
 
 { #category : #accessing }
 Mapping >> canWrite: aBoolean [
-	self attribute canWrite: aBoolean
+	self attribute canWrite: aBoolean.
 ]
 
 { #category : #accessing }
@@ -155,14 +154,14 @@ Mapping >> convertedDbValueOf: stValue [
 	^stValue
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #'initialize/release' }
 Mapping >> copyAttributeAttributes [
 	"We have an attributemodel that was created before we actually had a descriptor. It's possible that it had properties set. Make sure we copy them. If necessary, initialize things that require it."
 	| oldAttribute |
 	oldAttribute := attribute.
 	attribute := self classModel attributeNamed: oldAttribute name type: oldAttribute type collectionType: oldAttribute collectionType.
 	attribute copyFrom: oldAttribute.
-	self initializeAttribute
+	self initializeAttribute.
 ]
 
 { #category : #mapping }
@@ -198,7 +197,7 @@ Mapping >> descriptor [
 { #category : #accessing }
 Mapping >> descriptor: aDescriptor [
 	descriptor := aDescriptor.
-	attribute isNil ifFalse: [self copyAttributeAttributes]
+	attribute isNil ifFalse: [self copyAttributeAttributes].
 ]
 
 { #category : #mapping }
@@ -210,28 +209,27 @@ Mapping >> expressionFor: anObject [
 		^self mappedFields collect: [:each | 	
 			self valueOfField: each fromObject: anObject]].
 	^self mappedFields
-		collect: [:each | (anObject getField: each)]
+		collect: [:each | (anObject getField: each)].
 ]
 
 { #category : #mapping }
 Mapping >> expressionFor: anObject basedOn: anExpression relation: aSymbol [
 	"Return our expression using the object's values. e.g. if this was a direct mapping from id->ID and the object had id: 3, then return TABLE.ID=3. Used when rewriting object=object into field=field"
 
-	| myValue result |
+	| myValue result |	"result's initial value is nil, used in first iteration below"
 	myValue := self expressionFor: anObject.
-	result := nil.
-	myValue with: self join allTargetFields do: [:eachValue :eachField |
-		| source |
+	myValue with: self join allTargetFields do:
+		[:eachValue :eachField || source |
 		source := anExpression get: self attribute name.
 		source hasDescriptor ifTrue: [source := source getField: eachField].
 		result := (source get: aSymbol withArguments: (Array with: eachValue)) AND: result].
-	^result
+	^result.
 ]
 
 { #category : #accessing }
 Mapping >> fieldsForDescriptorSelectStatement [
 	"Return a collection of fields that this mapping will read from a row when the containing object is read, as opposed to when we're specifically told to use this field. Normally it amounts to the same thing."
-	^self mappedFields
+	^self mappedFields.
 ]
 
 { #category : #accessing }
@@ -244,7 +242,7 @@ Mapping >> fieldsForSelectStatement [
 { #category : #public }
 Mapping >> getValueFrom: anObject [
 
-	^self attribute getValueFrom: anObject
+	^self attribute getValueFrom: anObject.
 ]
 
 { #category : #testing }
@@ -256,13 +254,13 @@ Mapping >> hasAttribute [
 { #category : #testing }
 Mapping >> hasImpliedClauses [
 	"Return true if this implies multiple sql clauses"
-	^false
+	^false.
 ]
 
 { #category : #testing }
 Mapping >> hasValueThatCanProvideField: aField from: anObject [
 	"Return true if we have enough information in ourselves to populate our fields. The only time this won't be true is if we're either holding an uninstantiated proxy or have a to-many relationship mapping with an empty collection."
-	^true
+	^true.
 ]
 
 { #category : #testing }
@@ -290,7 +288,7 @@ Mapping >> initializeRuntimeMappings [
 
 { #category : #api }
 Mapping >> isExclusive [
-	^false
+	^false.
 ]
 
 { #category : #api }
@@ -300,7 +298,7 @@ Mapping >> isExclusive: aBoolean [
 
 { #category : #accessing }
 Mapping >> isForPseudoVariable [
-	^self attribute isForPseudoVariable or: [self attributeAccessor isValid not]
+	^self attribute isForPseudoVariable or: [self attributeAccessor isValid not].
 ]
 
 { #category : #testing }
@@ -319,7 +317,7 @@ Mapping >> isStoredInSameTable [
 
 { #category : #testing }
 Mapping >> isToManyRelationship [
-	^false
+	^false.
 ]
 
 { #category : #testing }
@@ -330,7 +328,7 @@ Mapping >> isTypeMapping [
 { #category : #preparing }
 Mapping >> joinExpressionFor: anExpression [
 
-	^nil
+	^nil.
 ]
 
 { #category : #iterating }
@@ -338,18 +336,18 @@ Mapping >> loopOverAttributeOf: anObject doing: aTwoArgumentBlock [
 	"Loop over the target, which we extract from anObject, and iterate over it evaluating the block. For things that aren't collections, iterating means just run once. Note that the argument is expected to be an instance of our descriptor, as opposed to the attribute method, which expects the target object"
 	| target |
 	target := self getValueFrom: anObject.
-	self attribute loopOver: target doing: aTwoArgumentBlock
+	self attribute loopOver: target doing: aTwoArgumentBlock.
 ]
 
 { #category : #mapping }
 Mapping >> mapFromObject: anObject intoRowsIn: aRowMap [
 
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #mapping }
 Mapping >> mapObject: anObject inElementBuilder: anObject1 [
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #testing }
@@ -359,24 +357,24 @@ Mapping >> mappedFields [
 
 { #category : #mapping }
 Mapping >> mappedTables [
-	^(self mappedFields collect: [:each | each table]) asSet
+	^(self mappedFields collect: [:each | each table]) asSet.
 ]
 
 { #category : #testing }
 Mapping >> mapsPrimaryKeys [
-	^(self mappedFields detect: [:each | each isPrimaryKey] ifNone: [nil]) notNil
+	^(self mappedFields detect: [:each | each isPrimaryKey] ifNone: [nil]) notNil.
 ]
 
 { #category : #testing }
 Mapping >> mapsSimpleObject [
 	"Return true if we know that we map something without a descriptor. For some mappings, like ad hoc or conditional, we don't really know, so we default to false"
-	^false
+	^false.
 ]
 
 { #category : #preparing }
 Mapping >> multipleTableExpressionsFor: anExpression [
 
-	^#()
+	^#().
 ]
 
 { #category : #proxies }
@@ -395,12 +393,12 @@ Mapping >> printOn: aStream [
 	aStream 
 		nextPutAll: '(';
 		nextPutAll: (attribute isNil ifTrue: [''] ifFalse: [self attributeName]) ;
-		nextPutAll: ')'
+		nextPutAll: ')'.
 ]
 
 { #category : #proxies }
 Mapping >> proxyAction [
-	^nil
+	^nil.
 ]
 
 { #category : #mapping }
@@ -411,35 +409,35 @@ Mapping >> readBackNewRowInformationFor: anObject fromRowsIn: aRowMap [
 
 { #category : #accessing }
 Mapping >> readOnly [
-	^self canWrite not
+	^self canWrite not.
 ]
 
 { #category : #accessing }
 Mapping >> readOnly: aBoolean [
-	self canWrite: aBoolean not
+	self canWrite: aBoolean not.
 ]
 
 { #category : #accessing }
 Mapping >> referenceClass [
-	^self attribute type
+	^self attribute type.
 ]
 
 { #category : #mapping }
 Mapping >> referencedIndependentObjectsFrom: anObject [
 
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #accessing }
 Mapping >> session [
 	
-	^self descriptor session
+	^self descriptor session.
 ]
 
 { #category : #public }
 Mapping >> setValueIn: anObject to: aValue [
-	self canRead ifFalse: [^self].
-	self attribute setValueIn: anObject to: aValue
+	self canRead ifFalse: [^aValue].
+	^self attribute setValueIn: anObject to: aValue
 ]
 
 { #category : #debugging }
@@ -455,25 +453,25 @@ Mapping >> stopIfDebuggingWrite [
 { #category : #accessing }
 Mapping >> system [
 	
-	^self descriptor system
+	^self descriptor system.
 ]
 
 { #category : #mapping }
 Mapping >> trace: aTracing context: anExpression [
 
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #mapping }
 Mapping >> translateFields: anOrderedCollection [ 
 	"Normal mappings don't translate"
-	^anOrderedCollection
+	^anOrderedCollection.
 ]
 
 { #category : #mapping }
 Mapping >> translateTable: aTable [
 	"If we have a field translation, return the translated (i.e. real) table to use. This ideally allows us to use either the real table in which something is embedded, or the imaginary table"
-	^aTable
+	^aTable.
 ]
 
 { #category : #validation }
@@ -489,5 +487,5 @@ Mapping >> validateAttribute [
 
 { #category : #mapping }
 Mapping >> valueOfField: aField fromObject: anObject [
-	self error: 'Can''t get value of field'
+	self error: 'Can''t get value of field'.
 ]

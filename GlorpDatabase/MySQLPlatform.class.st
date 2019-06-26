@@ -10,14 +10,6 @@ Class {
 	#category : #GlorpDatabase
 }
 
-{ #category : #'as yet unclassified' }
-MySQLPlatform class >> createLoginFromConnectionDictionary: aDict [
-	" *** This method was defined by Glorp.DatabasePlatform class as a subclass responsibility.
-	Replace its body with a proper implementation. *** "
-
-	self error: 'Subclass responsibility stub not reimplemented'
-]
-
 { #category : #accessing }
 MySQLPlatform class >> kind [
 	^'MySQL Native Driver'
@@ -215,6 +207,19 @@ MySQLPlatform >> initializeReservedWords [
 		add: 'key'.
 ]
 
+{ #category : #commands }
+MySQLPlatform >> insertCommandForRows: aCollectionOfDatabaseRows binding: aBoolean session: aSession [
+	"I cannot group ;-separated INSERT statements but (if I am new enough - version 5 or later) I can group ,-separated values following a single INSERT statement.  I answer true to usesIdentityColumns;  if I am writing to a serial type (an identity column), the server will assign the value(s) and I must use a command that knows how to retrieve and assign them."
+
+	^self supportsGroupWritingValues
+		ifFalse: [InsertCommand forRows: aCollectionOfDatabaseRows useBinding: aBoolean session: aSession]
+		ifTrue: [InsertIdentityColumnCommand
+				forRows: aCollectionOfDatabaseRows
+				useBinding: aBoolean
+				session: aSession
+				ifNoIdentityColumn: InsertMultiValuesCommand]
+]
+
 { #category : #types }
 MySQLPlatform >> int2 [
 	^self smallint
@@ -266,6 +271,15 @@ MySQLPlatform >> nameForPrimaryKeyConstraintsWhenDropping [
 MySQLPlatform >> number [
 
 	^self typeNamed: #number ifAbsentPut: [GlorpNumericType new typeString: 'decimal'].
+]
+
+{ #category : #login }
+MySQLPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	"MySQL has been supporting group writing with the VALUES clause at least since version 5.0."
+
+	| dbmsMajorVersion |
+	dbmsMajorVersion := (aDatabaseAccessor connection dbmsVersion readStream upTo: $.) asNumber.
+	supportsGroupWritingValues := dbmsMajorVersion >= 5.
 ]
 
 { #category : #'conversion-times' }
@@ -389,9 +403,37 @@ MySQLPlatform >> supportsBinding [
 ]
 
 { #category : #testing }
+MySQLPlatform >> supportsCompositeKeyArgsForOperand: aSymbol [
+	"In MySQL	
+		composite-row = subquery LIMIT 1
+passes but
+	composite-row IN subquery LIMIT 1
+fails with:
+	This version of MySQL doesn''t yet support ''LIMIT & IN/ALL/ANY/SOME subquery
+The first query does exactly the same uses LIMIT in a subquery but in the special case of 1 and =.  That means we can handle #readOneOf: cases but not general setting of #limit: with alsoFetch using IN.  For IN we must use the longhand solution: ANDed single-key queries."
+
+	^aSymbol ~~ #IN	"We assume aSymbol can only be #IN or #= or #<>"
+]
+
+{ #category : #testing }
 MySQLPlatform >> supportsDecimalsOnAllNumerics [
 	"Return true if a general 'numeric' type will allow numbers after the decimal place"
 	^false.
+]
+
+{ #category : #testing }
+MySQLPlatform >> supportsGroupWritingFor: aCommand [
+	"MySQL does not support batched statements, i.e. cannot do INSERT ...; INSERT ...; INSERT... , but since version 5.0 it does support value sequences, i.e. it can do INSERT INTO table (id, c) VALUES (1,'1'), (2,'2'), (3,'3')."
+
+	^aCommand supportsGroupWriting and: [aCommand supportsGroupWritingValues]
+]
+
+{ #category : #testing }
+MySQLPlatform >> supportsGroupWritingValues [
+	"Return true if we support multiple rows in a single INSERT statement, like this:
+	INSERT INTO table (id, city, state) VALUES (1, 'Boston', 'MA'), (2, 'New York',  'NY'), (3, 'San Francisco', 'CA')."
+
+	^supportsGroupWritingValues ifNil: [false]
 ]
 
 { #category : #testing }
@@ -438,11 +480,6 @@ MySQLPlatform >> typeWithDatabaseName: aString characterWidth: aNumber extraInfo
 ]
 
 { #category : #testing }
-MySQLPlatform >> usesArrayBindingRatherThanGroupWriting [
-	^false.
-]
-
-{ #category : #testing }
 MySQLPlatform >> usesArrayBindingRatherThanGrouping [
 	^false.
 ]
@@ -472,6 +509,11 @@ MySQLPlatform >> usesPrimaryKeyUniqueConstraintNames [
 { #category : #types }
 MySQLPlatform >> varchar [
 	^self typeNamed: #varchar ifAbsentPut: [GlorpVarCharType new].
+]
+
+{ #category : #accessing }
+MySQLPlatform >> vwEXDIConnectionClass [
+	^'MySQLConnection' asQualifiedReference valueIfUndefinedLoadFrom: 'MySQLEXDI'
 ]
 
 { #category : #'services constraints' }
