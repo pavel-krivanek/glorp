@@ -11,7 +11,7 @@ Class {
 	#instVars : [
 		'count'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #defaults }

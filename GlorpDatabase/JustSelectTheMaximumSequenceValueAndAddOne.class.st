@@ -12,7 +12,7 @@ Class {
 		'field',
 		'table'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }
