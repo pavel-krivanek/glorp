@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpClobType,
 	#superclass : #GlorpAbstractStringType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -40,5 +40,5 @@ GlorpClobType >> isVariableWidth [
 
 { #category : #testing }
 GlorpClobType >> requiresCast [
-	^(self platform class = PostgreSQLPlatform) or: [self platform class = SQLServerPlatform]
+	^(self platform isPostgreSQLPlatform) or: [self platform isSQLServerPlatform]
 ]
