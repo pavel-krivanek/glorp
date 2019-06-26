@@ -37,28 +37,30 @@ FilteredTypeMapping class >> visualWorksMetadata [
 
 { #category : #mapping }
 FilteredTypeMapping >> addTypeMappingCriteriaTo: collection in: base [
+	"Convert the specific subclass (of the root class) that the query requests to the appropriate value of the filter field in the root class' horizontally-filtered table.  Give this generated field the name of this class (a Symbol) as alias, so #isNeutralInPrimaryKeyExpression can recognise it (using ==) as generated."
+
 	| singleRightValue r l |
 	singleRightValue := self keys size = 1.
 	r := ConstantExpression for: (singleRightValue
-											ifTrue: [self keys asArray first]
-											ifFalse: [self keys]).
+								ifTrue: [self keys asArray first]
+								ifFalse: [self keys]).
+	r alias: FilteredTypeMapping name.
 	l := FieldExpression forField: self field basedOn: base.
-	collection add: (singleRightValue ifTrue: [l equals: r] ifFalse: [l in: r])
+	collection add: (singleRightValue ifTrue: [l equals: r] ifFalse: [l in: r]).
 ]
 
 { #category : #'initialize-release' }
 FilteredTypeMapping >> buildKeyDictionary [
-	| subclassDescriptor |
 	keyDictionary := Dictionary new.
 	key isNil ifFalse: [keyDictionary at: key put: descriptor describedClass].
-	descriptor describedClass allSubclasses do: 
-			[:each | 
-			subclassDescriptor := descriptor system descriptorFor: each.
-			(subclassDescriptor isNil 
-				or: [subclassDescriptor typeMapping keyedBy isNil]) 
-					ifFalse: 
-						[keyDictionary at: subclassDescriptor typeMapping keyedBy
-							put: subclassDescriptor describedClass]]
+	descriptor describedClass allSubclasses do:
+		[:each || subclassDescriptor |
+		subclassDescriptor := descriptor system descriptorFor: each.
+		(subclassDescriptor isNil or:
+				[subclassDescriptor typeMapping keyedBy isNil])
+			ifFalse: [keyDictionary
+						at: subclassDescriptor typeMapping keyedBy
+						put: subclassDescriptor describedClass]].
 ]
 
 { #category : #types }
@@ -80,7 +82,7 @@ FilteredTypeMapping >> field [
 { #category : #'initialize-release' }
 FilteredTypeMapping >> field: aField keyedBy: aKey [
 	field := aField.
-	key := aKey
+	key := aKey.
 ]
 
 { #category : #accessing }
@@ -110,19 +112,19 @@ FilteredTypeMapping >> mapFromObject: anObject intoRowsIn: aRowMap [
 	| row |
 	self canWrite ifFalse: [^self].
 	row := aRowMap findOrAddRowForTable: self field table withKey: anObject.
-	row at: field put: key
+	row at: field put: key.
 ]
 
 { #category : #accessing }
 FilteredTypeMapping >> mappedFields [
 	"Return a collection of fields that this mapping will write into any of the containing object's rows"
 
-	^Array with: self field
+	^Array with: self field.
 ]
 
 { #category : #mapping }
 FilteredTypeMapping >> trace: aTracing context: anExpression [
-	^self
+	^self.
 ]
 
 { #category : #mapping }

@@ -17,7 +17,7 @@ Class {
 		'base',
 		'alias'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
@@ -141,6 +141,11 @@ FieldExpression >> hasField [
 { #category : #accessing }
 FieldExpression >> impliedSmalltalkType [
 	^self field impliedSmalltalkType.
+]
+
+{ #category : #inspecting }
+FieldExpression >> inspectorChildren [
+	^Array with: base
 ]
 
 { #category : #mapping }
