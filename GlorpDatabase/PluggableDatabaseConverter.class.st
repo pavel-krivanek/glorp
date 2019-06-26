@@ -14,7 +14,7 @@ Class {
 		'stToDb',
 		'dbToSt'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }

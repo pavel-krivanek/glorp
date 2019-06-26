@@ -14,7 +14,7 @@ Class {
 	#instVars : [
 		'charactersThatNeedEscaping'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #constants }
@@ -82,7 +82,9 @@ PostgresPlatform >> char [
 
 { #category : #constants }
 PostgresPlatform >> charactersThatNeedEscaping [
-	^charactersThatNeedEscaping ifNil: [#($')]
+	"We use the instvar's being set as a guard for all postInitialize values being set, so never set it alone.  The ifNil: value is a string containing a single quote."
+
+	^charactersThatNeedEscaping ifNil: ['''']
 ]
 
 { #category : #constants }
@@ -285,8 +287,8 @@ PostgresPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
 					ifFalse: [#(('off'))]
 					ifTrue: [ex pass]].
 	standardConformingStrings = #(('on'))
-		ifTrue: [charactersThatNeedEscaping := #($')]
-		ifFalse: [charactersThatNeedEscaping := #($' $\)].
+		ifTrue: [charactersThatNeedEscaping := '''']	"escape single quote characters only"
+		ifFalse: [charactersThatNeedEscaping := '''\'].	"escape single quote and backslash"
 ]
 
 { #category : #'conversion-strings' }
@@ -392,10 +394,26 @@ PostgresPlatform >> sqlTextCurrentServerUTCTimestamp [
 	^'SELECT CURRENT_TIMESTAMP AT TIME ZONE ''UTC'' '
 ]
 
+{ #category : #'conversion-strings' }
+PostgresPlatform >> squeakPrintBlob: aByteArray on: aStream for: aType [
+
+	aStream nextPut: $'.
+	aByteArray do: [:each |
+		aStream nextPutAll: '\\'.
+		each asInteger printOn: aStream paddedWith: $0 to: 3 base: 8].
+	aStream nextPutAll: '''::bytea'.
+]
+
 { #category : #testing }
 PostgresPlatform >> supportsANSIJoins [
 	"Do we support the JOIN <tableName> USING <criteria> syntax."
 	^true.
+]
+
+{ #category : #testing }
+PostgresPlatform >> supportsBinding [
+	"Binding works only with VW EXDI so far"
+	^Dialect isVisualWorks.
 ]
 
 { #category : #testing }
@@ -404,7 +422,18 @@ PostgresPlatform >> supportsCaseInsensitiveLike [
 ]
 
 { #category : #testing }
+PostgresPlatform >> supportsCompositeKeyArgsForOperand: aSymbol [
+	"Strictly, the answer is
+		^#(#= #IN #<>) includes: aSymbol
+but we take it for granted that we are never called on aSymbol that is not one of these values;  see the guard in #rewriteEquality.."
+
+	^true
+]
+
+{ #category : #testing }
 PostgresPlatform >> supportsGroupWritingFor: aCommand [
+	"The 2.0 driver never supported binding but only pretended that it did to the upper-level EXDI API, reinserting the bound values as strings into an SQL stream that it then sent unbound to the server.  Thus it can inherit this unaltered.  The 3.0 drivers can group statements unbound.  If the serverVersion is 8.2 or newer, they can also group values in a single insert statement and they can do this unbound or bound."
+
 	^aCommand supportsGroupWriting
 ]
 
@@ -424,6 +453,13 @@ PostgresPlatform >> supportsMillisecondsInTimes [
 PostgresPlatform >> supportsOffset [
 	"Do we support anything analogous to the postgresql OFFSET, skipping the first N rows"
 	^true.
+]
+
+{ #category : #testing }
+PostgresPlatform >> supportsStringQueryOnBlobs [
+	"If we are bound, the bytea = text comparison is illegal."
+
+	^self useBinding not
 ]
 
 { #category : #'services tables' }
@@ -505,4 +541,11 @@ PostgresPlatform >> usesLengthNotEndPosInSubstring [
 { #category : #types }
 PostgresPlatform >> varchar [
 	^self typeNamed: #varchar ifAbsentPut: [GlorpVarCharType new typeName: 'character varying'].
+]
+
+{ #category : #'database-specific' }
+PostgresPlatform >> withRecursive [
+	"Return the platform specific version of a common table expression that will recurse."
+
+	^'WITH RECURSIVE'
 ]

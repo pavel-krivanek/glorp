@@ -8,7 +8,7 @@ Class {
 		'tableName',
 		'type'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-My Classes'
 }
 
 { #category : #'instance creation' }
