@@ -390,3 +390,10 @@ GlorpCursoredStream >> upToEnd [
 			nextValue == nil ifFalse: [	result nextPut: nextValue]].
 	^result contents
 ]
+
+{ #category : #accessing }
+GlorpCursoredStream >> upToEndOfResultSet [
+	"If our statement has multiple result sets, we must use this call, not #upToEnd, to avoid the aggressive releasing of the cursor in #atEnd which would lose any remaining result sets.  This reads the current result set and advances the underlying cursor to the next result set.  (N.B. 'the next result set' does not necessarily mean the return of the next statement;  in a sequence of statements, some may return result sets while others return #noAnswerStream and these will be skipped.)  The cursor is released as part of reading the last result set."
+
+	^self accessor upToEndOfResultSet: self
+]
