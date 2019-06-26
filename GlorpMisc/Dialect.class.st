@@ -407,12 +407,6 @@ Dialect class >> totalSeconds [
 	^ Time totalSeconds
 ]
 
-{ #category : #'class lookup' }
-Dialect class >> unbindableClassNames [
-
-	^ #()
-]
-
 { #category : #'VisualWorks metadata' }
 Dialect class >> visualWorksMetadata [
 
