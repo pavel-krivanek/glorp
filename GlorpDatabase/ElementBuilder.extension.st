@@ -1,8 +1,8 @@
 Extension { #name : #ElementBuilder }
 
-{ #category : #'*GlorpDatabase' }
+{ #category : #'*GlorpDatabase-translating fields' }
 ElementBuilder >> valueOf: anExpression [
-	^expression valueInBuilder: self
+	^expression valueInBuilder: self.
 ]
 
 { #category : #'*GlorpDatabase' }

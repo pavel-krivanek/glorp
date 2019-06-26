@@ -60,7 +60,7 @@ DatabasePlatform class >> allReservedWords [
 	^words
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #Eoglorp }
 DatabasePlatform class >> createLoginFromConnectionDictionary: aDict [ 
 	self subclassResponsibility
 ]
@@ -72,13 +72,13 @@ DatabasePlatform class >> kind [
 	^nil
 ]
 
-{ #category : #eoglorp }
+{ #category : #Eoglorp }
 DatabasePlatform class >> loginWithConnectionDictionary: aDict [ 
 	| platformClass |
 	platformClass := self allSubclasses
-				detect: [:cls | cls understandsConnectionDictionary: aDict].
-	^ platformClass isNil
-		ifFalse: [platformClass createLoginFromConnectionDictionary: aDict] ifTrue: [nil]
+		detect: [:cls | cls understandsConnectionDictionary: aDict].
+	^platformClass isNil ifFalse:
+		[platformClass createLoginFromConnectionDictionary: aDict]
 ]
 
 { #category : #constants }
@@ -87,7 +87,7 @@ DatabasePlatform class >> reservedWords [
 	^Set new.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #Eoglorp }
 DatabasePlatform class >> understandsConnectionDictionary: aDict [
 
 	^false

@@ -20,7 +20,7 @@ Class {
 		'tableSelectCommand',
 		'schema'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

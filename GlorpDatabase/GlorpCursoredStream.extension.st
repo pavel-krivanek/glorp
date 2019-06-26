@@ -1,6 +1,6 @@
 Extension { #name : #GlorpCursoredStream }
 
-{ #category : #'*GlorpDatabase' }
+{ #category : #'*GlorpDatabase-testing' }
 GlorpCursoredStream >> atEnd [
 	"Release ourselves fairly aggressively when we hit the end"
 	| accessor |
@@ -17,7 +17,7 @@ GlorpCursoredStream >> atEnd [
 			self rawPeek isNil].
 ]
 
-{ #category : #'*GlorpDatabase' }
+{ #category : #'*GlorpDatabase-private' }
 GlorpCursoredStream >> rawPeek [
 	"Peek at the underlying rows, but don't build objects"
 	rawPeekBuffer isNil ifFalse: [^rawPeekBuffer].

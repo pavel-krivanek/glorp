@@ -1,6 +1,6 @@
 Extension { #name : #GlorpExpression }
 
-{ #category : #'*GlorpDatabase' }
+{ #category : #'*GlorpDatabase-preparing' }
 GlorpExpression >> condensePrimaryKeyComparison [
 	^self.
 ]
