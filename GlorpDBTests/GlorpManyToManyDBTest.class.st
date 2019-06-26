@@ -9,7 +9,7 @@ Class {
 		'accountId3',
 		'treeNodeClass'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -84,7 +84,7 @@ GlorpManyToManyDBTest >> readCustomer: aCustomerId [
 	^results first.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #support }
 GlorpManyToManyDBTest >> session: aDatabaseSession [
 	session := aDatabaseSession.
 ]

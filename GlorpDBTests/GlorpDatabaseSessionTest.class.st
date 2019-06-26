@@ -4,10 +4,10 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpDatabaseSessionTest class >> resources [
 
 	^Array with: GlorpSessionResource.

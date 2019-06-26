@@ -5,10 +5,10 @@ Class {
 		'session',
 		'system'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpConstantValueInRelationshipTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource.
 ]

@@ -1,6 +1,6 @@
 Extension { #name : #OracleSequence }
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-private' }
 OracleSequence >> backupReserveCommand: anInteger in: aSession [
 	| command stream |
 	stream := WriteStream on: (String new: 200).
@@ -18,7 +18,7 @@ OracleSequence >> backupReserveCommand: anInteger in: aSession [
 	^command.
 ]
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-SQL' }
 OracleSequence >> tableSelectCommandFor: aTable in: aSession reserving: anInteger [
 	| stream |
 	(tableSelectCommand notNil and: [tableSelectCommand parameters includes: anInteger]) ifFalse:

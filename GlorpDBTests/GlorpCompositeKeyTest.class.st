@@ -32,9 +32,120 @@ GlorpCompositeKeyTest >> tearDown [
 ]
 
 { #category : #'tests- basic reading' }
-GlorpCompositeKeyTest >> testAlsoFetch [
-	| users |
-	users := session read: GlorpUser.
+GlorpCompositeKeyTest >> testAlsoFetchToManyRead [
+	| users query |
+	query := Query read: GlorpUser where: [:each | each folders sqlCount = 2].
+	query alsoFetch: #folders.
+	users := session execute: query.
+	self deny: users isEmpty.
+	self deny: (users anySatisfy: [:each | each folders isGlorpProxy])
+		description: 'retrieve of alsoFetched folders got proxies'.
+	self assert: (users allSatisfy: [:each | each folders size = 2])
+		description: 'retrieve of alsoFetched folders did not get them all'.
+]
+
+{ #category : #'tests- basic reading' }
+GlorpCompositeKeyTest >> testAlsoFetchToManyReadOne [
+	"If a query reads only one object, but also fetches a to-many relationship joined to it, then it needs to retrieve more than one row and so cannot simply set LIMIT 1 on the overall query.  This test would fail in 8.0 and earlier, but passes in 8.1 and later since Glorp rewrites a query like
+	query := Query readOneOf: MyClass where: .... .
+	query alsoFetch: #myToManyRelationship.
+into an outer query whose limit is reset to nil, joined to a limit-1 inner query that does not alsoFetch (see #testAlsoFetchToManyReadOneCompositeKey for limitations on this approach)
+	query := Query readOneOf: MyClass where:
+		[:each | each = (Query readOneOf: MyClass where: ....)].
+	query alsoFetch: #myToManyRelationship.
+	query limit: nil.
+If the outer limit is not 1, but readsOneObject is true, Glorp assumes the user has already rewritten the query and so does not rewrite it again."
+
+	| userWithMultipleFolders query |
+	query := Query readOneOf: GlorpUser where: [:each | each folders sqlCount = 2].
+	query alsoFetch: #folders.
+	userWithMultipleFolders := session execute: query.
+	self deny: userWithMultipleFolders folders isGlorpProxy
+		description: 'folders were not alsoFetch:ed'.
+	self assert: userWithMultipleFolders folders size = 2
+		description: 'Reading user alsoFetch:ed only one folder'.
+]
+
+{ #category : #'tests - composite keys' }
+GlorpCompositeKeyTest >> testAlsoFetchToManyReadOneCompositeKey [
+	"The 'Glorp rewrites query to e = query' approach is exercised for simple primaryKey in testAlsoFetchToManyReadOne.  Here we test when the base has two primary key fields.  If session platform supportsLimit is false, we don't rewrite: the platform is inefficient when retrieving a single object in a query whose where clause matches many, but it is functionally correct in fetching toMany-related objects.  If the platform does support limit, we rewrite to avoid the risk of limiting #alsoFetch: across toMany-relations.  Where the base object has a composite key, the platform's value for supportsCompositeKeyArgsForOperand: determines whether we aggregate the LHS to a row-comparison like
+	(t1.ID, t1.NAME) = SELECT t1.ID, t1.NAME ... LIMIT 1
+or split the RHS thus
+	(t1.ID = SELECT t1.ID ... LIMIT 1)
+AND
+	(t1.NAME = SELECT t1.NAME ... LIMIT 1)"
+
+	| userWithMultipleFolders query |
+	query := Query readOneOf: GlorpFolder where: [:each | each user id = 1 AND: [each name = 'One']].
+	query alsoFetch: #messages.
+	userWithMultipleFolders := session execute: query.
+	self deny: userWithMultipleFolders messages isGlorpProxy
+		description: 'Folders were not alsoFetch:ed'.
+	self assert: userWithMultipleFolders messages size = 2
+		description: 'Reading one user alsoFetch:ed only one folder'.
+]
+
+{ #category : #'tests - composite keys' }
+GlorpCompositeKeyTest >> testAlsoFetchToManyReadOneCompositeKeyUserRewrite [
+	"The 'e = Query ... limit 1' approach of #testAlsoFetchToManyReadOneCompositeKey is in principle equivalent to 'e in: Query ... limit 1'.  In practice, different database platforms have different edge case issues with rowCompare/=/in:/compositeKey/limit/.  Here we express the query in the form that Glorp will rewrite it to in #testAlsoFetchToManyReadOneCompositeKey but using #in:, not #=.  For simple primaryKey, this is tested in #testAlsoFetchToManyReadOneUserRewrite.  Here, we test it for composite key.
+	MySQL does not tolerate ... IN limited subquery ...  When 'session system platform isMySQLPlatform' returns true, this test will raise a Glorp error (or, if that is resumed/omitted, a database error).  A later version of MySQL may correct this."
+
+	| userWithMultipleFolders query |
+	query := Query readOneOf: GlorpFolder where:
+		[:e | e in: ((Query read: GlorpFolder where:  [:each | each user id = 1 AND: [each name = 'One']]) limit: 1)].
+	query alsoFetch: #messages.
+	query limit: nil.	"limit was set to 1 in readOneOf: call"
+	session system platform isMySQLPlatform ifTrue:
+		[self should: [userWithMultipleFolders := session execute: query]
+			raise: GlorpDatabaseReadError
+			description: 'Did not see error;  has MySQL fixed its LIMIT & IN problem?'.
+		^self].
+	userWithMultipleFolders := session execute: query.
+	self deny: userWithMultipleFolders messages isGlorpProxy
+		description: 'Folders were not alsoFetch:ed'.
+	self assert: userWithMultipleFolders messages size = 2
+		description: 'Reading one user alsoFetch:ed only one folder'.
+]
+
+{ #category : #'tests- basic reading' }
+GlorpCompositeKeyTest >> testAlsoFetchToManyReadOneUserLimit [
+	"If the user sets the limit to a number other than 1 when alsoFetching a toMany, no rewriting the query occurs:  instead that number of rows will be returned."
+
+	| userWithMultipleFolders query |
+	query := Query readOneOf: GlorpUser where: [:each | each folders sqlCount = 2].
+	query alsoFetch: #folders.
+	query limit: 2.
+	userWithMultipleFolders := session execute: query.
+	self deny: userWithMultipleFolders folders isGlorpProxy
+		description: 'folders were not alsoFetch:ed'.
+	self assert: userWithMultipleFolders folders size > 1
+		description: 'Reading user alsoFetch:ed only one folder'.
+]
+
+{ #category : #'tests- basic reading' }
+GlorpCompositeKeyTest >> testAlsoFetchToManyReadOneUserRewrite [
+	"This test shows how a user who wants to read only one object, but who also wants to fetch a to-many relationship joined to it, can do by hand the rewriting that Glorp's internals apply in 8.1 and after.  If the original query were
+	query := Query readOneOf: GlorpUser where: [:each | each folders sqlCount = 2].
+	query alsoFetch: #folders.
+then (before 8.1) it would not get more than one of to-many-joined folder rows, since it would get a single user by setting LIMIT 1 and this limit would apply to the whole query.  Recasting this to an outer query whose limit is reset to nil, joined to a limit-1 inner query that does not alsoFetch, is how the user can do in 8.0 and earlier what Glorp will do for them in 8.1 and after.  Glorp 8.1 uses the fact that the outer limit is not 1, although its readOneObject is true, to deduce when the user has already rewritten the query (so Glorp need not rewrite it again).
+	This test checks that such user-handled queries return the results a user will expect.  In 8.1 and after, the user need not bother, but older Glorp-using code may have had such workarounds.
+	To broaden the scope of the test suite, this test uses #in: instead of #=.  When the limit is 1, the two are semantically equivalent, but different platforms have different issues that can let one pass where the other fails."
+
+	| userWithMultipleFolders query |
+	query := Query readOneOf: GlorpUser where:
+		[:e | e in: (Query readOneOf: GlorpUser where:  [:each | each folders sqlCount = 2])].
+	query alsoFetch: #folders.
+	query limit: nil.	"limit was set to 1 in readOneOf: call"
+	session system platform isMySQLPlatform ifTrue: 
+		[self should: [userWithMultipleFolders := session execute: query]
+			raise: GlorpDatabaseReadError
+			description: 'Did not see error;  has MySQL fixed its LIMIT & IN problem?'.
+		^self].
+	userWithMultipleFolders := session execute: query.
+	self deny: userWithMultipleFolders folders isGlorpProxy
+		description: 'Folders were not alsoFetch:ed'.
+	self assert: userWithMultipleFolders folders size = 2
+		description: 'Reading one user alsoFetch:ed only one folder'.
 ]
 
 { #category : #'tests- basic reading' }
@@ -93,9 +204,9 @@ GlorpCompositeKeyTest >> testFolderIdentity [
 { #category : #'tests- basic reading' }
 GlorpCompositeKeyTest >> testMessageCacheHit [
 	| messages |
-	messages := session readManyOf: GlorpMessage.
+	messages := session read: GlorpMessage.
 	messages do: [:each | | individualMessages individualMessage otherIndividualMessage|
-		individualMessages := session readManyOf: GlorpMessage where: [:eachMessage | eachMessage = each].
+		individualMessages := session read: GlorpMessage where: [:eachMessage | eachMessage = each].
 		self assert: individualMessages size = 1.
 		individualMessage := individualMessages first.
 		session accessor denyReads.
@@ -170,13 +281,14 @@ GlorpCompositeKeyTest >> testReadWithSubselect [
 { #category : #'tests- basic reading' }
 GlorpCompositeKeyTest >> testReadWithSubselectAndINClause [
 	| users |
-	self should: [
-		users := session read: GlorpUser where: [:each | 
-			each folders anySatisfyExists: [:eachFolder |
-				| q |
-				q := Query read: GlorpFolder.
-				eachFolder in: q]]]
-		raise: GlorpInvalidExpressionError.
+	users := session read: GlorpUser where:
+		[:each |
+		each folders anySatisfyExists:
+			[:eachFolder || q |
+			q := Query read: GlorpFolder.
+			eachFolder in: q]].
+	self deny: (users anySatisfy: [:each | each folders isEmpty])
+		description: 'We asked only for users with some folders but got a user with none'.
 ]
 
 { #category : #'tests- basic reading' }

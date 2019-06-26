@@ -5,15 +5,15 @@ Class {
 		'system',
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 GlorpMappingDBTest class >> isAbstract [
 	^self sunitName = #GlorpMappingDBTest
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpMappingDBTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]

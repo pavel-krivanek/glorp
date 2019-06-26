@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpMockAccessor,
 	#superclass : #DatabaseAccessor,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpDatabase'
 }
 
 { #category : #'VisualWorks metadata' }

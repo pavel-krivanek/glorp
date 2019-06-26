@@ -5,7 +5,7 @@ Class {
 		'person',
 		'personId'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -216,7 +216,7 @@ GlorpOneToOneDBTest >> testReadPersonAndRemoveAddress [
 { #category : #'tests-read' }
 GlorpOneToOneDBTest >> testReadPersonAndReplaceAddress [
 	self inTransactionDo:
-		[self inUnitOfWorkDo:
+		[self inUnitOfWorkDo: 
 			[person address: ((GlorpAddress new) id: 12; street: 'foo'; number: '1234')].
 		self readPerson.
 		self checkPerson.

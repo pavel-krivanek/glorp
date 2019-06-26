@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'rows'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'instance creation' }

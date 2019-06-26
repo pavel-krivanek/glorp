@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'system'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'as yet unclassified' }

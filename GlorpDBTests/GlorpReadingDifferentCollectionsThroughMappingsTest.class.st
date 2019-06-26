@@ -5,7 +5,7 @@ Class {
 		'system',
 		'session'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }

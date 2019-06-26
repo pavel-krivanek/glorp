@@ -5,7 +5,7 @@ Class {
 		'id',
 		'test'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-Glorp-DBTests'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -24,6 +24,5 @@ GlorpTypeTestsModelClass >> test [
 
 { #category : #'As yet unclassified' }
 GlorpTypeTestsModelClass >> test: anObject [
-
 	test:= anObject.
 ]

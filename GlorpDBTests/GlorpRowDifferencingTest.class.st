@@ -10,7 +10,7 @@ Class {
 		'mementoObject',
 		'mementoObjectRowMap'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

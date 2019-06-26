@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'result'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'instance creation' }

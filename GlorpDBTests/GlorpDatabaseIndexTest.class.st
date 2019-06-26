@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpDatabaseIndexTest,
 	#superclass : #GlorpMappingDBTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

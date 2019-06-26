@@ -1,6 +1,6 @@
 Extension { #name : #SimpleQuery }
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-executing' }
 SimpleQuery >> deleteSqlWith: aDictionary [
 	| result |
 	self prepare.
@@ -15,7 +15,7 @@ SimpleQuery >> deleteSqlWith: aDictionary [
 		session: session.
 ]
 
-{ #category : #'*GlorpCore' }
+{ #category : #'*GlorpCore-executing' }
 SimpleQuery >> sqlWith: aDictionary [
 	| result |
 	self prepare.
@@ -27,5 +27,5 @@ SimpleQuery >> sqlWith: aDictionary [
 		forQuery: self
 		parameters: aDictionary
 		useBinding: session useBinding
-		session: session
+		session: session.
 ]

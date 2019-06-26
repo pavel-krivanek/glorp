@@ -5,7 +5,7 @@ Class {
 		'person',
 		'personId'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

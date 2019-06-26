@@ -1,31 +1,31 @@
 Extension { #name : #DefaultableThing }
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-accessing' }
 DefaultableThing >> boolean [
 	^boolean
 ]
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-accessing' }
 DefaultableThing >> boolean: anObject [
 	boolean := anObject
 ]
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-accessing' }
 DefaultableThing >> id [
 	^id
 ]
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-accessing' }
 DefaultableThing >> id: anObject [
 	id := anObject
 ]
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-accessing' }
 DefaultableThing >> integer [
 	^integer
 ]
 
-{ #category : #'*GlorpDBTests' }
+{ #category : #'*GlorpDBTests-accessing' }
 DefaultableThing >> integer: anObject [
 	integer := anObject
 ]

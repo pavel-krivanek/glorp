@@ -5,7 +5,7 @@ Class {
 		'session',
 		'proxy'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }

@@ -8,7 +8,7 @@ Class {
 	#category : #GlorpDBTests
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpDatabaseLoginTest class >> resources [
 
 	^Array with: GlorpDatabaseLoginResource.
