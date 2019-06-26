@@ -9,7 +9,7 @@ Class {
 	#category : #GlorpDatabase
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'As yet unclassified' }
 SQLStringSelectCommand class >> sqlString: aString parameters: aDictionaryOrArray useBinding: aBoolean session: aSession [
 	^(self new)
 		setSQLString: aString;

@@ -14,7 +14,7 @@ Class {
 		'reversedCorrespondenceMap',
 		'collectionMementos'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

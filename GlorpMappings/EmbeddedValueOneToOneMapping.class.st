@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'fieldTranslation'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

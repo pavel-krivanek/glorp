@@ -10,7 +10,7 @@ Class {
 	#category : #GlorpTests
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpBreadthFirstTopologicalSortItem class >> new [
 	"Answer a newly created and initialized instance."
 

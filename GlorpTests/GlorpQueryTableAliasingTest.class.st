@@ -7,7 +7,7 @@ Class {
 		'elementBuilder',
 		'session'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -20,7 +20,7 @@ GlorpQueryTableAliasingTest class >> visualWorksMetadata [
 
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #utility }
 GlorpQueryTableAliasingTest >> helpTestPrintingWhereClause: anExpression [
 	| command |
 	query 

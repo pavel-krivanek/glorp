@@ -10,7 +10,7 @@ Class {
 		't3id',
 		'platform'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

@@ -8,10 +8,10 @@ Class {
 		'parameters',
 		'maximumBlobSizeToRetrieveDirectly'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 SQLStringCommand class >> for: aString [
 	^self new setSQLString: aString.
 ]

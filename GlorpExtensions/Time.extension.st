@@ -1,13 +1,13 @@
 Extension { #name : #Time }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-printing' }
 Time >> glorpPadToTwoDigits: anInteger [
 	| string |
 	string := anInteger truncated printString.
 	^string size = 1 ifTrue: ['0', string] ifFalse: [string].
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-printing' }
 Time >> glorpPrintSQLOn: aCommand [
 	"Print as 24 hour time"
 

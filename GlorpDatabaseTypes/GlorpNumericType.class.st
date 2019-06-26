@@ -5,7 +5,7 @@ Class {
 		'precision',
 		'scale'
 	],
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }

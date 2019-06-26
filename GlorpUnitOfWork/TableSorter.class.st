@@ -16,7 +16,7 @@ Class {
 		'tables',
 		'visitedTables'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #'instance creation' }

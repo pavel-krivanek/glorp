@@ -1,13 +1,3 @@
-"
-Var binary type
-
-Instance Variables
-	width:		<Object>
-
-width
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpVarBinaryType,
 	#superclass : #GlorpDatabaseType,

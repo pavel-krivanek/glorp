@@ -1,6 +1,6 @@
 Extension { #name : #RelationExpression }
 
-{ #category : #'*GlorpDatabase' }
+{ #category : #'*GlorpDatabase-preparing' }
 RelationExpression >> condensePrimaryKeyComparison [
 	"This tries to condense expressions of the form
          something relatedObject id = x
@@ -27,7 +27,7 @@ RelationExpression >> condensePrimaryKeyComparison [
 		ifFalse: [(self leftChild base base getField: sourceField) get: relation withArguments: (Array with: self rightChild)].
 ]
 
-{ #category : #'*GlorpDatabase' }
+{ #category : #'*GlorpDatabase-converting' }
 RelationExpression >> generalExpressionPart [
 	| left right |
 	left := leftChild generalExpressionPart.

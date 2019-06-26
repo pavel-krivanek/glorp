@@ -10,7 +10,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpMessage class >> new [
 	"Answer a newly created and initialized instance."
 

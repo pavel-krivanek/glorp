@@ -4,10 +4,10 @@ Class {
 	#instVars : [
 		'session'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpDBTests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpHorizontalInheritanceTest class >> resources [
 	^Array with: GlorpDatabaseLoginResource with: GlorpDemoTablePopulatorResource with: GlorpSessionResource
 ]

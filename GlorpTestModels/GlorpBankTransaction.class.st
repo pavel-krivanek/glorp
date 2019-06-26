@@ -7,7 +7,7 @@ Class {
 		'amount',
 		'serviceCharge'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -22,7 +22,7 @@ GlorpBankTransaction class >> example2 [
 	^self new
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpBankTransaction class >> new [
 
 	^super new initialize.

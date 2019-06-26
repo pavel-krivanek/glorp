@@ -1,6 +1,3 @@
-"
-Pragma mapping for SQLite3
-"
 Class {
 	#name : #SQLite3PragmaMapping,
 	#superclass : #ToManyMapping,
@@ -30,7 +27,7 @@ SQLite3PragmaMapping >> buildQuery [
 	self usesLinkTable ifTrue: [
 		query AND: (self expressionFromLinkToReferenceTableWithBase: query baseExpression)].
 	orderBy isNil ifFalse: [orderBy do: [:each | query orderBy: each]].
-	^query
+	^query.
 ]
 
 { #category : #'initialize-release' }

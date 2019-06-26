@@ -21,8 +21,9 @@ Class {
 
 { #category : #'instance creation' }
 FilteredTypeMapping class >> to: field keyedBy: key [
-	^(self new)
-		field: field keyedBy: key
+	^self new
+		field: field
+		keyedBy: key
 ]
 
 { #category : #'VisualWorks metadata' }

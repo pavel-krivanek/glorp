@@ -1,6 +1,6 @@
 Extension { #name : #SubSelectExpression }
 
-{ #category : #'*GlorpQueries' }
+{ #category : #'*GlorpQueries-accessing' }
 SubSelectExpression >> initializeQuery [
 	query := Query
 		read: localBase descriptor describedClass

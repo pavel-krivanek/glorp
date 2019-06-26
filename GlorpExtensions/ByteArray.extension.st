@@ -1,6 +1,6 @@
 Extension { #name : #ByteArray }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-testing' }
 ByteArray >> glorpIsCollection [
 	"For our purposes, these aren't collections, but rather a simple database type"
 	^false.

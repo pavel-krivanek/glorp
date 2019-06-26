@@ -6,7 +6,7 @@ Class {
 		'key',
 		'label'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-PolyTest'
 }
 
 { #category : #'VisualWorks metadata' }

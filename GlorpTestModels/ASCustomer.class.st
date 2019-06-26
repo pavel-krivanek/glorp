@@ -10,7 +10,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 ASCustomer class >> new [
 	^super new initialize
 ]

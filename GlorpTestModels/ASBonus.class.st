@@ -9,7 +9,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 ASBonus class >> new [
 	"Answer a newly created and initialized instance."
 

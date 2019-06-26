@@ -9,7 +9,7 @@ Class {
 		'money',
 		'rowMap'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

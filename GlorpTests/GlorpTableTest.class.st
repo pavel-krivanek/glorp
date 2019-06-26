@@ -5,7 +5,7 @@ Class {
 		'descriptors',
 		'dbPlatform'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

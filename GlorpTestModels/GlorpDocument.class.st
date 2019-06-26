@@ -6,10 +6,10 @@ Class {
 		'whatever',
 		'attachments'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-AAGlorp'
 }
 
-{ #category : #setup }
+{ #category : #glorp }
 GlorpDocument class >> glorpSetupClassModel: model forSystem: system [ 
 	model
 		newAttributeNamed: #id;
@@ -19,7 +19,7 @@ GlorpDocument class >> glorpSetupClassModel: model forSystem: system [
 			of: GlorpAttachment
 ]
 
-{ #category : #setup }
+{ #category : #glorp }
 GlorpDocument class >> glorpSetupDescriptor: aDesc forSystem: system [ 
 	| t |
 	t := system tableNamed: 'document'.

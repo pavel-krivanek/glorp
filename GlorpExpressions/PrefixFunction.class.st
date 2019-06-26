@@ -15,7 +15,7 @@ Class {
 		'separator',
 		'argumentModifierBlock'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'VisualWorks metadata' }

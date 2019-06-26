@@ -6,7 +6,7 @@ Class {
 		'boolean',
 		'integer'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
 
 { #category : #'VisualWorks metadata' }

@@ -14,7 +14,7 @@ Class {
 		'c1',
 		'c2'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

@@ -34,7 +34,7 @@ Class {
 		'row',
 		'query'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #private }

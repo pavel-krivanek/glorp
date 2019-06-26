@@ -28,7 +28,7 @@ MappingExpression class >> named: aSymbol basedOn: anExpression [
 
 	^self new
 		named: aSymbol
-		basedOn: anExpression
+		basedOn: anExpression.
 ]
 
 { #category : #'VisualWorks metadata' }

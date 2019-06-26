@@ -1,12 +1,12 @@
 Extension { #name : #GlorpSession }
 
-{ #category : #'*GlorpMappings' }
+{ #category : #'*GlorpMappings-accessing' }
 GlorpSession >> databaseTableClass [
 
 	^system databaseTableClass
 ]
 
-{ #category : #'*GlorpMappings' }
+{ #category : #'*GlorpMappings-private' }
 GlorpSession >> embeddedObjectsFor: anObject [
 	"Return all the objects embedded into this one"
 	| embedded descriptor |
@@ -16,5 +16,5 @@ GlorpSession >> embeddedObjectsFor: anObject [
 	descriptor mappings do: [:each |
 		(each class == EmbeddedValueOneToOneMapping) ifTrue: [
 			embedded add: (each getValueFrom: anObject)]].
-	^embedded
+	^embedded.
 ]

@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpFloatType,
 	#superclass : #GlorpAbstractNumericType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }

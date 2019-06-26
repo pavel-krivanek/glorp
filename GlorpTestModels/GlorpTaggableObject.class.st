@@ -4,10 +4,10 @@ Class {
 	#instVars : [
 		'tags'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-PolyTest'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpTaggableObject class >> new [
 	^super new initialize.
 ]

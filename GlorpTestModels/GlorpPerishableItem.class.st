@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'age'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #'VisualWorks metadata' }

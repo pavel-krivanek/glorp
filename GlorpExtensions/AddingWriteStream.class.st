@@ -12,10 +12,10 @@ Class {
 	#instVars : [
 		'target'
 	],
-	#category : #GlorpExtensions
+	#category : #'GlorpExtensions-Collections-Abstract'
 }
 
-{ #category : #'instance-creation' }
+{ #category : #'instance creation' }
 AddingWriteStream class >> on: aCollection [
 	^self new target: aCollection.
 ]
@@ -31,22 +31,22 @@ AddingWriteStream class >> visualWorksMetadata [
 
 { #category : #accessing }
 AddingWriteStream >> contents [
-	^target
+	^target.
 ]
 
 { #category : #accessing }
 AddingWriteStream >> nextPut: anObject [
-	target add: anObject
+	target add: anObject.
 ]
 
 { #category : #accessing }
 AddingWriteStream >> nextPutAll: aCollection [
-	target glorpAddAll: aCollection
+	target glorpAddAll: aCollection.
 ]
 
 { #category : #accessing }
 AddingWriteStream >> on: aSet [
-	target := aSet
+	target := aSet.
 ]
 
 { #category : #accessing }

@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpDescriptorTest,
 	#superclass : #GlorpDatabaseBasedTest,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -88,11 +88,33 @@ GlorpDescriptorTest >> testBuildPersonFromRow [
 ]
 
 { #category : #tests }
+GlorpDescriptorTest >> testClassLookup [
+
+	self assert: (Dialect smalltalkAt: 'Object') == Object.
+
+	Dialect isVWWithNameSpaces ifTrue: [
+		"Sneaky meta-tricks to avoid things that won't compile in non-VW dialects"
+		self assert: (Dialect smalltalkAt: 'GlorpTestNamespace.GlorpTestClassInNamespace') == (Compiler evaluate: 'GlorpTestNamespace.GlorpTestClassInNamespace').
+		self assert: (Dialect smalltalkAt: 'GlorpTestNamespace.GlorpTestClassInNamespace') notNil].
+]
+
+{ #category : #tests }
 GlorpDescriptorTest >> testDescriptorIdentity [
 
 	| descriptor |
 	descriptor := system descriptorFor: GlorpCustomer.
 	self assert: descriptor == (system descriptorFor: GlorpCustomer).
+]
+
+{ #category : #tests }
+GlorpDescriptorTest >> testDescriptorWithNamespace [
+
+	| descriptor testCaseClass |
+	Dialect isVWWithNameSpaces ifFalse: [^self].
+	system := GlorpDescriptorSystemWithNamespaces new.
+	testCaseClass := 'GlorpTestNamespace.GlorpTestClassInNamespace' asQualifiedReference value.
+	descriptor := system descriptorFor: testCaseClass.
+	self assert: descriptor describedClass == testCaseClass.
 ]
 
 { #category : #tests }

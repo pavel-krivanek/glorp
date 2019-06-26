@@ -11,7 +11,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #Accessing }
 GlorpProxyEqualityTest class >> resources [
 	^Array with: GlorpSessionResource
 ]

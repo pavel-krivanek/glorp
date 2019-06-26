@@ -14,7 +14,7 @@ Class {
 		'rowMap',
 		'platform'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

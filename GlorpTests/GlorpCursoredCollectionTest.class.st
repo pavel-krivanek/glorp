@@ -8,7 +8,7 @@ Class {
 	#category : #GlorpTests
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #resources }
 GlorpCursoredCollectionTest class >> resources [
 	^Array with: GlorpSessionResource.
 ]

@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'command'
 	],
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-My Classes'
 }
 
 { #category : #'VisualWorks metadata' }

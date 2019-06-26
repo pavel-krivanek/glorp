@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'queries'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-My Classes'
 }
 
 { #category : #'VisualWorks metadata' }

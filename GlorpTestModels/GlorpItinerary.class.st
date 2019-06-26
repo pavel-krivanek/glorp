@@ -9,7 +9,7 @@ Class {
 		'id',
 		'reservation'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }

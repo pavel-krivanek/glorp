@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'queryCache'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

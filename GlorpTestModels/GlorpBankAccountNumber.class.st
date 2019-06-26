@@ -6,7 +6,7 @@ Class {
 		'branchNumber',
 		'accountNumber'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }

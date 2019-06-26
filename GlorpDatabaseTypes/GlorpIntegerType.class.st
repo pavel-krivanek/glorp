@@ -1,10 +1,7 @@
-"
-Integer type
-"
 Class {
 	#name : #GlorpIntegerType,
 	#superclass : #GlorpAbstractIntegerType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-GlorpDatabase'
 }
 
 { #category : #'VisualWorks metadata' }

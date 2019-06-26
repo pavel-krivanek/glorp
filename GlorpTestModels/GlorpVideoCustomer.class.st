@@ -13,7 +13,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpVideoCustomer class >> new [
 	"Answer a newly created and initialized instance."
 

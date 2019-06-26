@@ -3,8 +3,8 @@ This is an abstract superclass for all descriptor systems whose tables should be
 "
 Class {
 	#name : #GlorpTestDescriptorSystem,
-	#superclass : #DescriptorSystem,
-	#category : #GlorpTestModels
+	#superclass : #AnObsoleteDescriptorSystem,
+	#category : #'GlorpTestModels-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

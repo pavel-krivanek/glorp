@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'tracing'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

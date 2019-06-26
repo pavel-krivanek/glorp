@@ -8,10 +8,10 @@ Class {
 		'finishedJobs',
 		'priorityJobs'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpWorker class >> new [
 
 	^super new initialize.

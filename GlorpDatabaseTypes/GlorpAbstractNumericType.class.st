@@ -1,10 +1,7 @@
-"
-Abstract numeric type
-"
 Class {
 	#name : #GlorpAbstractNumericType,
 	#superclass : #GlorpDatabaseType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }

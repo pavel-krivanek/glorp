@@ -1,6 +1,6 @@
 Extension { #name : #GlorpDatabaseBasedTest }
 
-{ #category : #'*GlorpTests' }
+{ #category : #'*GlorpTests-support' }
 GlorpDatabaseBasedTest >> assert: aBrackettedString equalsIgnoringOuterBrackets: anotherString [
 	self assert: aBrackettedString =
 		(anotherString first = $(

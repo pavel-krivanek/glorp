@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpInheritanceDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpMappings'
 }
 
 { #category : #'VisualWorks metadata' }

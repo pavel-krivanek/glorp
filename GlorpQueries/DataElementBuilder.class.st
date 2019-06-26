@@ -7,7 +7,7 @@ This makes building them quite simple.
 Class {
 	#name : #DataElementBuilder,
 	#superclass : #ElementBuilder,
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

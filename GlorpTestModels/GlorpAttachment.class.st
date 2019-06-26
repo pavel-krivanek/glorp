@@ -6,10 +6,10 @@ Class {
 		'mimeType',
 		'attachmentBytes'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-AAGlorp'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpAttachment class >> glorpSetupClassModel: model forSystem: system [ 
 	model
 		newAttributeNamed: #index;
@@ -17,7 +17,7 @@ GlorpAttachment class >> glorpSetupClassModel: model forSystem: system [
 		newAttributeNamed: #attachmentBytes type: GlorpAttachmentBytes
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpAttachment class >> glorpSetupDescriptor: aDesc forSystem: system [ 
 	| t |
 	t := system tableNamed: 'attachment'.

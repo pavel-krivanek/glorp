@@ -5,10 +5,10 @@ Class {
 		'id',
 		'array'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #examples }
+{ #category : #'instance creation' }
 GlorpCompressedMoney class >> currency: aSymbol amount: aNumber [
 
 	^super new initialize
@@ -16,19 +16,19 @@ GlorpCompressedMoney class >> currency: aSymbol amount: aNumber [
 		amount: aNumber.
 ]
 
-{ #category : #examples }
+{ #category : #'instance creation' }
 GlorpCompressedMoney class >> defaultCurrency [
 
 	^#CDN.
 ]
 
-{ #category : #examples }
+{ #category : #'instance creation' }
 GlorpCompressedMoney class >> forAmount: aNumber [
 
 	^self currency: self defaultCurrency amount: aNumber.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpCompressedMoney class >> new [
 	^super new initialize.
 ]

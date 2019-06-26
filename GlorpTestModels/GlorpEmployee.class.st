@@ -1,10 +1,10 @@
 Class {
 	#name : #GlorpEmployee,
 	#superclass : #GlorpWorkingStiff,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'glorp setup' }
 GlorpEmployee class >> glorpTypeResolver [
 	^FilteredTypeResolver forRootClass: GlorpEmployee
 ]

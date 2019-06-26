@@ -7,7 +7,7 @@ Class {
 		'mappingToSession',
 		'slot'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

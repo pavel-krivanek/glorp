@@ -9,7 +9,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 ASItem class >> new [
 	^super new initialize
 ]

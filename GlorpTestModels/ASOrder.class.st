@@ -9,7 +9,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 ASOrder class >> new [
 	^super new initialize
 ]

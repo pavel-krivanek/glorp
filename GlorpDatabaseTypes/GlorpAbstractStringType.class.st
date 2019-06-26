@@ -5,7 +5,7 @@ Class {
 		'width',
 		'queryType'
 	],
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }

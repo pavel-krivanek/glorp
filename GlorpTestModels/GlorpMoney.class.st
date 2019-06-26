@@ -5,7 +5,7 @@ Class {
 		'currency',
 		'amount'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #'instance creation' }

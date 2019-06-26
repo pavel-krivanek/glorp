@@ -7,10 +7,10 @@ Class {
 		'accountHolders',
 		'eventsReceived'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpBankAccount class >> example1 [
 
 	^self new 
@@ -18,7 +18,7 @@ GlorpBankAccount class >> example1 [
 		accountNumber: GlorpBankAccountNumber example12345.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpBankAccount class >> new [
 
 	^super new initialize.

@@ -8,7 +8,7 @@ Class {
 	#category : #GlorpMisc
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 CannotFindSession class >> mayResume [
 	^true.
 ]

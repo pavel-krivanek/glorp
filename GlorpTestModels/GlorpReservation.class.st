@@ -6,10 +6,10 @@ Class {
 		'passenger',
 		'passengers'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpReservation class >> example1 [
 
 	^self new
@@ -17,7 +17,7 @@ GlorpReservation class >> example1 [
 		passenger: GlorpPassenger example1.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpReservation class >> example2 [
 
 	^self new
@@ -25,7 +25,7 @@ GlorpReservation class >> example2 [
 		passenger: GlorpPassenger example2.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpReservation class >> new [
 	^super new initialize.
 ]

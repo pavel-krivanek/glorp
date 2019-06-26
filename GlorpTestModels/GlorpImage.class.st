@@ -5,7 +5,7 @@ Class {
 		'id',
 		'location'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-PolyTest'
 }
 
 { #category : #'as yet unclassified' }

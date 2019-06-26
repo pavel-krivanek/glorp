@@ -5,7 +5,7 @@ Class {
 		'id',
 		'description'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #'VisualWorks metadata' }

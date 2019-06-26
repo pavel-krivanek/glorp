@@ -6,10 +6,10 @@ Class {
 		'name',
 		'images'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpGallery class >> new [
 	^super new initialize.
 ]

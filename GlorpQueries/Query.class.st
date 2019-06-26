@@ -28,7 +28,7 @@ Class {
 		'readsOneObject',
 		'grouping'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -62,19 +62,19 @@ Query class >> read: aClass where: anExpression [
 	^SimpleQuery read: aClass where: anExpression
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Query class >> readManyOf: aClass [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:).
 	^self read: aClass
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Query class >> readManyOf: aClass where: anExpression [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'. 
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: anExpression
 ]
 
@@ -88,37 +88,37 @@ Query class >> readOneOf: aClass where: anExpression [
 	^SimpleQuery readOneOf: aClass where: anExpression.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Query class >> returningManyOf: aClass [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:).
 	^self read: aClass
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Query class >> returningManyOf: aClass where: anExpression [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: anExpression
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Query class >> returningOneOf: aClass [
 	"Backward-compatibility, since we changed the class name."
 	"returningOneOf: is a synonym of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:).
 	^self readOneOf: aClass.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 Query class >> returningOneOf: aClass where: anExpression [
 	"Backward-compatibility, since we changed the class name."
 	"returningOneOf: is a synonym of readOneOf:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #readOneOf:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #readOneOf:where:).
 	^self readOneOf: aClass where: anExpression
 ]
 

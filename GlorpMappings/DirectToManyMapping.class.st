@@ -27,7 +27,7 @@ DirectToManyMapping class >> visualWorksMetadata [
 
 { #category : #accessing }
 DirectToManyMapping >> attributeName: anAttributeName [
-	^self attributeName: anAttributeName referenceClass: nil
+	^self attributeName: anAttributeName referenceClass: nil.
 ]
 
 { #category : #accessing }
@@ -39,14 +39,14 @@ DirectToManyMapping >> attributeName: anAttributeName referenceClass: aClass [
 	model := GlorpClassModel for: super referenceClass.
 	"We add a mapping for our value. We don't normally use this, because we expect people to refer directly to the attribute, but it means, for example, that the field shows up in our mapped fields without us having to fake it up. And you could write a query referring to anAttribute myValue if you wanted"
 	model newAttributeNamed: #myValue type: self attribute type.
-	self referenceDescriptor classModel: model
+	self referenceDescriptor classModel: model.
 ]
 
 { #category : #accessing }
 DirectToManyMapping >> buildQuery [
 	query := super buildQuery.
 	query retrieve: [:x | x getField: resultField].
-	^query
+	^query.
 ]
 
 { #category : #mapping }
@@ -55,30 +55,30 @@ DirectToManyMapping >> buildRowMapKeyForSource: source target: target index: ind
 	^MultipleRowMapKey
 		with: target yourSelf
 		with: source yourSelf
-		with: index
+		with: index.
 ]
 
 { #category : #converting }
 DirectToManyMapping >> convertedDbValueOf: anObject [
 	"It may be that we need to introduce a converter here, the same as with a regular direct mapping"
-	^anObject
+	^anObject.
 ]
 
 { #category : #accessing }
 DirectToManyMapping >> descriptor: aDescriptor [
 	super descriptor: aDescriptor.
-	aDescriptor system privateAndBasicAddDescriptorFor: self as: self pseudoDescriptor
+	aDescriptor system privateAndBasicAddDescriptorFor: self as: self pseudoDescriptor.
 ]
 
 { #category : #accessing }
 DirectToManyMapping >> field [
-	^resultField
+	^resultField.
 ]
 
 { #category : #testing }
 DirectToManyMapping >> glorpCanHaveDescriptorDirectly [
 	"We allow instances of ourselves to have a descriptor, which normally only classes can do. This is so that we can have multiple different descriptors in use for e.g. String, depending on the particular usage."
-	^true
+	^true.
 ]
 
 { #category : #accessing }
@@ -92,19 +92,19 @@ DirectToManyMapping >> join: aJoin [
 	self referenceDescriptor table: tables first.
 	"We add a mapping for our value. We don't normally use this, because we expect people to refer directly to the attribute, but it means, for example, that the field shows up in our mapped fields without us having to fake it up. And you could write a query referring to anAttribute myValue if you wanted"
 	(self referenceDescriptor newMapping: DirectMapping) 
-		from: #myValue to: resultField
+		from: #myValue to: resultField.
 ]
 
 { #category : #testing }
 DirectToManyMapping >> mapsSimpleObject [
-	^true
+	^true.
 ]
 
 { #category : #testing }
 DirectToManyMapping >> needsSpecialRowMapKey [
 	"Return true if we have to use a special key object for the row map, rather than just our target. We always do, because our target may not have identity."
 
-	^true
+	^true.
 ]
 
 { #category : #mapping }
@@ -113,23 +113,23 @@ DirectToManyMapping >> pseudoDescriptor [
 	| pseudoDescriptor |
 	pseudoDescriptor := Descriptor new.
 	pseudoDescriptor system: descriptor system.
-	^pseudoDescriptor
+	^pseudoDescriptor.
 ]
 
 { #category : #accessing }
 DirectToManyMapping >> referenceClass [
 	"Return ourselves as the reference class, as a sort of a proxy for what we really want, which is a primitive, and varies according to the relationship anyway. Note that we have stuffed in a descriptor in the system, with ourselves (this instance) as the class."
-	^self
+	^self.
 ]
 
 { #category : #accessing }
 DirectToManyMapping >> resultField [
-	^resultField
+	^resultField.
 ]
 
 { #category : #accessing }
 DirectToManyMapping >> resultField: aField [
-	resultField := aField
+	resultField := aField.
 ]
 
 { #category : #validation }
@@ -154,5 +154,5 @@ DirectToManyMapping >> writeExtraInformationInto: aRowMap atKey: rowMapKey forSo
 	aRowMap
 		at: self resultField
 		key: rowMapKey
-		put: targetObject
+		put: targetObject.
 ]

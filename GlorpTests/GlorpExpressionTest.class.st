@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpExpressionTest,
 	#superclass : #GlorpDatabaseBasedTest,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

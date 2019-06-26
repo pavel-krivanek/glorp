@@ -20,7 +20,7 @@ Class {
 		'selector',
 		'typeString'
 	],
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp'
 }
 
 { #category : #'instance creation' }

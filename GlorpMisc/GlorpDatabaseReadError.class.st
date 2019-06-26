@@ -19,7 +19,7 @@ Class {
 	#category : #GlorpMisc
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'initialize-release' }
 GlorpDatabaseReadError class >> mayResume [
 	^true.
 ]

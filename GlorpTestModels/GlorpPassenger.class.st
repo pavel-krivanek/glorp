@@ -7,7 +7,7 @@ Class {
 		'frequentFlyerMiles',
 		'airline'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }

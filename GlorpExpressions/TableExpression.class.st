@@ -20,9 +20,7 @@ Class {
 { #category : #'instance creation' }
 TableExpression class >> forTable: aDatabaseTable basedOn: aBaseExpression [
 
-	^(self new) 
-		table: aDatabaseTable base: aBaseExpression; 
-		yourself
+	^self new table: aDatabaseTable base: aBaseExpression; yourself
 ]
 
 { #category : #'VisualWorks metadata' }

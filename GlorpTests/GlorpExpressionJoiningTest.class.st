@@ -6,7 +6,7 @@ Class {
 		'target',
 		'base'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

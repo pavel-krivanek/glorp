@@ -7,7 +7,7 @@ Class {
 		'titles',
 		'titlesWithNumberInStock'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #'VisualWorks metadata' }

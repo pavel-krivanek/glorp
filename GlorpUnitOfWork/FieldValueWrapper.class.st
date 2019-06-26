@@ -16,7 +16,7 @@ Class {
 		'hasValue',
 		'containedBy'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #public }

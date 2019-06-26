@@ -8,7 +8,7 @@ Class {
 		'emailAddresses',
 		'hasEmail'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }

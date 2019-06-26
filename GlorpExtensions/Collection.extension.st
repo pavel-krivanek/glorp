@@ -5,12 +5,12 @@ Collection >> copyEmpty: aSize [
 	^self species new: aSize
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-adding' }
 Collection >> glorpAddAll: aCollection [
 	^self addAll: aCollection.
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-adding' }
 Collection >> glorpAddAllToDictionary: aDictionary [
 	"Assumes that we are a collection of associations"
 	self do: [:each | aDictionary add: each].
@@ -45,13 +45,13 @@ Collection >> glorpGroupedBy: aBlock [
 	^result
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-testing' }
 Collection >> glorpIsCollection [
 
 	^true.
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-glorp' }
 Collection >> glorpPrintSQLOn: aCommand [
 	aCommand nextPut: $(.
 	self isEmpty
@@ -64,7 +64,7 @@ Collection >> glorpPrintSQLOn: aCommand [
 	aCommand nextPut: $).
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-glorp' }
 Collection >> glorpPrintSQLOn: aStream for: aType [
 	aStream nextPut: $(.
 	self isEmpty
@@ -77,7 +77,7 @@ Collection >> glorpPrintSQLOn: aStream for: aType [
 	aStream nextPut: $).
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-glorp' }
 Collection >> glorpRegisterCollectionInternalsIn: anObjectTransaction [ 
 	"Explicitly register any internal structures (e.g. a VW identity dictionary's valueArray) with the transaction. Assume we can safely register everything inside the collection reflectively. The obvious exceptions would be dependents and sortblocks. This is a cheat, and for peculiar cases you'll need to override this in the subclass"
 
@@ -89,7 +89,7 @@ Collection >> glorpRegisterCollectionInternalsIn: anObjectTransaction [
 				ifFalse: [anObjectTransaction register: (self instVarAt: index)]]
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-streams' }
 Collection >> writeStream [
 	^AddingWriteStream on: self
 ]

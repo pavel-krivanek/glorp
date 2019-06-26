@@ -14,7 +14,7 @@ Class {
 		'base',
 		'value'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }

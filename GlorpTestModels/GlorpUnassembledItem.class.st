@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'assemblyCost'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #'VisualWorks metadata' }

@@ -3,12 +3,13 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'id',
-		'children'
+		'children',
+		'parent'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpTreeNode class >> new [
 	^super new initialize.
 ]
@@ -22,29 +23,39 @@ GlorpTreeNode class >> visualWorksMetadata [
 
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 GlorpTreeNode >> children [
-	^children.
+	^children
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 GlorpTreeNode >> children: aCollection [
 	children := aCollection.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 GlorpTreeNode >> id [
-	^id.
+	^id
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
 GlorpTreeNode >> id: anInteger [
 	id := anInteger.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #'initialize-release' }
 GlorpTreeNode >> initialize [
 	children := OrderedCollection new.
+]
+
+{ #category : #accessing }
+GlorpTreeNode >> parent [
+	^parent
+]
+
+{ #category : #accessing }
+GlorpTreeNode >> parent: aGlorpTreeNode [
+	parent := aGlorpTreeNode.
 ]
 
 { #category : #printing }

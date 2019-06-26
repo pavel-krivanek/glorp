@@ -13,7 +13,7 @@ Class {
 		'mapping3',
 		'newMapping'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTestModels'
 }
 
 { #category : #'VisualWorks metadata' }

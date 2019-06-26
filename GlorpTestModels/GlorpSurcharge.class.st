@@ -1,10 +1,10 @@
 Class {
 	#name : #GlorpSurcharge,
 	#superclass : #GlorpTax,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpSurcharge class >> glorpSetupDescriptor: aDescriptor forSystem: aSystem [
 	| table |
 	table := aSystem tableNamed: 'TAX'.

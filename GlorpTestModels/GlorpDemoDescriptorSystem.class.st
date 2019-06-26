@@ -7,7 +7,7 @@ Class {
 	#category : #GlorpTestModels
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpDemoDescriptorSystem class >> default [
 	Default isNil ifTrue: [Default := self new].
 	^Default

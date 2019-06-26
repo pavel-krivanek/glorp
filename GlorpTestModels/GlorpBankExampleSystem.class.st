@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpBankExampleSystem,
 	#superclass : #GlorpExampleSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

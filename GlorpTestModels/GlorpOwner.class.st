@@ -6,7 +6,7 @@ Class {
 		'slave',
 		'slaves'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #'VisualWorks metadata' }

@@ -1,12 +1,12 @@
 Extension { #name : #Association }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-accessing' }
 Association >> glorpAtIdentity: aKey ifAbsent: aBlock [
 	"A cheat to let use use this like an identity dictionary"
 	^key == aKey ifTrue: [value] ifFalse: aBlock.
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-accessing' }
 Association >> keysAndValuesDo: aBlock [
 	"A memory allocation hack. Let us use a single association in place of a dictionary"
 	aBlock value: key value: value.

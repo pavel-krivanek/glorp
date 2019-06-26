@@ -5,9 +5,10 @@ Class {
 		'id',
 		'name',
 		'entries',
-		'biographicalEntries'
+		'biographicalEntries',
+		'entriesByAuthor'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -19,7 +20,7 @@ GlorpEncyclopedia class >> example1 [
 	^result.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 GlorpEncyclopedia class >> new [
 
 	^super new initialize.
@@ -60,6 +61,16 @@ GlorpEncyclopedia >> entries: aDictionary [
 ]
 
 { #category : #accessing }
+GlorpEncyclopedia >> entriesByAuthor [
+	^entriesByAuthor
+]
+
+{ #category : #accessing }
+GlorpEncyclopedia >> entriesByAuthor: aDictionary [
+	entriesByAuthor := aDictionary
+]
+
+{ #category : #accessing }
 GlorpEncyclopedia >> id [
 	^id
 ]
@@ -74,6 +85,7 @@ GlorpEncyclopedia >> initialize [
 
 	entries := Dictionary new.
 	biographicalEntries := Dictionary new.
+	entriesByAuthor := Dictionary new.
 ]
 
 { #category : #accessing }

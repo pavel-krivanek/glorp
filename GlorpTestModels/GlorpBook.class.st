@@ -9,7 +9,7 @@ Class {
 		'title',
 		'author'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
 
 { #category : #examples }

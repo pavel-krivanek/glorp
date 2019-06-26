@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpAttributeModelTest,
 	#superclass : #GlorpTestCase,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

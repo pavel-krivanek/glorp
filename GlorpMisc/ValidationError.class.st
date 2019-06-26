@@ -9,7 +9,7 @@ Class {
 	#category : #GlorpMisc
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 ValidationError class >> mayResume [
 
 	^true

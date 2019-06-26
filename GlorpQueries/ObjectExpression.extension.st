@@ -29,7 +29,7 @@ session read: GlorpCustomer where: 	[:each |
 	^q asGlorpExpressionOn: self ultimateBaseExpression.
 ]
 
-{ #category : #'*GlorpQueries' }
+{ #category : #'*GlorpQueries-api-aggregates' }
 ObjectExpression >> existenceCheck: anExpression as: functionName [
 	"Make a subselect of the expression that is our argument, returning it wrapped in either an exists or a not exists, e.g. 
 	session read: GlorpCustomer where: 	[:each |  

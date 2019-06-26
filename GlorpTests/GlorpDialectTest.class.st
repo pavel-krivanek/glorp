@@ -4,7 +4,7 @@ Tests the portability methods in the Dialect class.
 Class {
 	#name : #GlorpDialectTest,
 	#superclass : #GlorpTestCase,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

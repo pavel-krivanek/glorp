@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpMSSQLSysnameType,
 	#superclass : #GlorpDatabaseType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-GlorpDatabase'
 }
 
 { #category : #'VisualWorks metadata' }

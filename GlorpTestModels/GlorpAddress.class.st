@@ -6,10 +6,10 @@ Class {
 		'street',
 		'number'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpAddress class >> example1 [
 
 	^self new
@@ -18,7 +18,7 @@ GlorpAddress class >> example1 [
 		number: '2042'.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpAddress class >> example1WithChangedAddress [
 
 	^self new
@@ -27,7 +27,7 @@ GlorpAddress class >> example1WithChangedAddress [
 		number: '99999'.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #examples }
 GlorpAddress class >> example2 [
 
 	^self new
@@ -36,14 +36,14 @@ GlorpAddress class >> example2 [
 		number: '1000'.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'glorp setup' }
 GlorpAddress class >> glorpSetupClassModel: aClassModel forSystem: aDescriptorSystem [ 
 	aClassModel newAttributeNamed: #id.
 	aClassModel newAttributeNamed: #street.
 	aClassModel newAttributeNamed: #number.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'glorp setup' }
 GlorpAddress class >> glorpSetupDescriptor: aDescriptor forSystem: aDescriptorSystem [ 
 	| table |
 	table := aDescriptorSystem tableNamed: 'GR_ADDRESS'.

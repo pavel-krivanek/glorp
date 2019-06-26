@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpDictionaryDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }

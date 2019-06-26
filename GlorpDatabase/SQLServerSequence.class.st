@@ -4,7 +4,7 @@ This implements SQL Server sequences, which aren't really sequences at all, but 
 Class {
 	#name : #SQLServerSequence,
 	#superclass : #NamedSequence,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

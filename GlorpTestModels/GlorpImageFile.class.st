@@ -7,7 +7,7 @@ Class {
 		'bits',
 		'thumbnailBits'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-My Classes'
 }
 
 { #category : #examples }

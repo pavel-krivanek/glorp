@@ -13,7 +13,7 @@ Class {
 		'key1',
 		'key2'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

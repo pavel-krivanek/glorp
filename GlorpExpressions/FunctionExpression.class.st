@@ -26,10 +26,10 @@ Class {
 	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
-{ #category : #accessing }
+{ #category : #private }
 FunctionExpression class >> basicFunctions [
-	functions isNil ifTrue: [functions := self createBasicFunctionsFor: nil].
-	^functions.
+	functions isNil ifTrue: [functions := self createBasicFunctionsFor: DatabasePlatform new].
+	^functions
 ]
 
 { #category : #setup }
@@ -109,7 +109,7 @@ FunctionExpression class >> for: aSymbol withArguments: anArray basedOn: anExpre
 	^newFunction.
 ]
 
-{ #category : #initializing }
+{ #category : #private }
 FunctionExpression class >> initialize [
 
 	self resetFunctions.

@@ -4,15 +4,15 @@ Class {
 	#instVars : [
 		'content'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-AAGlorp'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpAttachmentBytes class >> glorpSetupClassModel: model forSystem: system [ 
 	model newAttributeNamed: #content
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #glorp }
 GlorpAttachmentBytes class >> glorpSetupDescriptor: aDesc forSystem: system [ 
 	| t |
 	t := system tableNamed: 'attachmentbytes'.

@@ -12,9 +12,9 @@ Class {
 
 { #category : #'instance creation' }
 HorizontalTypeResolver class >> forRootClass: aClass [
-	^(self new)
+	^self new
 		rootClass: aClass;
-		yourself
+		yourself.
 ]
 
 { #category : #'VisualWorks metadata' }
