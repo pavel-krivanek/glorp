@@ -1,5 +1,5 @@
 "
-This is a function subclass specifically for substring functions. It needs its own separate subclass because it has to be written out differently for different databases, particularly if applied to LOB types. 
+This is a function subclass specifically for substring functions. It needs its own separate subclass because it has to be written out differently for different databases, particularly if applied to LOB types.
 "
 Class {
 	#name : #SubstringFunction,
@@ -57,11 +57,11 @@ SubstringFunction >> printBasicSQLOn: aStream withParameters: aDictionary forSel
 { #category : #rewriting }
 SubstringFunction >> rewriteForOracleBlobsWith: mainArgument [
 	"For Oracle blobs, we can't query with a normal substring function, but rather have to use the DBMS_LOB function, whose arguments are backwards. Further, we don't seem to be able to compare to byte-arrays, so turn it into a string."
-	| oldBase template startPosition endPosition length |
+	| oldBase template startPosition length |
 	(mainArgument isGlorpExpression and: [mainArgument isConstantExpression]) ifFalse: [^self].
 	function := 'UTL_RAW.CAST_TO_VARCHAR2'.
 	startPosition := arguments first value.
-	endPosition := arguments last value.
+	arguments last value.
 	length := arguments last value.
 	arguments := #().
 	oldBase := base.
@@ -74,13 +74,18 @@ SubstringFunction >> rewriteForPostgresqlBase64BlobsWith: mainArgument [
 	"This is pretty awful. We expect our main argument to be a string, and we're a substring function, but we know that for some types, the string representation comes out differently in the database. In particular, the Postgresql driver stores strings into lobs in Base64. So, if our previous argument = the string size, rewrite it to the database size. This makes it work if we do
     (someObject blob copyFrom: 1 to: 3) = 'abc'
 when in fact, the length of that string in the blob will be 4."
-	| base64Length |
+	| stream actualArgument base64Length base64Start |
 	(mainArgument isGlorpExpression and: [mainArgument isConstantExpression]) ifFalse: [^self].
 	self field type = self field platform blob ifFalse: [^self].
 	(mainArgument value size \\ 3) = 0 ifFalse: [self error: 'Sorry, but you will need to use a number of characters that base64 encodes exactly'].
-	base64Length := arguments second value + 1 - arguments first value.
+	base64Length := (mainArgument value size // 3) * 4.
 	arguments at: 2 put: base64Length asGlorpExpression.
-	mainArgument value: mainArgument value asByteArray.
+	base64Start := ((arguments first value // 3) * 4) + 1.
+	arguments at: 1 put: base64Start asGlorpExpression.
+	stream := WriteStream on: String new.
+	self field type print: mainArgument value on: stream.
+	actualArgument := (ReadStream on: stream contents) skip: 1; upTo: $'.
+	mainArgument value: actualArgument.
 ]
 
 { #category : #rewriting }
@@ -88,12 +93,11 @@ SubstringFunction >> rewriteFunctionArgumentsWith: mainArgument [
 	"This is pretty awful. We expect our main argument to be a string, and we're a substring function, but we know that for some types, the string representation comes out differently in the database. In particular, the Postgresql driver stores strings into lobs in Base64. So, if our previous argument = the string size, rewrite it to the database size. This makes it work if we do
     (someObject blob copyFrom: 1 to: 3) = 'abc'
 when in fact, the length of that string in the blob will be 4."
+
 	| platform |
 	platform := base ultimateBaseExpression system platform.
-	(platform class == PostgreSQLPlatform and: [self field type = platform blob]) ifTrue: [^self rewriteForPostgresqlBase64BlobsWith: mainArgument].
+	(platform isPostgreSQLPlatform and: [self field type = platform blob]) ifTrue: [^self rewriteForPostgresqlBase64BlobsWith: mainArgument].
 	(platform isOraclePlatform and: [self field type = platform blob]) ifTrue: [^self rewriteForOracleBlobsWith: mainArgument].
-	"For MySQL and SQL Server, it wants position, length rather than startPosition, endPosition."
-	(platform isMySQLPlatform or: [platform isSQLServerPlatform]) ifTrue: [arguments last value: (arguments last value - arguments first value + 1)].
 ]
 
 { #category : #accessing }

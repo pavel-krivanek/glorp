@@ -6,21 +6,14 @@ String >> glorpIsCollection [
 	^false.
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-glorp' }
 String >> glorpPrintSQLOn: aCommand [
-	| platform requiresEscape |
+	| platform |
+	aCommand nextPut: $'.	
 	platform := [aCommand platform] on: MessageNotUnderstood do: [:ex | ex return: nil].
-	aCommand nextPut: $'.
-	1
-		to: self size
-		do:
-			[:i | 
-			| char |
-			char := self at: i.
-			requiresEscape := platform isNil ifTrue: [false] ifFalse: [platform requiresEscapeFor: char].
-			requiresEscape
-				ifTrue: [aCommand nextPutAll: (aCommand platform escapeFor: char)]
-				ifFalse: [aCommand nextPut: char]].
+	platform isNil
+		ifFalse: [platform printEscapedString: self on: aCommand]
+		ifTrue: [aCommand nextPutAll: self].
 	aCommand nextPut: $'.
 ]
 

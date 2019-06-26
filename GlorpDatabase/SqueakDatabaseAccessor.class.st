@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'isInTransaction'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp-VW3'
 }
 
 { #category : #'VisualWorks metadata' }
