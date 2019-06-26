@@ -14,7 +14,7 @@ Class {
 		'table',
 		'base'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
@@ -107,6 +107,11 @@ TableExpression >> getTable: aTable [
 	self error: 'getting a table from a table expression doesn''t make sense'.
 ]
 
+{ #category : #inspecting }
+TableExpression >> inspectorChildren [
+	^Array with: base
+]
+
 { #category : #printing }
 TableExpression >> printOnlySelfOn: aStream [
 
@@ -142,6 +147,11 @@ TableExpression >> rebuildOn: aBaseExpression startingFrom: anExpression withOut
 TableExpression >> referenceClass [
 	"Return the class that our mapping refers to, if we have a mapping. If we're a base expression, just return our class, and if we're a table expression, just return nil."
 	^nil.
+]
+
+{ #category : #accessing }
+TableExpression >> system [
+	^base system
 ]
 
 { #category : #accessing }

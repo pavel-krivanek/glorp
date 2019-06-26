@@ -21,7 +21,7 @@ Class {
 		'members',
 		'system'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -44,7 +44,7 @@ TypeResolver >> addMember: aDescriptor [
 { #category : #accessing }
 TypeResolver >> allTablesFor: aDescriptor [
 	"Return all tables used by this descriptor or its subclasses. For a non-inheritance descriptor, this is the same as tables."
-	self subclassResponsibility
+	self subclassResponsibility.
 ]
 
 { #category : #accessing }
@@ -54,7 +54,7 @@ TypeResolver >> classesRequiringIndependentQueriesFor: aClass [
 
 { #category : #other }
 TypeResolver >> describedClasses [
-	^members collect: [:each | each describedClass ]
+	^members collect: [:each | each describedClass ].
 ]
 
 { #category : #accessing }
@@ -65,7 +65,7 @@ TypeResolver >> describedConcreteClassFor: row withBuilder: builder descriptor: 
 { #category : #'type resolution' }
 TypeResolver >> fieldsForSelectStatement [
 	"Return fields that are needed in a select statement - i.e. return all inherited fields that are part of the tables we are already selecting for this object"
-	^#()
+	^#().
 ]
 
 { #category : #registering }
@@ -84,18 +84,18 @@ TypeResolver >> register: aDescriptor abstract: abstract [
 { #category : #'query setup' }
 TypeResolver >> setUpExpressionsForQuery: aQuery [
 	"A hook to let us do any modifications to the query that we need."
-	^self
+	^self.
 ]
 
 { #category : #accessing }
 TypeResolver >> shouldUseSingleQuery [
 	"Return true if we should attempt to combine queries for multiple subclasses in disjoint tables into one."
-	^false
+	^false.
 ]
 
 { #category : #testing }
 TypeResolver >> supportsOrderingFor: aDescriptor [
-	^true
+	^true.
 ]
 
 { #category : #accessing }
@@ -104,8 +104,8 @@ TypeResolver >> system [
 ]
 
 { #category : #accessing }
-TypeResolver >> system: anObject [
-	system := anObject
+TypeResolver >> system: aDescriptorSystem [
+	system := aDescriptorSystem.
 ]
 
 { #category : #'type resolution' }
@@ -115,10 +115,10 @@ TypeResolver >> typeMappingRootDescriptor [
 
 { #category : #testing }
 TypeResolver >> usesInheritance [
-	^false
+	^false.
 ]
 
 { #category : #validation }
 TypeResolver >> validate [
-	^self
+	^self.
 ]

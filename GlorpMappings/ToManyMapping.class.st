@@ -14,7 +14,7 @@ Class {
 		'orderBy',
 		'shouldWriteTheOrderField'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -32,29 +32,29 @@ ToManyMapping >> buildGeneralQueryIn: anObjectBuilder [
 	| newQuery |
 	newQuery := super buildGeneralQueryIn: anObjectBuilder.
 	orderBy isNil ifFalse: [orderBy do: [:each | newQuery orderBy: each]].
-	^newQuery
+	^newQuery.
 ]
 
 { #category : #mapping }
 ToManyMapping >> buildQuery [
 	query := super buildQuery.
 	orderBy isNil ifFalse: [orderBy do: [:each | query orderBy: each]].
-	^query
+	^query.
 ]
 
 { #category : #api }
 ToManyMapping >> collectionType [
-	^self attribute collectionType
+	^self attribute collectionType.
 ]
 
 { #category : #api }
 ToManyMapping >> collectionType: aClass [
-	self attribute collectionType: aClass
+	self attribute collectionType: aClass.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #'initialize/release' }
 ToManyMapping >> defaultCollectionType [
-	^OrderedCollection
+	^OrderedCollection.
 ]
 
 { #category : #testing }
@@ -63,7 +63,7 @@ ToManyMapping >> hasValueThatCanProvideField: aField from: anObject [
 	| value |
 	(super hasValueThatCanProvideField: aField from: anObject) ifFalse: [^false].
 	value := self getValueFrom: anObject.
-	^value isEmpty not
+	^value isEmpty not.
 ]
 
 { #category : #'initialize/release' }
@@ -83,33 +83,33 @@ ToManyMapping >> initializeAttribute [
 { #category : #mapping }
 ToManyMapping >> keyForOrderingFrom: anObject to: target [
 	self usesLinkTable ifFalse: [^target].
-	^self orderField table == self linkTable ifTrue: [target] ifFalse: [anObject]
+	^self orderField table == self linkTable ifTrue: [target] ifFalse: [anObject].
 ]
 
 { #category : #'private/expressions' }
 ToManyMapping >> linkTable [
 	| referenceKeys |
 	self usesLinkTable ifFalse: [^nil].
-	referenceKeys := (self join) targetKeys asOrderedCollection.
-	^referenceKeys first table.
+	referenceKeys := self join targetKeys asOrderedCollection.
+	^referenceKeys first table
 ]
 
 { #category : #api }
 ToManyMapping >> orderBy [
-	^orderBy
+	^orderBy.
 ]
 
 { #category : #api }
 ToManyMapping >> orderBy: aBlockOrSelector [
 	orderBy isNil ifTrue: [orderBy := OrderedCollection new].
-	orderBy add: aBlockOrSelector
+	orderBy add: aBlockOrSelector.
 ]
 
 { #category : #'private/expressions' }
 ToManyMapping >> orderField [
 	| exp |
 	exp := Query new expressionBlockFor: orderBy first.
-	^(exp asGlorpExpressionOn: (BaseExpression new descriptor: self referenceDescriptor)) field
+	^(exp asGlorpExpressionOn: (BaseExpression new descriptor: self referenceDescriptor)) field.
 ]
 
 { #category : #api }
@@ -119,7 +119,7 @@ ToManyMapping >> shouldWriteTheOrderField [
 
 { #category : #api }
 ToManyMapping >> shouldWriteTheOrderField: aBoolean [
-	shouldWriteTheOrderField := aBoolean
+	shouldWriteTheOrderField := aBoolean.
 ]
 
 { #category : #validation }
@@ -154,10 +154,10 @@ ToManyMapping >> writeExtraInformationInto: aRowMap atKey: rowMapKey forSourceOb
 			aRowMap
 				at: self orderField
 				key: keyForOrdering
-				put: index]
+				put: index].
 ]
 
 { #category : #api }
 ToManyMapping >> writeTheOrderField [
-	shouldWriteTheOrderField := true
+	shouldWriteTheOrderField := true.
 ]

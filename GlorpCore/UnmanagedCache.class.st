@@ -17,7 +17,7 @@ Class {
 		'policy',
 		'extraReferences'
 	],
-	#category : #GlorpCore
+	#category : #'GlorpCore-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }

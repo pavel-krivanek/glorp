@@ -21,7 +21,7 @@ Class {
 		'alsoFetchExpressions',
 		'query'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -127,7 +127,7 @@ Tracing >> retrievalExpressions [
 Tracing >> retrieve: anExpression [ 
 	"Add the expression as something which will be explicitly retrieved and knit together with other results, and included in the result list"
 	self addExpression: anExpression andDo: [:exp |
-		retrievalExpressions add: exp]
+		retrievalExpressions add: exp].
 ]
 
 { #category : #setup }
@@ -146,16 +146,18 @@ Tracing >> tracesThrough: aMapping [
 
 { #category : #setup }
 Tracing >> updateBase: aBaseExpression [
-	"Make sure we have the same base as the query"
+	"Make sure we have the same base as the query."
+
 	| transformed |
-	transformed := IdentityDictionary new.
 	base == aBaseExpression ifTrue: [^self].
+	transformed := IdentityDictionary new.
 	base := aBaseExpression.
-	allTracings := allTracings collect: [:each | | new | new := each asGlorpExpressionOn: base.
+	allTracings := allTracings collect:
+		[:each || new | new := each asGlorpExpressionOn: base.
 		transformed at: each put: new.
 		new].
-	retrievalExpressions := retrievalExpressions collect: [:each | 
-		transformed at: each].
-	alsoFetchExpressions := alsoFetchExpressions collect: [:each | 
-		transformed at: each]
+	retrievalExpressions := retrievalExpressions collect:
+		[:each | transformed at: each].
+	alsoFetchExpressions := alsoFetchExpressions collect:
+		[:each | transformed at: each].
 ]
