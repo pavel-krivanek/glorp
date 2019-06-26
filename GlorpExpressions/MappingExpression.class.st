@@ -20,7 +20,7 @@ Class {
 		'mapping',
 		'phantom'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'instance creation' }
@@ -127,13 +127,22 @@ MappingExpression >> asExpressionJoiningSource: source toTarget: target [
 
 { #category : #api }
 MappingExpression >> asOuterJoin [
-	outerJoin := true.
+	"The implementation of this in 8.1 and earlier is the implementation of #beOuterJoin in 8.2 and later.  Thus all existing callers of #asOuterJoin can convert to calling #beOuterJoin in 8.2 as a pure refactoring.  However if they are to work in 8.1 and earlier then this class' #beOuterJoin must be backported AND its symbol added to #zeroArgumentSpecialSelectors.
+	The 8.2 implementation of #asOuterJoin is what #asOuterJoin should have been for consistency with Glorp API.  When used in #alsoFetch: expressions, #asOuterJoin and #beOuterJoin give the same outcome;  because #beOuterJoin does not copy, it is trivially faster."
+
+	self deprecated: #(#version '8.2' #sunset '9.0' #use #beOuterJoin).
+	^self copy beOuterJoin
 ]
 
 { #category : #api }
 MappingExpression >> base [
 
 	^base.
+]
+
+{ #category : #accessing }
+MappingExpression >> beOuterJoin [
+	outerJoin := true.
 ]
 
 { #category : #accessing }
@@ -268,6 +277,11 @@ MappingExpression >> initialize [
 	phantom := false.
 ]
 
+{ #category : #inspecting }
+MappingExpression >> inspectorChildren [
+	^Array with: base
+]
+
 { #category : #api }
 MappingExpression >> isEmpty [
 	"Only useful for mappings that represent collections. This checks to see if the collection has elements by building a not exists subselect."
@@ -320,18 +334,25 @@ MappingExpression >> mapping: aMapping [
 
 { #category : #accessing }
 MappingExpression >> mappingFromMeOrSubclasses [
-	"Return the mapping for me, but if the field is not mapped here, and the class uses inheritance, check for subclasses, and use a random one of the subclass mappings."
+	"Return the mapping for me, but if the field is not mapped here, and the class uses inheritance, check for subclasses, and use the first subclass mapping we find."
 
 	| subclassDescriptors |
 	self mapping isNil ifFalse: [^self mapping].
 	self sourceDescriptor isNil ifTrue: [^self mapping].
 	subclassDescriptors := (self sourceDescriptor typeResolver descriptorsRequiringIndependentQueriesFor: self sourceDescriptor describedClass).
-	subclassDescriptors do: [:each | 
+	subclassDescriptors do: [:each |
 		| subMapping |
 		subMapping := each mappingForAttributeNamed: name.
 		subMapping isNil ifFalse: [^subMapping]].
 	"If subclasses didn't work, just fall through to the normal error processing."
-	^self mapping.
+	^self mapping
+]
+
+{ #category : #accessing }
+MappingExpression >> mappingSequenceName [
+	"Return my name concatenated with the names of the prior mappings that connect me to my base, i.e. all the names from my penultimate base to mine.  (Used to construct common table expressions in recursive queries.)"
+
+	^base mappingSequenceName, name
 ]
 
 { #category : #testing }
@@ -441,18 +462,19 @@ MappingExpression >> queryLevelBaseExpression [
 
 { #category : #preparing }
 MappingExpression >> rebuildOn: aBaseExpression startingFrom: anExpression withOuterScopeBase: ultimateBaseExpression [
-	
 	| expression newBase |
 	self == anExpression ifTrue: [^aBaseExpression].
-	newBase := base rebuildOn: aBaseExpression startingFrom: anExpression
-		withOuterScopeBase: ultimateBaseExpression.	
+	newBase := base
+		rebuildOn: aBaseExpression
+		startingFrom: anExpression
+		withOuterScopeBase: ultimateBaseExpression.
 	"For phantom mappings we have to pass through our mapping since they can't compute their own. For the normal case, if we have a mapping, and our base class hasn't changed, then just re-use the same mapping as an optimization."
 	expression := (mapping isNil or: [self mustReGetMappingIfRebuildingOn: newBase])
 		ifTrue: [newBase get: name]
 		ifFalse: [newBase getMapping: self mapping named: name].
-	outerJoin ifTrue: [expression asOuterJoin].
+	outerJoin ifTrue: [expression beOuterJoin].
 	expression phantom: self phantom.
-	^expression.
+	^expression
 ]
 
 { #category : #api }

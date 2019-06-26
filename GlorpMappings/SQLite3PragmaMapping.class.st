@@ -30,15 +30,6 @@ SQLite3PragmaMapping >> buildQuery [
 	^query.
 ]
 
-{ #category : #'initialize-release' }
-SQLite3PragmaMapping >> initialize [
-	"Initialize a newly created instance. This method must answer the receiver."
-
-	super initialize.
-	" *** Replace this comment with the appropriate initialization code *** "
-	^self
-]
-
 { #category : #public }
 SQLite3PragmaMapping >> setValueIn: anObject to: aValue [
 	"This method serves as a hook to do special work for the collection objects, #fields and #foreignKeysData.

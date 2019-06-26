@@ -272,16 +272,6 @@ Join >> beOuterJoin [
 	outerJoin := true.
 ]
 
-{ #category : #preparing }
-Join >> condenseBooleanEquality [
-	^self.
-]
-
-{ #category : #preparing }
-Join >> condenseBooleanEqualityExpressions [
-	^self.
-]
-
 { #category : #iterating }
 Join >> do: aBlock skipping: aSet [
 	"Joins act as if they don't have children, and just evaluate for themselves"
@@ -361,26 +351,6 @@ Join >> isJoin [
 { #category : #testing }
 Join >> isOuterJoin [
 	^outerJoin.
-]
-
-{ #category : #api }
-Join >> mapFromSource: sourceObject andTarget: targetObject intoRowsIn: aRowMap [
-	(sourceObject isNil or: [targetObject isNil]) ifTrue: [^self].
-	1
-		to: sources size
-		do:
-			[:i | 
-			| eachSourceField eachTargetField |
-			eachSourceField := sources at: i.
-			eachTargetField := targets at: i.
-			(self isConstant: eachSourceField)
-				ifTrue: [aRowMap at: eachTargetField key: targetObject put: eachSourceField value]
-				ifFalse:
-					[aRowMap
-						unifyField: eachSourceField
-						key: sourceObject
-						withField: eachTargetField
-						key: targetObject]].
 ]
 
 { #category : #iterating }
@@ -535,11 +505,6 @@ Join >> replacing: aTable withEquivalenceFrom: aJoin [
 					newSources add: newSource.
 					newTargets add: eachTarget]]].
 	^self class fromAll: newSources toAll: newTargets.
-]
-
-{ #category : #preparing }
-Join >> rewriteEquality [
-	^self.
 ]
 
 { #category : #testing }

@@ -18,14 +18,8 @@ Class {
 		'myReceiver',
 		'query'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp-Expressions'
 }
-
-{ #category : #'as yet unclassified' }
-MessageArchiver class >> inspectorClass [
-
-	^EyeProtoInspector 
-]
 
 { #category : #'instance creation' }
 MessageArchiver class >> receiver: aMessageCollector selector: aSymbol arguments: aCollection [
@@ -105,13 +99,6 @@ MessageArchiver >> basicDoesNotUnderstand: aMessage [
 	(Array with: self) doesNotUnderstand: aMessage.
 ]
 
-{ #category : #doesNotUnderstand }
-MessageArchiver >> basicDoesNotUnderstand: sel args: args [ 
-	"Invoke this to avoid infinite recursion in the case of internal errors. We want a dialect-independent way of getting a walkback window, so we'll invoke it against a different object"
-
-	(Array with: self) doesNotUnderstand: sel args: args
-]
-
 { #category : #debugging }
 MessageArchiver >> basicPrintString [
 
@@ -158,17 +145,6 @@ MessageArchiver >> doesNotUnderstand: aMessage [
 	^self get: sel withArguments: aMessage arguments.
 ]
 
-{ #category : #doesNotUnderstand }
-MessageArchiver >> doesNotUnderstand: sel args: args [ 
-	"This is the variant for ObjectStudio"
-	sel == #doesNotUnderstand: ifTrue: [self basicDoesNotUnderstand: sel args: args].
-	(sel size >= 8 and: [(sel copyFrom: 1 to: 8) = 'perform:']) 
-		ifTrue: 
-			[^self get: args first
-				withArguments: (args copyFrom: 2 to: args size)].
-	^self get: sel withArguments: args
-]
-
 { #category : #'expression protocol' }
 MessageArchiver >> get: aSymbol [ 
 	^MessageArchiver receiver: self
@@ -210,11 +186,6 @@ MessageArchiver >> halt [
 	(Array with: self) halt.
 ]
 
-{ #category : #'as yet unclassified' }
-MessageArchiver >> hash [
-	^(myReceiver hash bitXor: mySelector hash) bitXor: myArguments hash
-]
-
 { #category : #debugging }
 MessageArchiver >> inspect [
 
@@ -222,16 +193,14 @@ MessageArchiver >> inspect [
 	(Array with: self) inspect.
 ]
 
-{ #category : #debugging }
-MessageArchiver >> inspectorSize [
-  ^2
+{ #category : #'As yet unclassified' }
+MessageArchiver >> inspectorClasses [
+	^Array with: (Dialect smalltalkAt: 'Tools.Trippy.BasicInspector')
 ]
 
 { #category : #debugging }
-MessageArchiver >> isBehavior [
-	"Return true if the receiver is a behavior.
-	Note: Do not override in any class except behavior."
-	^false
+MessageArchiver >> inspectorSize [
+  ^2
 ]
 
 { #category : #debugging }
@@ -255,12 +224,6 @@ MessageArchiver >> printString [
 
 	"Hard-code this for maximum dialect portability"
 	^'a MessageArchiver'.
-]
-
-{ #category : #debugging }
-MessageArchiver >> printStringLimitedTo: anInteger [
-
-	^self printString
 ]
 
 { #category : #'private/accessing' }

@@ -25,7 +25,9 @@ GlorpMockSession class >> visualWorksMetadata [
 
 { #category : #accessing }
 GlorpMockSession >> accessor [
-	^GlorpMockAccessor new.
+	^GlorpMockAccessor new
+		connection: GlorpMockConnection new;
+		yourself
 ]
 
 { #category : #initialize }

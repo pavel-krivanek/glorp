@@ -28,7 +28,7 @@ Class {
 		'commitPhase',
 		'deleting'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -127,27 +127,30 @@ UnitOfWork >> computeCollectionDeletes [
 
 { #category : #deletion }
 UnitOfWork >> computeCollectionDeletesFor: aMapping inObject: anObject [
-	"Figure out which, if any, dependent objects we should delete based on changes to the corresponding collection in anObject"
-	| collection memento collectionMemento |
+	"If aMapping is exclusive and is to a collection, any objects removed from that collection during this transaction should be deleted.  We therefore compare the state of the collection at the start of the transaction to its current state (ignoring any uninstantiated proxies;  we filter the current and memento collections for these in separate iterations, not in a double iteration, as it is much faster)."
+
+	| memento currentObjects mementoObjects currentObjectSet |
 	aMapping isExclusive ifFalse: [^self].
 	aMapping attribute isCollectionAttribute ifFalse: [^self].
-	collection := aMapping getValueFrom: anObject.
-	collection := self session realObjectFor: collection ifNone: [^self].
-	(aMapping isValidTarget: collection) ifFalse: [^self].
+	currentObjects := self session
+		realObjectFor: (aMapping getValueFrom: anObject)
+		ifNone: [^self].
+	(aMapping isValidTarget: currentObjects) ifFalse: [^self].
 	memento := transaction mementoFor: anObject.
-	collectionMemento := transaction collectionMementoFor: (self session realObjectFor: (aMapping getValueFrom: memento)).
-	"OK, now we have the state of the original collection and the new collection, we can look for differences."
-	collectionMemento do: [:each |
-		| matching |
-		(each isGlorpProxy not or: [each isInstantiated]) ifTrue: [
-			matching := collection 
-				detect: [:eachElement | 
-					(eachElement isGlorpProxy not or: [eachElement isInstantiated])
-						and: [each yourSelf == eachElement yourSelf]]
-				ifNone: [nil].
-			matching == nil ifTrue: [session delete: each]
-		]
-	]
+	mementoObjects := transaction collectionMementoFor:
+		(self session realObjectFor: (aMapping getValueFrom: memento)).
+	"Now that we have the state of the new collection and the original collection, we can look for differences."
+	currentObjectSet := IdentitySet new: (currentObjects size * 4 // 3) + 1.
+	currentObjects isNil ifFalse:
+		[currentObjects do:
+			[:each |
+			(each isGlorpProxy not or: [each isInstantiated]) ifTrue:
+				[currentObjectSet add: each yourSelf]]].
+	mementoObjects do:
+		[:each |
+		(each isGlorpProxy not or: [each isInstantiated]) ifTrue:
+			[(currentObjectSet includes: each yourSelf)
+				ifFalse: [session delete: each]]].
 ]
 
 { #category : #accessing }
@@ -450,23 +453,27 @@ UnitOfWork >> registerTransitiveClosure [
 
 { #category : #'private/mapping' }
 UnitOfWork >> registerTransitiveClosureFrom: anObject [
-
 	| descriptor |
-	anObject glorpIsCollection ifTrue: [
-		anObject do: [:each | session register: each].
+	anObject glorpIsCollection ifTrue:
+		[anObject glorpIsDictionary
+			ifFalse: [anObject do: [:each | session register: each]]
+			ifTrue: [anObject keysAndValuesDo:
+					[:eachKey :eachValue |
+					session register: eachKey; register: eachValue]].
 		^self].
 
 	descriptor := session descriptorFor: anObject class.
 	descriptor isNil ifTrue: [^self].
-	descriptor mappings do: [:eachMapping |
-			self instantiateIfRequiredFor: anObject mapping: eachMapping].
-	descriptor referencedIndependentObjectsFrom: anObject do: [:eachObject |
-		session register: eachObject]
+	descriptor mappings do:
+		[:eachMapping |
+		self instantiateIfRequiredFor: anObject mapping: eachMapping].
+	descriptor referencedIndependentObjectsFrom: anObject do:
+		[:eachObject | session register: eachObject].
 ]
 
 { #category : #'begin/commit/abort' }
 UnitOfWork >> registeredObjects [
-	^self correspondenceMap keys asOrderedCollection
+	^self correspondenceMap keys
 ]
 
 { #category : #enumerating }
@@ -642,12 +649,13 @@ UnitOfWork >> writeRows [
 
 { #category : #'private/mapping' }
 UnitOfWork >> writeRowsForTable: aTable [
+	"No isEmpty check is needed as the writeHomogeneousRows: method checks it.  Return is not used."
 
 	| rows rowsByOperation |
-
-	rows := rowsByTable at: aTable ifAbsent: [#()].
-	^rows isEmpty ifFalse: [
-		rowsByOperation := rows glorpGroupedBy: [:eachRow | session shouldInsert: eachRow].
-		rowsByOperation do: [:eachListOfHomogeneousRows | 
-			succeeded := succeeded & (session writeHomogeneousRows: eachListOfHomogeneousRows)]]
+	rows := rowsByTable at: aTable ifAbsent: [^self].
+	rowsByOperation := rows glorpGroupedBy: [:eachRow | session shouldInsert: eachRow].
+	rowsByOperation do:
+		[:eachListOfHomogeneousRows |
+		succeeded := succeeded &
+			(session writeHomogeneousRows: eachListOfHomogeneousRows)].
 ]

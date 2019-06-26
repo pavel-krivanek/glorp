@@ -39,29 +39,18 @@ GlorpSerialType >> increment: anInteger [
 ]
 
 { #category : #initialize }
-GlorpSerialType >> initialize [
-	super initialize.
-	generated := true.
-]
-
-{ #category : #initialize }
 GlorpSerialType >> initializeForField: aDatabaseField in: aDescriptorSystem [
-	sequence isNil
-		ifFalse: [ ^ self ].
-	aDatabaseField table name = 'PARENT' ifTrue: [ Halt now ].
-	sequence := aDescriptorSystem
-		databaseSequenceNamed: (aDescriptorSystem sequenceNameForField: aDatabaseField).
-	aDatabaseField platform supportsSettingSequenceIncrement
-		ifTrue: [ increment := aDatabaseField type increment isNil
-				ifFalse: [ sequence sequenceIncrement: increment ] ].
-	sequence schema: aDatabaseField table schema
+	sequence isNil ifFalse: [^self].
+	sequence := aDescriptorSystem databaseSequenceNamed: (aDescriptorSystem sequenceNameForField: aDatabaseField).
+	aDatabaseField platform supportsSettingSequenceIncrement ifTrue:
+		[increment := aDatabaseField type increment isNil ifFalse:
+			[sequence sequenceIncrement: increment]].
+	sequence schema: aDatabaseField table schema.
 ]
 
 { #category : #accessing }
 GlorpSerialType >> isGenerated [
-	"answer if we should autogenerate a value for this type, i.e. if it is a database-generated primary key column"
-
-	^generated
+	^true
 ]
 
 { #category : #testing }

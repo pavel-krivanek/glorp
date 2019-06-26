@@ -34,7 +34,7 @@ GlorpDatabaseType class >> new [
 	^super new initialize.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #printing }
 GlorpDatabaseType class >> padToThreeDigits: anInteger [
 
 	| string |
@@ -42,7 +42,6 @@ GlorpDatabaseType class >> padToThreeDigits: anInteger [
 	string size = 3 ifTrue: [^string].
 	string size = 2 ifTrue: [^'0', string].
 	string size = 1 ifTrue: [^'00', string].
-	^string
 ]
 
 { #category : #printing }
@@ -197,11 +196,11 @@ GlorpDatabaseType >> postWriteAssignSequenceValueFor: aDatabaseField in: aDataba
 
 { #category : #SQL }
 GlorpDatabaseType >> preWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor [
-	aDatabaseField defaultValue isNil ifTrue: [^self].
+	aDatabaseField imDefaultValue isNil ifTrue: [^self].
 	(aDatabaseRow hasValueFor: aDatabaseField) ifTrue: [^self].
 	"Default values will not write if this field is constrained to a primary key generator"
 	(aDatabaseRow expectsToGetValueFor: aDatabaseField) ifTrue: [^self].
-	aDatabaseRow at: aDatabaseField put: (aDatabaseField defaultValue).
+	aDatabaseRow at: aDatabaseField put: (aDatabaseField imDefaultValue).
 ]
 
 { #category : #accessing }

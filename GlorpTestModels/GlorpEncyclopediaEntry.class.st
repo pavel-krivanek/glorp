@@ -7,7 +7,7 @@ Class {
 		'title',
 		'mediaType'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest-Domain Models'
 }
 
 { #category : #examples }
@@ -38,6 +38,11 @@ GlorpEncyclopediaEntry class >> visualWorksMetadata [
 		'namespace' 'Glorp'
 	)
 
+]
+
+{ #category : #accessing }
+GlorpEncyclopediaEntry >> <= aGlorpEncyclopediaEntry [
+	^self title <= aGlorpEncyclopediaEntry title.
 ]
 
 { #category : #accessing }

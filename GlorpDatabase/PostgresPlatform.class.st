@@ -87,13 +87,6 @@ PostgresPlatform >> charactersThatNeedEscaping [
 	^charactersThatNeedEscaping ifNil: ['''']
 ]
 
-{ #category : #constants }
-PostgresPlatform >> charactersThatNeedEscaping: aCollectionOfChars [
-	"Call this if you know the database servers setting for standard-conforming_strings and so can save the postLoginInitializeFrom: call."
-
-	charactersThatNeedEscaping := aCollectionOfChars
-]
-
 { #category : #types }
 PostgresPlatform >> clob [
 
@@ -519,12 +512,6 @@ PostgresPlatform >> typesWithValues [
 	self timetz.
 	self timestamptz.
 	^self types.
-]
-
-{ #category : #testing }
-PostgresPlatform >> usesArrayBindingRatherThanGroupWriting [
-	"Return true if we use array binding for grouped writes rather than printing the sql multiple times. Only applies if we support grouped writes"
-	^false.
 ]
 
 { #category : #testing }

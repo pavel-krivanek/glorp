@@ -125,9 +125,9 @@ DirectMapping >> expressionFor: anObject basedOn: anExpression relation: aSymbol
 			[anObject isGlorpExpression
 				ifTrue: [anObject getMapping: self named: self attributeName]
 				ifFalse: [anObject glorpIsCollection
-					ifTrue: [anObject collect: [:each | self convertedDbValueOf: (attribute getValueFrom: each)]]
-					ifFalse: [self convertedDbValueOf: (attribute getValueFrom: anObject)]]].
-	^(anExpression get: self attribute name) get: aSymbol withArguments: (Array with: value)
+					ifTrue: [anObject collect: [:each | attribute getValueFrom: each]]
+					ifFalse: [attribute getValueFrom: anObject]]].
+	^(anExpression get: self attribute name) get: aSymbol withArguments: (Array with: value).
 ]
 
 { #category : #accessing }

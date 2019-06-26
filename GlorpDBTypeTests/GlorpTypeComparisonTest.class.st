@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'platform'
 	],
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
 { #category : #'VisualWorks metadata' }

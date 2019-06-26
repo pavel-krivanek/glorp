@@ -9,11 +9,6 @@ GlorpTestCase class >> isAbstract [
 	^self sunitName = #GlorpTestCase
 ]
 
-{ #category : #'as yet unclassified' }
-GlorpTestCase class >> sunitName [
-	^self name
-]
-
 { #category : #'VisualWorks metadata' }
 GlorpTestCase class >> visualWorksMetadata [
 

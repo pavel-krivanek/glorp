@@ -30,9 +30,3 @@ GlorpAbstractIntegerType >> exdiType [
 GlorpAbstractIntegerType >> impliedSmalltalkType [
 	^Integer.
 ]
-
-{ #category : #'exdi specific' }
-GlorpAbstractIntegerType >> initialize [
-	super initialize.
-	typeString := 'integer'.
-]

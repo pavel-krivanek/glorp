@@ -23,6 +23,12 @@ GlorpTreeNode class >> visualWorksMetadata [
 
 ]
 
+{ #category : #adding }
+GlorpTreeNode >> addChild: aGlorpTreeNode [
+	aGlorpTreeNode parent: self.
+	self children add: aGlorpTreeNode.
+]
+
 { #category : #accessing }
 GlorpTreeNode >> children [
 	^children

@@ -139,28 +139,6 @@ SQLite3Platform >> date [
 ]
 
 { #category : #types }
-SQLite3Platform >> decimal [
-
-	^self decimal: nil scale: 4
-]
-
-{ #category : #types }
-SQLite3Platform >> decimal: precision scale: scale [
-
-	^self typeNamed: #numeric ifAbsentPut:
-			[GlorpDecimalType new
-				selector: #decimal;
-				precision: precision;
-				scale: scale;
-				yourself].
-]
-
-{ #category : #types }
-SQLite3Platform >> defaultPort [
-	^ ''.
-]
-
-{ #category : #types }
 SQLite3Platform >> double [
 	^self typeNamed: #double ifAbsentPut: [GlorpDoubleType new typeString: 'double' ].
 ]
@@ -243,12 +221,6 @@ SQLite3Platform >> maximumSizeToGroupWriteFor: aRowBasedCommand [
 		ifTrue: [unboundLimit min: 999 // aRowBasedCommand arrayBoundFields size]
 
 "The line above can underestimate the possible rows (equally, can overestimate the number of bound values):  see #batchStatementBindings for how the number of arrayBoundFields maps to the overall number of bound values.  However it seems the most efficient way to get a maximum."
-]
-
-{ #category : #types }
-SQLite3Platform >> numeric [
-
-	^self typeNamed: #numeric ifAbsentPut: [GlorpNumericType new].
 ]
 
 { #category : #types }
@@ -353,7 +325,7 @@ SQLite3Platform >> printTimestamp: aTimestampString on: stream for: aType [
 
 	aTimestampString isNil ifTrue: [stream nextPutAll: 'NULL'. ^self].
 	"The next line is checking code and can be dropped when SQLite is sufficiently tested."
-	aTimestampString class = Dialect timestampClass ifTrue: [self error: 'SQLite does not support timestamp types;  this should have been a String'].
+	aTimestampString class = Timestamp ifTrue: [self error: 'SQLite does not support timestamp types;  this should have been a String'].
 	stream nextPut: $'.
 	stream nextPutAll: aTimestampString.
 	stream nextPut: $'.
@@ -408,7 +380,7 @@ SQLite3Platform >> supportsAuthentication [
 { #category : #testing }
 SQLite3Platform >> supportsBinding [
 	"Return true if this platform supports binding parameters rather than printing them as strings into the SQL statement"
-	^false.
+	^true.
 ]
 
 { #category : #testing }
@@ -577,11 +549,6 @@ SQLite3Platform >> typeWithDatabaseName: aString characterWidth: aNumber [
 ]
 
 { #category : #testing }
-SQLite3Platform >> usesArrayBindingRatherThanGrouping [
-	^false.
-]
-
-{ #category : #testing }
 SQLite3Platform >> usesIdentityColumns [
 	^true.
 ]
@@ -589,11 +556,6 @@ SQLite3Platform >> usesIdentityColumns [
 { #category : #testing }
 SQLite3Platform >> usesLengthNotEndPosInSubstring [
 	^true
-]
-
-{ #category : #constants }
-SQLite3Platform >> usesNullForEmptyStrings [
-	^ true
 ]
 
 { #category : #types }
@@ -607,4 +569,9 @@ SQLite3Platform >> varbinary [
 { #category : #types }
 SQLite3Platform >> varchar [
 	^self text.
+]
+
+{ #category : #accessing }
+SQLite3Platform >> vwEXDIConnectionClass [
+	^'SQLite3Connection' asQualifiedReference valueIfUndefinedLoadFrom: 'SQLite3EXDI'
 ]

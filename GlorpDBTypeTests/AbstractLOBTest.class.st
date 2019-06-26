@@ -1,7 +1,7 @@
 Class {
 	#name : #AbstractLOBTest,
 	#superclass : #GlorpDatabaseTypeIndividualDBTests,
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -16,9 +16,9 @@ AbstractLOBTest class >> visualWorksMetadata [
 
 { #category : #private }
 AbstractLOBTest >> adjustForMaximumSize: aValue [
-	^aValue ifNotNil: [ 	aValue size > session platform maximumQueryValueSize 
+	^aValue size > session platform maximumQueryValueSize 
 		ifTrue: [(aValue copyFrom: 1 to: session platform maximumQueryValueSize - 2), '%']
-		ifFalse: [aValue]]
+		ifFalse: [aValue].
 ]
 
 { #category : #private }
@@ -36,7 +36,7 @@ AbstractLOBTest >> helpTestExplicitReadBackFor: dbOutValue [
 	| queryStream result compareClause|
 	queryStream := SQLStringSelectCommand sqlString: nil parameters: #() useBinding: session useBinding session: session.
 	queryStream nextPutAll: 'SELECT test,id FROM ', self tableName, ' WHERE test'.
-	compareClause := ' = '. "self platform isSQLServerPlatform ifTrue: [' = '] ifFalse: [' LIKE ']."
+	compareClause := self platform isSQLServerPlatform ifTrue: [' = '] ifFalse: [' LIKE '].
 	queryStream nextPutAll: (dbOutValue isNil ifTrue: [' IS '] ifFalse: [compareClause]).
 	(dbOutValue notNil and: [type requiresCast]) ifTrue: [queryStream nextPutAll: ' CAST ('].
 	(self platform isSQLServerPlatform and: [dbOutValue notNil and: [type requiresConvertToVarbinary]])
@@ -67,24 +67,20 @@ AbstractLOBTest >> helpTestValue: anObject compareModelWith: modelBlock compareW
 { #category : #private }
 AbstractLOBTest >> readBackModelWithValue: anObject [
 	"For SQL-Server, use CONVERT (which is easier than CAST for now), with = instead of LIKE."
-
-	^ self useEqualityToCompare
-		ifTrue: [ | converted |
-			converted := self platform isSQLServerPlatform ifTrue: [ self convertToTypeFrom: anObject ] ifFalse: [ anObject ].
+	
+	^self platform isSQLServerPlatform
+		ifTrue:
+			[| converted |
+			converted := self convertToTypeFrom: anObject.
 			session
 				readOneOf: GlorpTypeTestsModelClass
-				where: [ :each | each test = converted ] ]
-		ifFalse: [ session
+				where: [:each | each test = converted]]
+		ifFalse:
+			[session
 				readOneOf: GlorpTypeTestsModelClass
-				where: [ :each | each test like: anObject ] ]
+				where: [:each | each test like: anObject]]
 
 	"^session
 		readOneOf: GlorpTypeTestsModelClass
 		where: [:each | each test like: (Cast value: anObject as: type queryType)]."
-]
-
-{ #category : #private }
-AbstractLOBTest >> useEqualityToCompare [
-	^ self platform isSQLServerPlatform
-		or: [ self platform isPostgreSQLPlatform ]
 ]

@@ -7,6 +7,11 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #resources }
+GlorpWritingTest class >> resources [
+	^Array with: GlorpSessionResource
+]
+
 { #category : #'VisualWorks metadata' }
 GlorpWritingTest class >> visualWorksMetadata [
 

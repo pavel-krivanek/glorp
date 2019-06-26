@@ -251,8 +251,11 @@ GlorpCursoredStream >> next [
 
 { #category : #accessing }
 GlorpCursoredStream >> next: anInteger [
-
-	^super next: anInteger
+	| result |
+	Dialect isObjectStudio ifFalse: [^super next: anInteger].
+	result := OrderedCollection new: anInteger.
+	anInteger timesRepeat: [result add: self next].
+	^result.
 ]
 
 { #category : #'building objects' }
@@ -347,11 +350,6 @@ GlorpCursoredStream >> releaseCursor [
 		ifFalse:
 			[self accessor releaseCursor: cursor in: statement.
 			self accessor completedCommand: command].
-]
-
-{ #category : #accessing }
-GlorpCursoredStream >> rowCount [
-	^ self cursor rowCount
 ]
 
 { #category : #debugging }

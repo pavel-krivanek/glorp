@@ -45,16 +45,6 @@ ObjectExpression >> aggregate: anExpression as: aggregateFunctionName [
 ]
 
 { #category : #fields }
-ObjectExpression >> aliasTable: aDatabaseTable to: aString [ 
-	| newTable |
-	newTable := aDatabaseTable copy.
-	newTable name: aString.
-	newTable parent: aDatabaseTable.
-	newTable schema: ''.
-	self tableAliases at: aDatabaseTable put: newTable
-]
-
-{ #category : #fields }
 ObjectExpression >> aliasedTableFor: aDatabaseTable [ 
 	self hasTableAliases ifFalse: [^aDatabaseTable].
 	aDatabaseTable isAliased ifTrue: [^aDatabaseTable].

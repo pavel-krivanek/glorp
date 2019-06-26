@@ -16,7 +16,7 @@ Class {
 		'databaseError',
 		'accessor'
 	],
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-GlorpCore'
 }
 
 { #category : #'VisualWorks metadata' }

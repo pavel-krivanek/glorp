@@ -25,6 +25,16 @@ Class {
 	#category : #GlorpPharoPort
 }
 
+{ #category : #configuration }
+PharoDatabaseAccessor class >> DefaultDriver [
+	^DefaultDriver
+]
+
+{ #category : #configuration }
+PharoDatabaseAccessor class >> DefaultDriver: aDriver [
+	DefaultDriver := aDriver
+]
+
 { #category : #executing }
 PharoDatabaseAccessor >> basicExecuteSQLString: aString [
 	^self databaseDriver basicExecuteSQLString: aString  

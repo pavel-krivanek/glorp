@@ -2,9 +2,9 @@ Class {
 	#name : #GlorpDemoDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
 	#classVars : [
-		'Default'
+		'GlorpDemoDescriptorSystem'
 	],
-	#category : #GlorpTestModels
+	#category : #'GlorpTestModels-GlorpTest'
 }
 
 { #category : #accessing }
@@ -25,7 +25,7 @@ GlorpDemoDescriptorSystem class >> visualWorksMetadata [
 
 { #category : #other }
 GlorpDemoDescriptorSystem >> allTableNames [
-	^#('GR_ADDRESS' 'PERSON' 'GR_CUSTOMER' 'BANK_TRANS' 'BANK_ACCT' 'CUSTOMER_ACCT_LINK' 'EMAIL_ADDRESS' 'STUFF' 'PASSENGER' 'AIRLINE' 'FREQUENT_FLYER' 'COMPRESSED_MONEY_TABLE' 'RESERVATION' 'ITINERARY' 'TRANSFORMED_TIME' 'FKCONTACT' 'FKADDRESS' 'GLORP_OWNER' 'GLORP_SLAVE' 'TREE_NODE' 'TREE_NODE_LINK' 'RECORD_WITH_UPDATE' 'GR_TRAVEL_AGENT').
+	^#('GR_ADDRESS' 'PERSON' 'GR_CUSTOMER' 'BANK_TRANS' 'BANK_ACCT' 'CUSTOMER_ACCT_LINK' 'EMAIL_ADDRESS' 'STUFF' 'PASSENGER' 'AIRLINE' 'FREQUENT_FLYER' 'COMPRESSED_MONEY_TABLE' 'RESERVATION' 'ITINERARY' 'TRANSFORMED_TIME' 'FKCONTACT' 'FKADDRESS' 'GLORP_OWNER' 'GLORP_SLAVE' 'TREE_NODE' 'TREE_NODE_LINK' 'RECORD_WITH_UPDATE' 'GR_TRAVEL_AGENT' 'GLORP_SALARIED_EMPLOYEE').
 ]
 
 { #category : #'descriptors/other' }
@@ -88,6 +88,13 @@ GlorpDemoDescriptorSystem >> classModelForGlorpEmailAddress: aClassModel [
 	aClassModel newAttributeNamed: #host.
 ]
 
+{ #category : #'descriptors/bank' }
+GlorpDemoDescriptorSystem >> classModelForGlorpEmailDomain: aClassModel [
+	aClassModel newAttributeNamed: #id.
+	aClassModel newAttributeNamed: #topLevelDomain.
+	aClassModel newAttributeNamed: #addresses type: GlorpEmailAddress.
+]
+
 { #category : #'class models/airline' }
 GlorpDemoDescriptorSystem >> classModelForGlorpItinerary: aClassModel [
 	aClassModel newAttributeNamed: #id.
@@ -122,7 +129,7 @@ GlorpDemoDescriptorSystem >> classModelForGlorpRecordWithUpdateTime: aClassModel
 
 	aClassModel newAttributeNamed: #id type: Integer.
 	aClassModel newAttributeNamed: #name type: String.
-	aClassModel newAttributeNamed: #updateTime type: Dialect timestampClass.
+	aClassModel newAttributeNamed: #updateTime type: Timestamp.
 	aClassModel newAttributeNamed: #updateSomeOtherThing type: String.
 ]
 
@@ -131,6 +138,13 @@ GlorpDemoDescriptorSystem >> classModelForGlorpReservation: aClassModel [
 	aClassModel newAttributeNamed: #id.
 	aClassModel newAttributeNamed: #passengers collectionOf: GlorpPassenger.
 	aClassModel newAttributeNamed: #passenger type: GlorpPassenger.
+]
+
+{ #category : #'standalone domain class' }
+GlorpDemoDescriptorSystem >> classModelForGlorpSalariedEmployee: aClassModel [
+	aClassModel newAttributeNamed: #id.
+	aClassModel newAttributeNamed: #name.
+	aClassModel newAttributeNamed: #salary.
 ]
 
 { #category : #'descriptors/bank' }
@@ -157,6 +171,7 @@ GlorpDemoDescriptorSystem >> classModelForGlorpTravelAgent: aClassModel [
 GlorpDemoDescriptorSystem >> classModelForGlorpTreeNode: aClassModel [
 	aClassModel newAttributeNamed: #id.
 	aClassModel newAttributeNamed: #children collectionOf: GlorpTreeNode.
+	aClassModel newAttributeNamed: #parent type: GlorpTreeNode.
 ]
 
 { #category : #other }
@@ -346,6 +361,25 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpEmailAddress: aDescriptor [
 	(aDescriptor newMapping: DirectMapping) from: #host to: (table fieldNamed: 'HOST_NAME').
 ]
 
+{ #category : #'descriptors/bank' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpEmailDomain: aDescriptor [
+	| table addresses addressJoinBlock addressJoin |
+	table := self tableNamed: 'EMAIL_DOMAIN'.
+	aDescriptor table: table.
+	(aDescriptor newMapping: DirectMapping) from: #id to: (table fieldNamed: 'ID').
+	(aDescriptor newMapping: DirectMapping) from: #topLevelDomain to: (table fieldNamed: 'DOMAIN_NAME').
+	addresses := aDescriptor toManyMapping
+		attributeName: #addresses.
+	addressJoin := Join new.
+	addressJoinBlock :=
+		[:each || field | field := each getField: 'HOST_NAME'.
+		field copyFrom: (field length - 2) to: field length].
+	addressJoin
+		addSource: (table fieldNamed: 'DOMAIN_NAME')
+		target: (addressJoinBlock asGlorpExpressionOn: (BaseExpression new descriptor: (self descriptorFor: GlorpEmailAddress))).
+	addresses join: addressJoin.
+]
+
 { #category : #'descriptors/airline' }
 GlorpDemoDescriptorSystem >> descriptorForGlorpItinerary: aDescriptor [ 
 	aDescriptor table: (self tableNamed: 'ITINERARY').
@@ -474,6 +508,16 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpReservation: aDescriptor [
 			attributeName: #passenger.
 ]
 
+{ #category : #'standalone domain class' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpSalariedEmployee: aDescriptor [
+	| table |
+	table := self tableNamed: 'GLORP_SALARIED_EMPLOYEE'.
+	aDescriptor table: table.
+	aDescriptor directMapping from: #id to: (table fieldNamed: 'ID').
+	aDescriptor directMapping from: #name to: (table fieldNamed: 'NAME').
+	aDescriptor directMapping from: #salary to: (table fieldNamed: 'SALARY').
+]
+
 { #category : #'descriptors/bank' }
 GlorpDemoDescriptorSystem >> descriptorForGlorpServiceCharge: aDescriptor [ 
 	
@@ -549,16 +593,19 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpTreeNode: aDescriptor [
 	| table |
 	table := self tableNamed: 'TREE_NODE'.
 	aDescriptor table: table.
-	(aDescriptor newMapping: DirectMapping)
-		from: #id
-		to: (table fieldNamed: 'ID').
-	(aDescriptor newMapping: ToManyMapping)
+	aDescriptor directMappingFor: #id.
+	aDescriptor toManyMapping
 		attributeName: #children;
 		useLinkTable;
-		join:
-				(Join
-						from: (table fieldNamed: 'ID')
-						to: ((self tableNamed: 'TREE_NODE_LINK') fieldNamed: 'PARENT')).
+		join: (Join
+				from: (table fieldNamed: 'ID')
+				to: ((self tableNamed: 'TREE_NODE_LINK') fieldNamed: 'PARENT')).
+	aDescriptor oneToOneMapping
+		attributeName: #parent;
+		useLinkTable;
+		join: (Join
+				from: (table fieldNamed: 'ID')
+				to: ((self tableNamed: 'TREE_NODE_LINK') fieldNamed: 'CHILD')).
 ]
 
 { #category : #examples }
@@ -1021,6 +1068,12 @@ GlorpDemoDescriptorSystem >> tableForEMAIL_ADDRESS: aTable [
 ]
 
 { #category : #tables }
+GlorpDemoDescriptorSystem >> tableForEMAIL_DOMAIN: aTable [
+	(aTable createFieldNamed: 'ID' type: platform serial) bePrimaryKey.
+	aTable createFieldNamed: 'DOMAIN_NAME' type: (platform varChar: 20).
+]
+
+{ #category : #tables }
 GlorpDemoDescriptorSystem >> tableForFKADDRESS: aTable [ 
 	| contact |
 	(aTable createFieldNamed: 'ID' type: platform serial) bePrimaryKey.
@@ -1079,6 +1132,13 @@ GlorpDemoDescriptorSystem >> tableForGLORP_OWNER: aTable [
 	aTable
 		addForeignKeyFrom: field
 		to: ((self tableNamed: 'GLORP_SLAVE') fieldNamed: 'ID').
+]
+
+{ #category : #'standalone domain class' }
+GlorpDemoDescriptorSystem >> tableForGLORP_SALARIED_EMPLOYEE: aTable [
+	(aTable createFieldNamed: 'ID' type: platform integer) bePrimaryKey.
+	aTable createFieldNamed: 'NAME' type: (platform varChar: 20).
+	aTable createFieldNamed: 'SALARY' type: (platform number precision: 9; scale: 4; yourself).
 ]
 
 { #category : #owner }
@@ -1193,19 +1253,19 @@ GlorpDemoDescriptorSystem >> tableForTRANSFORMED_TIME: aTable [
 
 { #category : #'descriptors/tree nodes' }
 GlorpDemoDescriptorSystem >> tableForTREE_NODE: aTable [
-
-	| |
 	(aTable createFieldNamed: 'ID' type: platform int4) bePrimaryKey.
 ]
 
 { #category : #'descriptors/tree nodes' }
 GlorpDemoDescriptorSystem >> tableForTREE_NODE_LINK: aTable [
-
-	| parent child |
+	| parent child mainTable |
 	parent := (aTable createFieldNamed: 'PARENT' type: platform int4) bePrimaryKey.
-	(aTable addForeignKeyFrom: parent
-		to: ((self tableNamed: 'TREE_NODE') fieldNamed: 'ID')) "shouldCreateInDatabase: false"  .
 	child := (aTable createFieldNamed: 'CHILD' type: platform int4) bePrimaryKey.
-	(aTable addForeignKeyFrom: child
-		to: ((self tableNamed: 'TREE_NODE') fieldNamed: 'ID')) "shouldCreateInDatabase: false".
+
+	mainTable := self tableNamed: 'TREE_NODE'.
+	aTable
+		addForeignKeyFrom: parent
+		to: (mainTable fieldNamed: 'ID').
+	aTable addForeignKeyFrom: child
+		to: (mainTable fieldNamed: 'ID').
 ]

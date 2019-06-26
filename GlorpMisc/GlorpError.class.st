@@ -14,12 +14,6 @@ GlorpError class >> ancestorOf: anExceptionThingy [
 	^self exceptionalEvent handles: anExceptionThingy
 ]
 
-{ #category : #'exception compatibility' }
-GlorpError class >> description [
-	"For ObjectStudio"
-	^super description.
-]
-
 { #category : #testing }
 GlorpError class >> mayResume [
 	"This is a VisualWorks convention. Reimplement this here so that it will also be found in other dialects that don't have it in the superclass."
@@ -68,8 +62,12 @@ GlorpError >> description [
 
 { #category : #accessing }
 GlorpError >> getMessageText [
+	"This is horribly ugly. Not only are dialects inconsistent, but behaviour between types of exceptions is inconsistent within dialects"
 	
-	^self databaseError
+	Dialect isVisualWorks ifTrue: [^self getVisualWorksMessageText].
+	Dialect isVisualAge ifTrue: [^self getVisualAgeMessageText].
+	Dialect isSqueak ifTrue: [^self databaseError].
+	^self printString.
 ]
 
 { #category : #accessing }

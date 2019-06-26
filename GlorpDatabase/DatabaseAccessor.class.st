@@ -47,7 +47,14 @@ Class {
 { #category : #'instance creation' }
 DatabaseAccessor class >> classForThisPlatform [
 
-	^PharoDatabaseAccessor
+	Dialect isVisualWorks ifTrue: [^Dialect smalltalkAt: #'Glorp.VWDatabaseAccessor'].
+	Dialect isObjectStudio ifTrue: [^Dialect smalltalkAt: #ObjectStudioDatabaseAccessor].
+	Dialect isGNU ifTrue: [^Dialect smalltalkAt: #JdmDatabaseAccessor].
+	Dialect isSqueak ifTrue: [^Dialect smalltalkAt: #SqueakDatabaseAccessor].
+	Dialect isVisualAge ifTrue: [^Dialect smalltalkAt: #VADatabaseAccessor].
+	Dialect isDolphin ifTrue: [^Dialect smalltalkAt: #DolphinDatabaseAccessor].
+	self error: 'unknown dialect'.
+	^self
 ]
 
 { #category : #'instance creation' }
@@ -411,10 +418,6 @@ DatabaseAccessor >> cursorFor: aStream [
 
 { #category : #cursors }
 DatabaseAccessor >> cursorFor: answerStream command: aCommand [
-   aCommand needsRowCount ifTrue: [
-		aCommand rowCount: (self platform supportsRowCount
-									ifTrue: [answerStream rowCount]
-									ifFalse: [1])].
 	^aCommand isNil
 		ifTrue: [self cursorFor: answerStream]
 		ifFalse: [GlorpCursoredStream on: answerStream for: aCommand accessor: self].

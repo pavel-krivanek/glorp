@@ -7,10 +7,10 @@ Class {
 		'connection',
 		'session'
 	],
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpDatabaseTypeDBTests class >> resources [
 	^Array with: GlorpSessionResource
 ]

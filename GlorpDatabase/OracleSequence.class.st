@@ -16,7 +16,7 @@ Class {
 		'sequenceIncrement',
 		'accessProtect'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -51,7 +51,8 @@ OracleSequence >> initialize [
 	super initialize.
 	count := 0.
 	sequenceIncrement := 1.
-	accessProtect := Semaphore forMutualExclusion
+	"This seems to hang on the semaphore in ObjectStudio. Fake around it"
+	accessProtect := Dialect isObjectStudio ifTrue: [nil] ifFalse: [Semaphore forMutualExclusion].
 ]
 
 { #category : #accessing }
