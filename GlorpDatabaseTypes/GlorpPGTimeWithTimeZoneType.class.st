@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpPGTimeWithTimeZoneType,
 	#superclass : #GlorpDatabaseType,
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }
