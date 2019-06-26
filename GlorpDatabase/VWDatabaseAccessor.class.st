@@ -14,7 +14,7 @@ Class {
 		'driverSession',
 		'preparedStatements'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp-VW3'
 }
 
 { #category : #'exception handling' }
