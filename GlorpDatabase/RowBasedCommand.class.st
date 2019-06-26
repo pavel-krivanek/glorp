@@ -23,26 +23,30 @@ Class {
 		'rowCount',
 		'failed'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 RowBasedCommand class >> forRow: aDatabaseRow useBinding: aBoolean session: aSession [
-	^(self new)
+	"The caller knows there is only one row, thus #allRows: is not called and not set."
+
+	^self new
 		row: aDatabaseRow;
 		useBinding: aBoolean;
 		session: aSession;
 		yourself.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 RowBasedCommand class >> forRows: aCollectionOfDatabaseRows useBinding: aBoolean session: aSession [
-	^(self new)
-		allRows: aCollectionOfDatabaseRows;
+	"The calling path ensures there is more than one row."
+
+	^self new
 		row: aCollectionOfDatabaseRows first;
+		allRows: aCollectionOfDatabaseRows;
 		useBinding: aBoolean;
 		session: aSession;
-		yourself.
+		yourself
 ]
 
 { #category : #'VisualWorks metadata' }
@@ -65,27 +69,61 @@ RowBasedCommand >> allRows: aCollectionOfDatabaseRows [
 	allRows := aCollectionOfDatabaseRows.
 ]
 
+{ #category : #executing }
+RowBasedCommand >> allRowsGrouped: maxSizeInteger evaluate: aBlock [
+	"Set me to hold each of the first n * maximum row subgroups in turn, then set me to hold the final maximum-or-less residue of rows.  Do the whileTrue: compare using <, not <=, to ensure I will have some rows remaining for the post-loop run.  At the end, reset me to my start state (if debugging, be aware that we do not do this final reset inside an #ensure: block, instead assuming that any actual rerun will begin sufficiently far up the stack to ensure the command is recomputed;  a safe assumption?)."
+
+	| startPosition endPosition theRows |
+	maxSizeInteger < allRows size ifFalse: [^aBlock value].	"no splitting needed"
+	theRows := allRows.
+	startPosition := 1.
+	endPosition := maxSizeInteger.
+	[endPosition < theRows size] whileTrue:	"set me to hold the next maxSize rows"
+		[allRows := theRows copyFrom: startPosition to: endPosition.
+		self row: allRows first.
+		aBlock value.
+		startPosition := endPosition + 1.
+		endPosition := endPosition + maxSizeInteger].
+	"Set me to hold the remaining maxSize-or-less rows"
+	allRows := theRows copyFrom: startPosition to: theRows size.
+	self row: allRows first.
+	aBlock value.
+	"We're finished;  reset me back to my start state."
+	allRows := theRows.
+	self row: allRows first.
+]
+
+{ #category : #executing }
+RowBasedCommand >> allRowsSinglyEvaluate: aBlock [
+	"Run each row singly, nilling allRows during the run so no code in aBlock can imagine it should run grouped."
+
+	| theRows |
+	theRows := allRows.
+	allRows := nil.
+	theRows do:
+		[:each |
+		self row: each.
+		aBlock value].
+	"We're finished;  reset me back to my start state."
+	allRows := theRows.
+	self row: allRows first.
+]
+
 { #category : #'bound values' }
 RowBasedCommand >> arrayBindings [
-	"Return bindings in a form suitable for Oracle array binding, i.e. a list of arguments, but each argument is itself a list of multiple values"
+	"Return bindings in a form suitable for Oracle array binding, i.e. an array of arrays.  The outer array has one position for each field;  each position holds an array of values of that field, one for each row."
+
 	| allBindings fields |
 	fields := self arrayBoundFields.
-	allBindings := (1 to: fields size)
-		collect: [:each | Array new: allRows size].
-	1
-		to: allRows size
-		do:
-			[:rowNumber | 
-			| inputRow |
-			inputRow := allRows at: rowNumber.
-			1
-				to: fields size
-				do:
-					[:columnNumber | 
-					(allBindings at: columnNumber)
-						at: rowNumber
-						put: (inputRow at: (fields at: columnNumber) ifAbsent: [nil])]].
-	^allBindings asArray.
+	allBindings := (1 to: fields size) collect: [:each | Array new: allRows size].
+	1 to: allRows size do:
+		[:rowNumber || inputRow | inputRow := allRows at: rowNumber.
+		1 to: fields size do:
+			[:columnNumber |
+			(allBindings at: columnNumber)
+				at: rowNumber
+				put: (inputRow at: (fields at: columnNumber) ifAbsent: [nil])]].
+	^allBindings asArray
 ]
 
 { #category : #'bound values' }
@@ -111,18 +149,22 @@ RowBasedCommand >> batchStatementBindings [
 
 { #category : #'bound values' }
 RowBasedCommand >> bindingTypes [
+	"It is not functionally necessary to check usesArrayBindingRatherThanGroupWriting since the first part of the longer row is what the bindTemplate needs for a bound array and the rest is just ignored.  We check for (trivial) performance and for code clarity."
+
 	| all basic size |
-	^(self shouldUseGroupWriting)
-		ifTrue: [
-			basic := self row nonGeneratedFields collect: [:each | each type].
-			size := basic size.
-			all := Array new: (allRows size * size).
-			0 to: allRows size - 1 do: [:i |
-				| index |
-				index := i * size.
-				all replaceElementsFrom: index + 1 to: index + size withArray: basic startingAt: 1].
-			all]
-		ifFalse: [self singleRowBoundFields collect: [:each | each type]].
+	^self shouldUseGroupWriting
+		ifTrue:
+			[basic := self arrayBoundFields collect: [:each | each type].
+			self platform usesArrayBindingToGroupWrite
+				ifTrue: [basic]
+				ifFalse:
+					[size := basic size.
+					all := Array new: allRows size * size.
+					0 to: allRows size - 1 do:
+						[:i || index | index := i * size.
+						all replaceElementsFrom: index + 1 to: index + size withArray: basic startingAt: 1].
+					all]]
+		ifFalse: [self singleRowBoundFields collect: [:each | each type]]
 ]
 
 { #category : #'bound values' }
@@ -134,59 +176,64 @@ RowBasedCommand >> bindings [
 
 { #category : #executing }
 RowBasedCommand >> executeBoundIn: anAccessor [
-	| result |
-	(self hasMultipleRows and: [self shouldUseGroupWriting not])
-		ifTrue:
-			[self allRows
-				do:
-					[:each | 
-					self row: each.
-					result := anAccessor executeCommandBound: self.
-					result release.
-					failed := failed or: [self needsRowCount and: [rowCount ~= 1]].
-					each postWriteAssignSequencesUsing: anAccessor]]
-		ifFalse:
-			[result := anAccessor executeCommandBound: self.
-			result release.
-			failed := self needsRowCount and: [rowCount ~= self expectedNumberOfModifiedRows].
-			row postWriteAssignSequencesUsing: anAccessor].
-	"Results aren't interesting"
-	^ anAccessor cursorFor: #() readStream
+	self hasMultipleRows
+		ifFalse: [self executeBoundInRoundTrip: anAccessor]
+		ifTrue: [self shouldUseGroupWriting
+				ifFalse: [self allRowsSinglyEvaluate: [self executeBoundInRoundTrip: anAccessor]]
+				ifTrue: [self
+						allRowsGrouped: self maximumBoundWriteSize
+						evaluate: [self executeBoundInRoundTrip: anAccessor]]].
+	^anAccessor cursorFor: #() readStream	"insert results aren't interesting so return an empty cursor"
 ]
 
-{ #category : #'bound values' }
+{ #category : #executing }
+RowBasedCommand >> executeBoundInRoundTrip: anAccessor [
+	"Send one or more rows to the database in a single round trip, bound to an array of values.  The array will be  two-dimensional (arrayBindings) or one-dimensional (batchStatementBindings)."
+
+	| result |
+	result := anAccessor executeCommandBound: self.
+	result release.
+	failed := self needsRowCount and: [rowCount ~= self expectedNumberOfModifiedRows].
+]
+
+{ #category : #executing }
 RowBasedCommand >> executeUnboundIn: anAccessor [
 	anAccessor returnRowCount: self needsRowCount.
-	(self hasMultipleRows and: [self shouldUseGroupWriting not])
-		ifTrue:
-			[self allRows
-				do:
-					[:each | 
-					self row: each.
-					anAccessor
-						executeSQLStringNoResult: self sqlString
-						doing:
-							[failed := failed or: [self needsRowCount and: [anAccessor rowCount ~= 1]]]
-						forCommand: self.
-					each postWriteAssignSequencesUsing: anAccessor]]
-		ifFalse:
-			[self tooBigForSingleWrite
-				ifTrue:
-					[self subCommands do: [:each | each executeUnboundIn: anAccessor]]
-				ifFalse:
-					[anAccessor
-						executeSQLStringNoResult: self sqlString
-						doing:
-							[failed := self needsRowCount
-								and: [anAccessor rowCount ~= self expectedNumberOfModifiedRows]]
-						forCommand: self].
-			row postWriteAssignSequencesUsing: anAccessor].
-	^#() readStream.
+	self hasMultipleRows
+		ifFalse:  [self executeUnboundInRoundTrip: anAccessor]
+		ifTrue: [self shouldUseGroupWriting
+				ifFalse: [self allRowsSinglyEvaluate: [self executeUnboundInRoundTrip: anAccessor]]
+				ifTrue: [self
+						allRowsGrouped: self maximumUnboundWriteSize
+						evaluate: [self executeUnboundInRoundTrip: anAccessor]]].
+	^#() readStream	"Results aren't interesting"
+]
+
+{ #category : #executing }
+RowBasedCommand >> executeUnboundInRoundTrip: anAccessor [
+	"Only an UpdateCommand with lock field(s) can return true to #needsRowCount.  Thus we call answer on the session in the #doing: block only if an UpdateCommand writes multiple optimistically-locked rows batched (must be batched as we are unbound and there is no way to write two or more such rows otherwise except via a bound call with #usesArrayBindingToGroupWrite).  The accessor has already called answer once, for the first row, and obtained the rowCount (one if optimistic locking succeeded, zero if it failed).  The second and subsequent rows will each return #noAnswerStream to successive calls of answer, plus the rowCount which we aggregate.  If the rowCount total is the total number of rows written, optimistic locking succeeded, otherwise we had one or more failures.  The index when any call of answer is followed by a rowCount of zero corresponds to the number in allRows of the row for which optimistic locking failed (i.e. someone had updated the row between this image's reading and writing of it).
+	BE AWARE:  the caller has cached the answer stream, which will be #noAnswerStream in the sole case where needsRowCount is true (an update of rows with lock fields), and so we raise an error if we do not exit with the answer stream still being #noAnswerStream, letting the caller continue safely."
+
+	anAccessor
+		executeSQLStringNoResult: self sqlString
+		doing: [failed := failed or:
+				[self needsRowCount and:		"if rowCount unsupported, we cannot tell if it worked, so assume it did but leave rowCount nil"
+					[(anAccessor platform supportsRowCountFor: self) and:
+						[rowCount := anAccessor rowCount.
+						2 to: self expectedNumberOfModifiedRows do:
+							[:index |
+							anAccessor driverSession answer == #noAnswerStream
+								ifFalse: [self error: 'Tell Niall:  platform does not support batched rowCount']
+								ifTrue: [rowCount := rowCount + anAccessor rowCount]].
+						rowCount ~= self expectedNumberOfModifiedRows]]]]
+		forCommand: self.
 ]
 
 { #category : #executing }
 RowBasedCommand >> expectedNumberOfModifiedRows [
-	^self hasMultipleRows ifTrue: [allRows size] ifFalse: [1].
+	^allRows isNil
+		ifTrue: [1]
+		ifFalse: [allRows size]
 ]
 
 { #category : #testing }
@@ -201,9 +248,17 @@ RowBasedCommand >> initialize [
 ]
 
 { #category : #testing }
-RowBasedCommand >> maximumSingleWriteSize [
-	"How many values will write at once. This is only really applicable when not doing binding and concatenating many statements together for one trip to the DB"
-	^1000.
+RowBasedCommand >> maximumBoundWriteSize [
+	"How many bound rows can we send to the DB in a single trip."
+
+	^self system maximumSizeToGroupWriteFor: self
+]
+
+{ #category : #testing }
+RowBasedCommand >> maximumUnboundWriteSize [
+	"How many values can we write at once. This is only really applicable when not doing binding and concatenating many statements together for one trip to the DB"
+
+	^1000 min: (self system maximumSizeToGroupWriteFor: self)
 ]
 
 { #category : #accessing }
@@ -288,20 +343,6 @@ RowBasedCommand >> singleRowBoundFields [
 	self subclassResponsibility.
 ]
 
-{ #category : #executing }
-RowBasedCommand >> subCommands [
-	| startPosition commands endPosition subRows newCommand |
-	startPosition := 1.
-	commands := OrderedCollection new.
-	[startPosition > allRows size] whileFalse: [
-		endPosition := (startPosition + self maximumSingleWriteSize - 1) min: allRows size.
-		subRows := allRows copyFrom: startPosition to: endPosition.
-		newCommand := self class forRows: subRows useBinding: self useBinding session: self session.
-		commands add: newCommand.
-		startPosition := endPosition + 1].
-	^commands.
-]
-
 { #category : #testing }
 RowBasedCommand >> succeeded [
 	^failed not.
@@ -309,16 +350,19 @@ RowBasedCommand >> succeeded [
 
 { #category : #testing }
 RowBasedCommand >> supportsGroupWriting [
-	"Return true if array binding or a similar mechanism can be used to execute us with multiple commands at once. I think in general this can only ever make sense for inserts (and possibly selects under some circumstances). Updates may want to update only part of the fields."
-	^false.
+	"Return true if array binding of values to a single statement, or batching of multiple statements, or concatenation of values to a single statement (or other similar mechanism) can be used to execute this command with multiple rows in a single round trip to the database."
+
+	^false
+]
+
+{ #category : #testing }
+RowBasedCommand >> supportsGroupWritingValues [
+	"The version of the INSERT command that can concatenate values onto a command (as one way of group-writing) is only supported by some database platforms in some versions.  Only if the platform supports it will an instance of an InsertCommand subclass that supports it be created."
+
+	^false
 ]
 
 { #category : #reporting }
 RowBasedCommand >> tables [
 	^Array with: self row table.
-]
-
-{ #category : #testing }
-RowBasedCommand >> tooBigForSingleWrite [
-	^self hasMultipleRows and: [allRows size > self maximumSingleWriteSize].
 ]
