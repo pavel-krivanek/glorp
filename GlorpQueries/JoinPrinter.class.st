@@ -16,7 +16,7 @@ Class {
 		'availableTables',
 		'query'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -62,12 +62,12 @@ JoinPrinter >> printJoinsOn: aCommand [
 		joinsToProcess removeAll: allRelatedJoins.
 		allJoins add: (fullJoin->nextTable).
 		availableTables addAll: (next tablesForANSIJoin)].
-	allJoins size timesRepeat: [aCommand platform parenthesizeCommandsInCompoundQuery ifTrue: [aCommand nextPut: $(]].
+	allJoins size timesRepeat: [aCommand nextPut: $(].
 	aCommand nextPutAll: self rootTable sqlTableName.
 	allJoins do: [:each | 
 		each key printForANSIJoinTo: each value on: aCommand.
-		aCommand platform parenthesizeCommandsInCompoundQuery ifTrue: [aCommand nextPut: $)]].
-	self printLeftoverTablesOn: aCommand
+		aCommand nextPut: $)].
+	self printLeftoverTablesOn: aCommand.
 ]
 
 { #category : #printing }

@@ -24,7 +24,7 @@ Class {
 		'outerJoin',
 		'owningMapping'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -249,7 +249,10 @@ Join >> asGlorpExpressionOn: aBaseExpression [
 
 { #category : #api }
 Join >> asOuterJoin [
-	^self copy beOuterJoin.
+	"This has always been correctly implemented (see the comment in its polymorph MappingExpression>>asOuterJoin), but appears to have no callers, and no reason why it should not be inlined in any caller.  Unless callers appear, it will be renoved when its polymorph is removed."
+
+	self deprecated: #(#version '8.2' #sunset '9.0' #use #beOuterJoin).
+	^self copy beOuterJoin
 ]
 
 { #category : #accessing }
@@ -264,6 +267,8 @@ Join >> base: aBaseExpression [
 
 { #category : #api }
 Join >> beOuterJoin [
+	"If you want the table you're joining to to be optional, this must be set."
+
 	outerJoin := true.
 ]
 
@@ -331,10 +336,11 @@ Join >> inverseJoin [
 
 { #category : #converting }
 Join >> isConstant: aTarget [
-	"The target can be either a constant (which gets turned into a ConstantExpression) or (usually) a DatabaseField, representing a parameter to the query"
+	"The target can be either a constant (which gets turned into a ConstantExpression) or (usually) a DatabaseField, representing a parameter to the query.  However it could be a subselect (which would return false)."
+
 	(aTarget class == DatabaseField) ifTrue: [^false].
-	(aTarget isGlorpExpression and: [aTarget isConstantExpression not]) ifTrue: [^false].
-	^true.
+	^aTarget isGlorpExpression not
+		or: [aTarget isConstantExpression]
 ]
 
 { #category : #testing }
@@ -425,8 +431,7 @@ Join >> owningMapping: aMapping [
 ]
 
 { #category : #preparing }
-Join >> prepareIn: aQuery [ 
-	"Do nothing."
+Join >> prepareIn: aQuery [
 	aQuery whereClause: (self asGeneralGlorpExpression).
 	aQuery whereClause prepareIn: aQuery.
 ]
@@ -548,10 +553,11 @@ Join >> shortCircuitOnNullComparison: parameters [
 
 { #category : #converting }
 Join >> sourceExpressionFor: source [
-	
-	^((self isConstant: source) or: [source isMappable not]) "This might be a subselect"
-		ifTrue: [source]
-		ifFalse: [base getParameter: source].
+	"The source might be a subselect, hence the isMappable check."
+
+	^((self isConstant: source) or: [source isMappable not])
+		ifTrue: [source asGlorpExpressionOn: base]
+		ifFalse: [base getParameter: source]
 ]
 
 { #category : #initialize }
@@ -570,13 +576,12 @@ Join >> sourceForTarget: aField [
 ]
 
 { #category : #converting }
-Join >> targetExpressionFor: eachTarget [ 
+Join >> targetExpressionFor: eachTarget [
 	^(self isConstant: eachTarget)
 		ifTrue: [eachTarget]
-		ifFalse: [
-			eachTarget isGlorpExpression 
-			ifTrue: [eachTarget] 
-			ifFalse: [(base getTable: eachTarget table) getField: eachTarget]].
+		ifFalse: [eachTarget isGlorpExpression
+				ifTrue: [eachTarget asGlorpExpressionOn: base]
+				ifFalse: [(base getTable: eachTarget table) getField: eachTarget]].
 ]
 
 { #category : #preparing }
