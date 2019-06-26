@@ -73,16 +73,6 @@ TimedExpiryCachePolicy >> timeout: seconds [
 	timeout := seconds
 ]
 
-{ #category : #accessing }
-TimedExpiryCachePolicy >> timeoutSeconds [
-	^timeout
-]
-
-{ #category : #accessing }
-TimedExpiryCachePolicy >> timeoutSeconds: anInteger [
-	timeout := anInteger.
-]
-
 { #category : #utility }
 TimedExpiryCachePolicy >> totalSeconds [
 
