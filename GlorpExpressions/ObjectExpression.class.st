@@ -25,7 +25,7 @@ Class {
 		'tableAliases',
 		'fieldAliases'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp-Expressions'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -56,24 +56,22 @@ ObjectExpression >> aliasTable: aDatabaseTable to: aString [
 
 { #category : #fields }
 ObjectExpression >> aliasedTableFor: aDatabaseTable [ 
-	tableAliases isNil ifTrue: [^aDatabaseTable].
+	self hasTableAliases ifFalse: [^aDatabaseTable].
 	aDatabaseTable isAliased ifTrue: [^aDatabaseTable].
-	^tableAliases 
-		at: aDatabaseTable 
-		ifAbsent: [
-			(self tables includes: aDatabaseTable) 	
+	^tableAliases
+		at: aDatabaseTable
+		ifAbsent:
+			[(self tables includes: aDatabaseTable)	
 				ifTrue: [self error: 'Bug. Expression has only partially aliased tables']
-				ifFalse: [
-					| tableExpression |
-					tableExpression := self mappingExpressions at: aDatabaseTable ifAbsent: [nil].
-					tableExpression isNil 
-						ifTrue: [aDatabaseTable]
-						ifFalse: [tableExpression aliasedTableFor: aDatabaseTable]]].
+				ifFalse: [(self mappingExpressions
+							at: aDatabaseTable
+							ifAbsent: [^aDatabaseTable])
+								aliasedTableFor: aDatabaseTable]]
 ]
 
 { #category : #fields }
-ObjectExpression >> aliasedTableFor: aDatabaseTable  ifAbsent: aBlock [
-	tableAliases isNil ifTrue: [^aBlock value].
+ObjectExpression >> aliasedTableFor: aDatabaseTable ifAbsent: aBlock [
+	self hasTableAliases ifFalse: [^aBlock value].
 	aDatabaseTable isAliased ifTrue: [^aDatabaseTable].
 	^tableAliases at: aDatabaseTable ifAbsent: [aBlock value].
 ]
@@ -123,17 +121,25 @@ ObjectExpression >> asTimestamp [
 
 { #category : #preparing }
 ObjectExpression >> assignTableAliasesStartingAt: anInteger prefix: aString [
-	| tableNumber prefix |
+	"Very rarely, my tableAliases' instance may be shared with another expression that has already populated it with tables, but not necessarily with all of mine.  I therefore iterate over my tables, ensuring all are aliased, regardless of whether I already have some aliases."
+
+	| myTables tableNumber prefix |
 	self controlsTables ifFalse: [^anInteger].
-	self hasTableAliases ifTrue: [^anInteger].
+	(myTables := self tables) isEmpty ifTrue: [^anInteger].
 	tableNumber := anInteger.
 	prefix := aString isNil ifTrue: ['t'] ifFalse: [aString].
-	self tables
-		do:
-			[:each | 
-			self aliasTable: each to: prefix , tableNumber printString.
-			tableNumber := tableNumber + 1].
-	^tableNumber.
+	tableAliases isNil ifTrue:
+		[tableAliases := IdentityDictionary new: myTables size].
+	myTables do:
+		[:each |
+		tableAliases at: each ifAbsentPut:
+			[| newTable | newTable := each copy.
+			newTable parent: each.
+			newTable schema: ''.
+			newTable name: prefix , tableNumber printString.
+			tableNumber := tableNumber + 1.
+			newTable]].
+	^tableNumber		"incremented if any tables were aliased, still equal to anInteger if not"
 ]
 
 { #category : #'api-aggregates' }
@@ -309,14 +315,14 @@ ObjectExpression >> hasField [
 ]
 
 { #category : #testing }
-ObjectExpression >> hasProvidedAdditionalExpressions [
-	"Return true if we have already provided additional expressions to some query. Only important when we're preparing a subselect and don't want to bring in joins that are part of the main query"
-	^self hasTableAliases.
-]
-
-{ #category : #testing }
 ObjectExpression >> hasTableAliases [
-	^tableAliases notNil
+	"I test for notEmpty as well as notNil since (very rarely) my tableAliases instance may have been preemptively initialized to the same instance as another expression (see the comment in #privateTableAliases:)."
+
+	^tableAliases notNil and: [tableAliases notEmpty]
+
+"In theory, another expression could populate a shared instance with tables, but not with mine, and I could then be sent this method before I was sent #assignTableAliasesStartingAt:prefix:.  In practice, all expressions in a SimpleQuery assign at the same time in #assignTableAliases and there is no sharing of a tableAlias instance beyond the confines of a SimpleQuery.  Against the very unlikely event that future refactoring ever altered that, I record here that I tested
+	^tableAliases notNil and: [tableAliases includesKey: self table]
+This only tests for my main table since tableAliases are set only in #assignTableAliasesStartingAt:prefix: and that does them all if it does any (and it will not set them if I do not controlTables, so we need not consider that).  For now, I rate such a test as overcautious;  given Glorp's the order of processing, it suffices to check [tableAliases notEmpty]."
 ]
 
 { #category : #internal }
@@ -401,6 +407,13 @@ ObjectExpression >> printTableAliasesOn: aStream [
 			[aStream nextPutAll: ' '.
 			tableAliases keysAndValuesDo: [:eachKey :eachValue | 
 				aStream nextPutAll: eachKey name, '->', eachValue name , ' ']]
+]
+
+{ #category : #'private/accessing' }
+ObjectExpression >> privateTableAliases: anIdentityDictionary [
+	"Table aliases are lazily initialized when populated.  Use this setter (to bypass that lazy initialization) when an expression prompts the adding of other expressions (during Glorp's internal query rewriting - users are not expected to do this) that need to share its alias list (so that later, when the alis list is computed for a query, they will use the same name (e.g. t2 or s1t1) for a table, not create their own clashing names)."
+
+	tableAliases := anIdentityDictionary.
 ]
 
 { #category : #api }
@@ -502,8 +515,6 @@ ObjectExpression >> table [
 
 { #category : #accessing }
 ObjectExpression >> tableAliases [
-	tableAliases isNil ifTrue: [
-		tableAliases := IdentityDictionary new: 3].
 	^tableAliases
 ]
 
@@ -530,5 +541,7 @@ ObjectExpression >> twoArgumentSpecialSelectors [
 
 { #category : #internal }
 ObjectExpression >> zeroArgumentSpecialSelectors [
-	^#(#asOuterJoin #sqlCount #sqlSum #sqlMin #sqlMax #sqlAverage #sqlAvg #isEmpty #notEmpty #asDate #asTimestamp #bePhantom).
+	"In 8.2, #asOuterJoin is deprecated;  when it is removed in 9.0, remove its symbol from here."
+
+	^#(#beOuterJoin #bePhantom #sqlCount #sqlSum #sqlMin #sqlMax #sqlAverage #sqlAvg #isEmpty #notEmpty #asDate #asTimestamp #asOuterJoin)
 ]

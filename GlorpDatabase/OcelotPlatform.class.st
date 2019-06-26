@@ -4,7 +4,7 @@ This is a platform for the open-source Ocelot database.
 Class {
 	#name : #OcelotPlatform,
 	#superclass : #DatabasePlatform,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #accessing }

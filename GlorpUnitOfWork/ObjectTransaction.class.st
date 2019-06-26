@@ -19,7 +19,7 @@ Class {
 		'undoMap',
 		'collectionMementos'
 	],
-	#category : #GlorpUnitOfWork
+	#category : #'GlorpUnitOfWork-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -121,12 +121,13 @@ ObjectTransaction >> realObjectFor: anObject ifNone: aBlock [
 ]
 
 { #category : #registering }
-ObjectTransaction >> register: anObject [ 
-	"Make anObject be a member of the current transaction. Return the object if registered, or nil otherwise"
+ObjectTransaction >> register: anObject [
+	"Make anObject be a member of the current transaction. Return the object if registered, nil otherwise"
 
 	| copy realObject |
-	(self requiresRegistrationFor: anObject) ifFalse: [^nil].
 	realObject := self realObjectFor: anObject ifNone: [^nil].
+	"The next line inlines #isRegistered: - we just got the real object so need not get it again."
+	(undoMap includesKey: realObject) ifTrue: [^nil].
 	copy := self shallowCopyOf: realObject ifNotNeeded: [^nil].
 	undoMap at: realObject put: copy.
 	self registerTransientInternalsOfCollection: realObject.
@@ -168,14 +169,6 @@ ObjectTransaction >> registeredObjectsDo: aBlock [
 			newAdditions isEmpty ifFalse: [previousVersion := undoMap keys]].
 ]
 
-{ #category : #registering }
-ObjectTransaction >> requiresRegistrationFor: anObject [
-
-	| realObject |
-	realObject := self realObjectFor: anObject ifNone: [^false].
-	^(self isRegistered: realObject) not
-]
-
 { #category : #'private/restoring' }
 ObjectTransaction >> restoreIndexedInstanceVariablesOf: original toThoseOf: copy [
 
@@ -203,12 +196,15 @@ ObjectTransaction >> restoreShapeOf: original toThatOf: copy [
 ]
 
 { #category : #'private/restoring' }
-ObjectTransaction >> restoreStateOf: original toThatOf: copy [ 
+ObjectTransaction >> restoreStateOf: original toThatOf: copy [
+	"The functional need for the [original = copy ifTrue: [^self]] guard is to avoid attempting to rewrite immutables (the guard also gives a performance gain).  The optional GlorpVWWriteBarrierTracker uses immutability to auto-register objects that are read and then changed, so we cannot simply ban immutables from the register.  However Doubles, FixedPoints and Strings are not immediates (so can be in the register) but can be literals, and thus immutable;  rolling back a unit of work (if, as is usually the case, its session is not using a GlorpVWWriteBarrierTracker to track changes) would cause an error if we did not have the guard:  the following statements would attempt to rewrite the internals of these immutables.  Using #isImmutableLiteral as the guard would catch objects (e.g. literal arrays) that could have been changed when GlorpVWWriteBarrierTracker was in use.  We therefore use #isString and #respondsToArithmetic (immediates never get this far, so that catches FixedPoints and LimitedPrecisionReals - and Points FWIW)."
 
-	(self isShapeOf: original differentThanThatOf: copy) 
-		ifTrue: [self restoreShapeOf: original toThatOf: copy].
+	(self isShapeOf: original differentThanThatOf: copy)
+		ifTrue: [self restoreShapeOf: original toThatOf: copy]
+		ifFalse: [(original isString or: [original respondsToArithmetic]) ifTrue:
+				[original = copy ifTrue: [^self]]].
 	self restoreNamedInstanceVariablesOf: original toThoseOf: copy.
-	self restoreIndexedInstanceVariablesOf: original toThoseOf: copy
+	self restoreIndexedInstanceVariablesOf: original toThoseOf: copy.
 ]
 
 { #category : #'private/registering' }

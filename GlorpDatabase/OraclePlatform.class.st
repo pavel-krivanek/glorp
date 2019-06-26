@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'supportsGroupWritingValues'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #accessing }
@@ -201,17 +201,31 @@ OraclePlatform >> endColumnAddString [
 
 { #category : #types }
 OraclePlatform >> float [
-	^self float4.
+	^self typeNamed: #float ifAbsentPut: [GlorpFloatType new typeString: 'FLOAT']
 ]
 
 { #category : #types }
 OraclePlatform >> float4 [
-	^self typeNamed: #float4 ifAbsentPut: [GlorpFloatType new typeString: 'float'].
+	"Conveniently, Oracle 10 is the first version that both supportsGroupWritingValues and supports BINARY_FLOAT."
+
+	^self
+		typeNamed: #float4
+		ifAbsentPut:
+			[self supportsGroupWritingValues
+				ifTrue: [GlorpFloatType new typeString: 'BINARY_FLOAT']
+				ifFalse: [GlorpFloatType new typeString: 'float']]
 ]
 
 { #category : #types }
 OraclePlatform >> float8 [
-	^self typeNamed: #float8 ifAbsentPut: [GlorpDoubleType new typeString: 'double precision'].
+	"Conveniently, Oracle 10 is the first version that both supportsGroupWritingValues and supports BINARY_DOUBLE."
+
+	^self
+		typeNamed: #float8
+		ifAbsentPut:
+			[self supportsGroupWritingValues
+				ifTrue: [GlorpFloatType new typeString: 'BINARY_DOUBLE']
+				ifFalse: [GlorpFloatType new typeString: 'double precision']]
 ]
 
 { #category : #functions }
@@ -253,6 +267,20 @@ OraclePlatform >> initializeFunctions [
 OraclePlatform >> initializeReservedWords [
 	super initializeReservedWords.
 	reservedWords add: 'number'.
+]
+
+{ #category : #commands }
+OraclePlatform >> insertCommandForRows: aCollectionOfDatabaseRows binding: aBoolean session: aSession [
+	"I cannot group ;-separated INSERT statements but (if I am new enough - version 8 or later) I can group ,-separated values following a single INSERT statement when unbound.  When bound, the same applied but I can also bind an array of values to a single INSERT statement. As array binding is fastest, use it when bound, values when unbound."
+
+	^(aBoolean
+		ifTrue: [InsertCommand]
+		ifFalse: [self supportsGroupWritingValues
+				ifFalse: [InsertCommand]
+				ifTrue: [InsertMultiValuesTablesCommand]])
+		forRows: aCollectionOfDatabaseRows
+		useBinding: aBoolean
+		session: aSession
 ]
 
 { #category : #types }
@@ -316,6 +344,15 @@ OraclePlatform >> measuresStringFieldWidthsInBytes [
 OraclePlatform >> number [
 
 	^self typeNamed: #number ifAbsentPut: [GlorpNumericType new typeString: 'number'].
+]
+
+{ #category : #login }
+OraclePlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	"Oracle has been supporting group writing with the VALUES clause at least since version 9.0.  A typical version string is: 'Oracle Database 11g Express Edition Release 11.2.0.2.0 - Production'."
+
+	| dbmsMajorVersion |
+	dbmsMajorVersion := ((aDatabaseAccessor connection getServerVersion readStream upTo: $.) reverse readStream upTo: $  ) reverse asNumber.
+	supportsGroupWritingValues := dbmsMajorVersion > 9.
 ]
 
 { #category : #constants }
@@ -423,6 +460,7 @@ OraclePlatform >> printTime: aTime for: aType [
 
 { #category : #'conversion-times' }
 OraclePlatform >> printTimestamp: aTimestamp on: stream for: aType [
+
 	aTimestamp isNil ifTrue: [stream nextPutAll: 'NULL'. ^self].
 	stream nextPutAll: 'to_date('''.
 	self
@@ -486,8 +524,27 @@ OraclePlatform >> supportsBinding [
 ]
 
 { #category : #testing }
+OraclePlatform >> supportsCompositeKeyArgsForOperand: aSymbol [
+	"Strictly, the answer is
+		^#(#= #IN #<>) includes: aSymbol
+but we take it for granted that we are never called on aSymbol that is not one of these values;  see the guard in #rewriteEquality.."
+
+	^true
+]
+
+{ #category : #testing }
 OraclePlatform >> supportsGroupWritingFor: aCommand [
-	^self supportsBinding and: [self useBinding and: [aCommand supportsGroupWriting]].
+	"Oracle supports array binding.  When unbound, it does not support batched statements, i.e. cannot do INSERT ...; INSERT ...; INSERT... , but since version 9.0 it does support value sequences, i.e. it can do INSERT ALL INTO table (id, c) VALUES (1,'1') INTO table (id, c) VALUES (2,'2') INTO table (id, c) VALUES (3,'3'). Note that unbound, there is a 4000-byte limit on blobs."
+
+	^aCommand supportsGroupWriting and:
+		[self useBinding or: [aCommand supportsGroupWritingValues]]
+]
+
+{ #category : #testing }
+OraclePlatform >> supportsGroupWritingValues [
+	"Conveniently, Oracle 10 is the first version that both supportsGroupWritingValues and supports BINARY_FLOAT and BINARY_DOUBLE, so we use this value for both cases."
+
+	^supportsGroupWritingValues ifNil: [false]
 ]
 
 { #category : #constants }
@@ -538,9 +595,10 @@ OraclePlatform >> useOracleOuterJoins [
 ]
 
 { #category : #testing }
-OraclePlatform >> usesArrayBindingRatherThanGroupWriting [
-	"Return true if we use array binding for grouped writes rather than printing the sql multiple times. Only applies if we support grouped writes"
-	^true.
+OraclePlatform >> usesArrayBindingToGroupWrite [
+	"When bound, Oracle can group-write by array binding."
+
+	^true
 ]
 
 { #category : #testing }
@@ -557,4 +615,15 @@ OraclePlatform >> usesNullForEmptyStrings [
 { #category : #types }
 OraclePlatform >> varchar [
 	^self typeNamed: #varchar ifAbsentPut: [GlorpVarCharType new typeName: 'varchar2'].
+]
+
+{ #category : #accessing }
+OraclePlatform >> vwEXDIConnectionClass [
+	"Prefer Threaded over not if nothing is loaded, but use whatever is loaded if there is anything"
+
+	'OracleThreadedConnection' asQualifiedReference ifDefinedDo:
+		[:class | ^class].
+	'OracleConnection' asQualifiedReference ifDefinedDo:
+		[:class | ^class].		
+	^'OracleThreadedConnection' asQualifiedReference valueIfUndefinedLoadFrom: 'OracleThapiEXDI'
 ]
