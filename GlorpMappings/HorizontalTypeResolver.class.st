@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'shouldUseSingleQuery'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -32,13 +32,13 @@ HorizontalTypeResolver >> allTablesFor: aDescriptor [
 	"Return all tables used by this descriptor or its subclasses."
 	^(self descriptorsRequiringIndependentQueriesFor: aDescriptor describedClass) inject: OrderedCollection new into: [:sum :eachDescriptor |
 		sum addAll: ((eachDescriptor == aDescriptor) ifTrue: [eachDescriptor tables] ifFalse: [eachDescriptor allTables]).
-		sum]
+		sum].
 ]
 
 { #category : #accessing }
 HorizontalTypeResolver >> classesRequiringIndependentQueriesFor: aClass [
 	^(self descriptorsRequiringIndependentQueriesFor: aClass) collect: [:each |
-		each describedClass]
+		each describedClass].
 ]
 
 { #category : #accessing }
@@ -48,7 +48,7 @@ HorizontalTypeResolver >> describedConcreteClassFor: row withBuilder: builder de
 
 { #category : #accessing }
 HorizontalTypeResolver >> descriptorsRequiringIndependentQueriesFor: aClass [
-	^self concreteMembers select: [ :each | each describedClass includesBehavior: aClass ]
+	^self concreteMembers select: [ :each | each describedClass includesBehavior: aClass ].
 ]
 
 { #category : #testing }
@@ -70,12 +70,12 @@ HorizontalTypeResolver >> mappingForSubclass: aDescriptor connectTo: existingSub
 		existingSubclassMapping isNil ifFalse: [
 			newJoin := Join new.
 			mapping join: newJoin]].
-	^mapping
+	^mapping.
 ]
 
 { #category : #'query setup' }
 HorizontalTypeResolver >> pseudoAttributeNameForClass: aClass [
-	^('subclassPseudoVariable', aClass name) asSymbol
+	^('subclassPseudoVariable', aClass name) asSymbol.
 ]
 
 { #category : #'query setup' }
@@ -83,20 +83,17 @@ HorizontalTypeResolver >> setUpExpressionsForQuery: aQuery [
 	| mapping firstMapping allDescriptors |
 	(self concreteMembers includes: aQuery resultClass) ifTrue: [^self].
 	self shouldUseSingleQuery ifFalse: [^self].
-	firstMapping := nil.
 	allDescriptors := self
 		descriptorsRequiringIndependentQueriesFor: aQuery resultClass.
 	allDescriptors size = 1 ifTrue: [^self].
-	allDescriptors
-		do:
-			[:eachSubclassDescriptor | 
-			mapping := self
-				mappingForSubclass: eachSubclassDescriptor
-				connectTo: firstMapping.
-			firstMapping isNil ifTrue: [firstMapping := mapping].
-			aQuery
-				alsoFetch:
-					[:object | (object getMapping: mapping named: mapping attribute name) bePhantom asOuterJoin]]
+	allDescriptors do:
+		[:eachSubclassDescriptor | 
+		mapping := self
+			mappingForSubclass: eachSubclassDescriptor
+			connectTo: firstMapping.
+		firstMapping isNil ifTrue: [firstMapping := mapping].
+		aQuery alsoFetch:
+			[:object | (object getMapping: mapping named: mapping attribute name) bePhantom beOuterJoin]].
 ]
 
 { #category : #accessing }
@@ -110,7 +107,7 @@ HorizontalTypeResolver >> shouldUseSingleQuery [
 { #category : #testing }
 HorizontalTypeResolver >> supportsOrderingFor: aDescriptor [
 	concreteMembers detect: [:each | each == aDescriptor] ifNone: [^false].
-	^true
+	^true.
 ]
 
 { #category : #testing }
