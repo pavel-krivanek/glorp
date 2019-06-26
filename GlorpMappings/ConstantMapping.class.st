@@ -16,7 +16,7 @@ Class {
 		'constantValue',
 		'valueIsSession'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -31,13 +31,13 @@ ConstantMapping class >> visualWorksMetadata [
 
 { #category : #accessing }
 ConstantMapping >> constantValue [
-	^constantValue
+	^constantValue.
 ]
 
 { #category : #accessing }
 ConstantMapping >> constantValue: anObject [
 
-	constantValue := anObject
+	constantValue := anObject.
 ]
 
 { #category : #accessing }
@@ -51,7 +51,7 @@ ConstantMapping >> constantValueIn: aSession [
 { #category : #accessing }
 ConstantMapping >> constantValueIsSession [
 
-	valueIsSession := true
+	valueIsSession := true.
 ]
 
 { #category : #testing }
@@ -64,7 +64,7 @@ ConstantMapping >> controlsTables [
 { #category : #api }
 ConstantMapping >> getValueFrom: anObject [
 
-	^constantValue
+	^constantValue.
 ]
 
 { #category : #'initialize/release' }
@@ -89,29 +89,29 @@ ConstantMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
 	value := anElementBuilder isNil
 		ifTrue: [constantValue]
 		ifFalse: [self constantValueIn: anElementBuilder session].
-	self setValueIn: anObject to: value
+	self setValueIn: anObject to: value.
 ]
 
 { #category : #accessing }
 ConstantMapping >> mappedFields [
 	"Return a collection of fields that this mapping will write into any of the containing object's rows"
 
-	^#()
+	^#().
 ]
 
 { #category : #mapping }
 ConstantMapping >> referencedIndependentObjectsFrom: anObject [
 
-	^#()
+	^#().
 ]
 
 { #category : #mapping }
 ConstantMapping >> trace: aTracing context: anExpression [
 
-	^self
+	^self.
 ]
 
 { #category : #validation }
 ConstantMapping >> validateAttribute [
-	^self
+	^self.
 ]
