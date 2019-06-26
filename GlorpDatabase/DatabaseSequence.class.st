@@ -17,7 +17,7 @@ Class {
 	#instVars : [
 		'reservedNumbers'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #'instance creation' }
