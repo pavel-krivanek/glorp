@@ -38,13 +38,22 @@ QueryDeleteCommand >> bindings [
 
 { #category : #executing }
 QueryDeleteCommand >> executeUnboundIn: anAccessor [
+	"We leave the rowCount nil if the platform does not support it, to make clear it's not a valid value."
+
 	anAccessor returnRowCount: true.
 	anAccessor
 		executeSQLStringNoResult: self sqlString
-			doing: [self rowCount: anAccessor rowCount]
-			forCommand: self.
-	session platform supportsRowCount ifFalse: [self rowCount: nil   "Make sure it's clearly not a valid value"].
-	^#() readStream.
+		doing: [(anAccessor platform supportsRowCountFor: self)
+				ifTrue: [self rowCount: anAccessor rowCount]]
+		forCommand: self.
+	^#() readStream
+]
+
+{ #category : #accessing }
+QueryDeleteCommand >> expectedNumberOfModifiedRows [
+	"For polymorphism with DeleteCommand;  return the same guestimated number as expectedRows in a standard Select command."
+
+	^100
 ]
 
 { #category : #testing }
@@ -55,7 +64,9 @@ QueryDeleteCommand >> isDeleteCommand [
 
 { #category : #testing }
 QueryDeleteCommand >> needsRowCount [
-	^true.
+	"Because I override #useBinding to return false, and #executeUnboundIn: to handle rowCount, this is never called.  It is left here to show up if searching for commands that get rowCount, and in case I ever allow binding.  I need rowCount solely to return it to callers of #delete:where: (at the moment, no known callers use this)."
+
+	^true
 ]
 
 { #category : #accessing }
@@ -95,6 +106,7 @@ QueryDeleteCommand >> tables [
 
 { #category : #accessing }
 QueryDeleteCommand >> useBinding [
-	"For simplicity, just don't use binding here to start with"
-	^false.
+	"For simplicity, we don't use binding.  If we did, we would need to compute #bindings and #bindingTypes - doable but, for the moment, we pass."
+
+	^false
 ]

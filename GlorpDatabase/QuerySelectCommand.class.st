@@ -2,7 +2,7 @@
 This is the normal class to use for select queries. It generates SQL for a select operation returning a set of rows.
 
 Instance Variables:
-	boundExpressions	<(Collection of: GlorpExpression)>	The expressions for which we need bind parameters. We expect that these are things that resolve to fields, or more generally, to something the database will accept as a valid thing to bind ofr.
+	boundExpressions	<(Collection of: GlorpExpression)>	The expressions for which we need bind parameters. We expect that these are things that resolve to fields, or more generally, to something the database will accept as a valid target of a bind
 	query	<Query>	The query in which we're executing.
 
 
@@ -14,7 +14,7 @@ Class {
 		'query',
 		'boundExpressions'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -30,14 +30,14 @@ QuerySelectCommand class >> visualWorksMetadata [
 { #category : #accessing }
 QuerySelectCommand >> bindingTypes [
 	self useBinding ifFalse: [^#()].
-	boundExpressions isNil ifTrue: [self findBoundExpressions].
+	self findBoundExpressions.
 	^boundExpressions collect: [:each | each bindingType].
 ]
 
 { #category : #accessing }
 QuerySelectCommand >> bindings [
 	self useBinding ifFalse: [^#()].
-	boundExpressions isNil ifTrue: [self findBoundExpressions].
+	self findBoundExpressions.
 	^boundExpressions collect: [:each | each bindingIn: self].
 ]
 
@@ -60,8 +60,9 @@ QuerySelectCommand >> boundExpressions: anObject [
 { #category : #accessing }
 QuerySelectCommand >> findBoundExpressions [
 	self useBinding ifFalse: [^nil].
+	boundExpressions isNil ifFalse: [^nil].
 	boundExpressions := OrderedCollection new.
-	query addBoundExpressionsIn: self to: boundExpressions.
+	query addBoundExpressionsIn: self.
 ]
 
 { #category : #accessing }
@@ -69,6 +70,16 @@ QuerySelectCommand >> maximumLobSizeToRetrieveDirectly [
 	^query isNil
 		ifTrue: [super maximumLobSizeToRetrieveDirectly]
 		ifFalse: [query maximumLobSizeToRetrieveDirectly].
+]
+
+{ #category : #executing }
+QuerySelectCommand >> nextPutBindMarkerIn: aRelationExpression [
+	| bindInteger |
+	bindInteger := self boundExpressions
+		indexOf: aRelationExpression
+		ifAbsent: [^super nextPutBindMarkerIn: aRelationExpression].
+	self nextPut: $:.
+	self nextPutAll: bindInteger printString.
 ]
 
 { #category : #printing }
@@ -81,9 +92,11 @@ QuerySelectCommand >> printOn: aStream [
 
 { #category : #accessing }
 QuerySelectCommand >> printSQL [
+	"We find bound expressions first, before processing any part of the statement;  see #testRetrieveComputed for an example of a bound expression in a select field.  We may be a subselect inside a statement which has already found all bound expressions of that statament (not just ours) and set us to have them, in which case, do not get them again."
+
+	self findBoundExpressions.
 	stream nextPutAll: 'SELECT '.
 	query printSelectFieldsOn: self.
-	self findBoundExpressions.
 	query printTablesOn: self.
 	query printWhereClauseOn: self.
 	query printJoinsOn: self.
