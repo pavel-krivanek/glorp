@@ -1,9 +1,17 @@
 "
-This is the error we raise if we encounter an error trying to write some rows. This typically indicates an optimistic lock failure, although it might also happen if we violated a constraint.
+I am raised if Glorp encounters an error while trying to write some rows. This typically indicates an optimistic lock failure, although it might also happen if we violated a constraint.  I can be handled via
+	on: GlorpWriteFailure
+	do: [:ex | ex resume: true]
+to carry on and treat the whole operation as a success, or
+	on: GlorpWriteFailure
+	do: [:ex | ex resume: false]
+(false is my defaultResumeValue, so 
+	do: [:ex | ex resume]
+would do as well) to raise a GlorpTransactionFailure.  See GlorpOptimisticLockingTest for examples of handling and not handling.
 
 Instance Variables:
 	command	<DatabaseCommand>	The command we were trying to execute.
-	object	<Object>	The object or objects we were trying to write.
+	object	<Collection>			A collection of the one or more objects we were trying to write.
 
 
 "
@@ -14,10 +22,10 @@ Class {
 		'command',
 		'object'
 	],
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-Glorp'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 GlorpWriteFailure class >> mayResume [
 	^true.
 ]
@@ -45,6 +53,13 @@ GlorpWriteFailure >> command: anObject [
 { #category : #accessing }
 GlorpWriteFailure >> defaultMessageText [
 	^'Database write failed'.
+]
+
+{ #category : #constants }
+GlorpWriteFailure >> defaultResumeValue [
+	"If we resume, we encounter boolean-checking code.  It is pointless to resume and immediately meet a MustBeBoolean.  By default, resume with false, leading to a GlorpTransactionFailure."
+
+	^false
 ]
 
 { #category : #accessing }

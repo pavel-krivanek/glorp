@@ -1,26 +1,11 @@
-"
-Serial type
-
-Instance Variables
-	generated:		<Object>
-	sequence:		<Object>
-
-generated
-	- xxxxx
-
-sequence
-	- xxxxx
-
-"
 Class {
 	#name : #GlorpSerialType,
 	#superclass : #GlorpAbstractIntegerType,
 	#instVars : [
-		'generated',
 		'sequence',
 		'increment'
 	],
-	#category : #GlorpDatabaseTypes
+	#category : #'GlorpDatabaseTypes-Glorp-PostgreSQL'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -95,6 +80,11 @@ GlorpSerialType >> isSerial [
 GlorpSerialType >> postWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor [
 
 	^sequence postWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor.
+]
+
+{ #category : #sequencing }
+GlorpSerialType >> postWriteAssignSequenceValueFor: aDatabaseField inRows: someDatabaseRows using: anAccessor [
+	^sequence postWriteAssignSequenceValueFor: aDatabaseField inRows: someDatabaseRows using: anAccessor
 ]
 
 { #category : #sequencing }

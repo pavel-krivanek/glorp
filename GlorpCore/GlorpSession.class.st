@@ -32,7 +32,7 @@ Class {
 		'errorAction',
 		'modificationTracker'
 	],
-	#category : #GlorpCore
+	#category : #'GlorpCore-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -175,24 +175,29 @@ GlorpSession >> cacheRemoveObject: anObject [
 	cache removeClass: anObject class key: key ifAbsent: [].
 ]
 
-{ #category : #'internal/writing' }
+{ #category : #'read/write' }
 GlorpSession >> commandForHomogeneousRows: aCollectionOfDatabaseRows [
-	"Create the command for this set of rows. These are assumed to be homogeneous, in that they are all for the same table, and are all the same type of operation (i.e. all insert or all update)"
-	| representativeRow |
-	representativeRow := aCollectionOfDatabaseRows first.
-	representativeRow forDeletion ifTrue: [self error: 'invalid way of handling deletes (this should never happen)'].
-	^(self shouldInsert: representativeRow)
-		ifTrue: [InsertCommand forRows: aCollectionOfDatabaseRows useBinding: self useBinding session: self]
+	"Create the command for this set of rows. These are assumed to be homogeneous (i.e. they are all for the same table) and all the same type of operation (i.e. all insert or all update).  This is called when we know we have more than one row;  we may be able to send them to the database as a group (only insert commands at present).  We choose the insert command that knows how to write that group."
+
+	| aDatabaseRow |
+	aDatabaseRow := aCollectionOfDatabaseRows first.	"Just a representativeRow"
+	aDatabaseRow forDeletion ifTrue: [self error: 'invalid way of handling deletes (this should never happen)'].
+	^(self shouldInsert: aDatabaseRow)
 		ifFalse: [UpdateCommand forRows: aCollectionOfDatabaseRows useBinding: self useBinding session: self]
+		ifTrue: [self platform
+				insertCommandForRows: aCollectionOfDatabaseRows
+				binding: self useBinding
+				session: self]
+
+"My binding boolean is obtained from the accessor's platform's binding value whereas the session's platform is derived from the system's;  later, review whether and when these differ."
 ]
 
 { #category : #'internal/writing' }
-GlorpSession >> commandForRow: aDatabaseRow [ 
-	
+GlorpSession >> commandForRow: aDatabaseRow [
 	(aDatabaseRow forDeletion) ifTrue: [^DeleteCommand forRow: aDatabaseRow useBinding: self useBinding session: self].
 	^(self shouldInsert: aDatabaseRow)
-		ifTrue: [^InsertCommand forRow: aDatabaseRow useBinding: self useBinding session: self]
-		ifFalse: [^UpdateCommand forRow: aDatabaseRow useBinding: self useBinding session: self]
+		ifTrue: [InsertCommand forRow: aDatabaseRow useBinding: self useBinding session: self]
+		ifFalse: [UpdateCommand forRow: aDatabaseRow useBinding: self useBinding session: self]
 ]
 
 { #category : #'api/transactions' }
@@ -416,17 +421,16 @@ GlorpSession >> forceSaveOf: anObject [
 { #category : #'read/write' }
 GlorpSession >> groupWrite: aCollectionOfDatabaseRows [
 	| command |
-	aCollectionOfDatabaseRows
-		do: [:each | each preWriteAssignSequencesUsing: self].
+	aCollectionOfDatabaseRows isEmpty ifTrue: [^true].
+	aCollectionOfDatabaseRows first shouldBeWritten ifFalse: [^true].
+	aCollectionOfDatabaseRows do: [:each | each preWriteAssignSequencesUsing: self].
 	command := self commandForHomogeneousRows: aCollectionOfDatabaseRows.
 	accessor executeCommand: command.
-	^command succeeded
-		ifTrue: [true]
-		ifFalse:
-			[((GlorpWriteFailure new)
-				command: command;
-				object: (aCollectionOfDatabaseRows collect: [:each | each owner]))
-				signal].
+	^command succeeded or:
+		[GlorpWriteFailure new
+			command: command;
+			object: (aCollectionOfDatabaseRows collect: [:each | each owner]);
+			signal]
 ]
 
 { #category : #api }
@@ -509,7 +513,7 @@ GlorpSession >> isLoggedIn [
 
 { #category : #testing }
 GlorpSession >> isNew: anObject [ 
-	"When registering, do we need to add this object to the collection of new objects? New objects are treated specially when computing what needs to be written, since we don't have their previous state"
+	"When registering, do we need to add this object to the collection of new objects? New objects are treated specially when computing what needs to be written, since we don't have their previous state.  (The parameter cannot be a proxy - use #isNewObjectOrInstantiatedProxy: if it legitimately could be.)"
 
 	| key descriptor |
 	(currentUnitOfWork notNil and: [currentUnitOfWork isRegistered: anObject]) ifTrue: [^false].
@@ -526,10 +530,19 @@ GlorpSession >> isNew: anObject [
 		on: DuplicatePrimaryKeyException
 		do: [:ex |
 			(currentUnitOfWork notNil and: [currentUnitOfWork willDelete: ex existingObject]) 
-				ifTrue: [
-					self cacheRemoveObject: ex existingObject.
+				ifTrue:
+					[self cacheRemoveObject: ex existingObject.
 					ex return: true]
 				ifFalse: [ex pass]].
+]
+
+{ #category : #testing }
+GlorpSession >> isNewObjectOrInstantiatedProxy: anObjectOrProxy [
+	"Is anObjectOrProxy a new object or an instantiated proxy holding a new object?  Use #isNew:, not this method, when the caller's usage pattern already ensures the parameter cannot be a proxy;  this is merely a convenience method for when that is not so.  (Any caller can instead call
+	session isNew: someObject yourSelf
+if they do not care about the ifNone: case.)"
+
+	^self isNew: (self realObjectFor: anObjectOrProxy ifNone: [^false])
 ]
 
 { #category : #caching }
@@ -714,7 +727,7 @@ GlorpSession >> read: aClass where: aBlock limit: anInteger [
 GlorpSession >> readManyOf: aClass [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:).
 	^self read: aClass
 ]
 
@@ -722,7 +735,7 @@ GlorpSession >> readManyOf: aClass [
 GlorpSession >> readManyOf: aClass limit: anInteger [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:).
 	^self read: aClass limit: anInteger
 ]
 
@@ -730,7 +743,7 @@ GlorpSession >> readManyOf: aClass limit: anInteger [
 GlorpSession >> readManyOf: aClass orderBy: aCriteria [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:orderBy: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:orderBy:).
 	^self read: aClass orderBy: aCriteria
 ]
 
@@ -738,7 +751,7 @@ GlorpSession >> readManyOf: aClass orderBy: aCriteria [
 GlorpSession >> readManyOf: aClass where: aBlock [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:).
 	^self read: aClass where: aBlock
 ]
 
@@ -746,7 +759,7 @@ GlorpSession >> readManyOf: aClass where: aBlock [
 GlorpSession >> readManyOf: aClass where: aBlock limit: anInteger [
 	"readManyOf: and returningManyOf: are synonyms of read:. This now seems more natural to me, to be consistent with session API."
 
-	self deprecated: 'Use #read:where:limit: instead'.
+	self deprecated: #(#version '7.10' #sunset '8.0' #use #read:where:limit:).
 	^self read: aClass where: aBlock limit: anInteger
 ]
 
@@ -918,6 +931,13 @@ GlorpSession >> reusePreparedStatements: aBoolean [
 	accessor reusePreparedStatements: aBoolean.
 ]
 
+{ #category : #synonyms }
+GlorpSession >> rollbackAndContinue [
+	"A shorter synonym"
+
+	^self rollbackUnitOfWorkAndContinue
+]
+
 { #category : #'api/transactions' }
 GlorpSession >> rollbackTransaction [
 	"Rollback the current database connection transaction."
@@ -934,6 +954,19 @@ GlorpSession >> rollbackUnitOfWork [
 ]
 
 { #category : #'api/transactions' }
+GlorpSession >> rollbackUnitOfWorkAndContinue [
+	"Rollback the current unit of work, but then keep going with the same set of existing objects (but not new ones) as were registered, with their state reverted to their at-registration state.  (If a user wants the newObjects, they can get them before sending #rollbackAndContinue, and then #registerAsNew: them after doing so.  That is their decision.)"
+
+	| registeredObjects |	
+	currentUnitOfWork isNil ifTrue: [^self error: 'Not in unit of work'].
+	registeredObjects := currentUnitOfWork registeredObjects.
+	currentUnitOfWork newObjects do: [:each | registeredObjects remove: each].
+	self rollbackUnitOfWork.
+	self beginUnitOfWork.
+	self registerAll: registeredObjects.
+]
+
+{ #category : #'api/transactions' }
 GlorpSession >> rollbackUnitOfWorkFor: anObject [
 	currentUnitOfWork abort: anObject
 ]
@@ -941,19 +974,19 @@ GlorpSession >> rollbackUnitOfWorkFor: anObject [
 { #category : #'api/transactions' }
 GlorpSession >> save: anObject [ 
 	"Make sure anObject will be written to the database by starting a unit of work if we aren't already in one, and registering the object. This is in most ways the same as just registering an object, but it tells us to disregard whether/how the object has changed and to save all of its fields. This is useful if we need to register an object *after* changes have occurred, and can be used to implement something more like an object by object save facility. Still somewhat experimental."
+
 	| realObject |
 	realObject := self realObjectFor: anObject ifNone: [^self].
-	
 	self hasUnitOfWork
-		ifTrue:	[currentUnitOfWork registerAsNew: realObject]
-		ifFalse:
-			[self inUnitOfWorkDo: [
-				currentUnitOfWork registerAsNew: realObject]]
+		ifTrue: [currentUnitOfWork registerAsNew: realObject]
+		ifFalse: [self inUnitOfWorkDo:
+				[currentUnitOfWork registerAsNew: realObject]].
 ]
 
-{ #category : #'api/transactions' }
+{ #category : #synonyms }
 GlorpSession >> saveAndContinue [
 	"A shorter synonym"
+
 	^self commitUnitOfWorkAndContinue
 ]
 
@@ -1014,17 +1047,12 @@ GlorpSession >> system [
 
 { #category : #api }
 GlorpSession >> system: aDescriptorSystem [
-	"Why the on:do:? Because when loading over an old version, the method 
-	#validateDescriptorSystem may not yet be in the system, so we send it carefully"
-
 	aDescriptorSystem session: self.
 	accessor isNil ifFalse: [aDescriptorSystem platform: accessor currentLogin database].
 	system := aDescriptorSystem.
-	([system validateDescriptorSystem]
-		on: Error
-		do: [:exception | exception return: true])
-			ifTrue: [system validate]
-			ifFalse: [system initializeRuntimeMappings]
+	system validateDescriptorSystem
+		ifTrue: [system validate]
+		ifFalse: [system initializeRuntimeMappings].
 ]
 
 { #category : #'internal/writing' }
@@ -1107,10 +1135,23 @@ GlorpSession >> useBinding [
 	^self accessor useBinding.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialize }
 GlorpSession >> useModificationTracker [
+	Dialect isVisualWorks ifFalse: [^self].
+	modificationTracker := (Smalltalk
+		at: #'Glorp.GlorpVWWriteBarrierTracker'
+		ifAbsent: [^self]) new.
+	modificationTracker session: self.
+]
 
-	^self
+{ #category : #api }
+GlorpSession >> useSystem: newSystem while: aBlock [
+	"We may modify the descriptor system in the block to achieve some end.  Just in case this instance is used elsewhere, use a copy and restore after."
+
+	| oldSystem |
+	oldSystem := system.
+	system := newSystem.
+	^aBlock ensure: [system := oldSystem]
 ]
 
 { #category : #'virtual collections' }
@@ -1120,56 +1161,23 @@ GlorpSession >> virtualCollectionOf: aClass [
 
 { #category : #'read/write' }
 GlorpSession >> writeHomogeneousRows: aCollectionOfDatabaseRows [
-	"Write out a collection of rows belonging to a single table"
+	"Write out a collection of rows belonging to a single table.  We could call groupWrite: even when the collection has only a single row.  Calling writeRow: sets 'row' but not 'allRows' in the RowBasedCommand, making it easier for the accessor to see that it need not check the platform's group-writing ability/preferences.  (However, this could be pushed down to RowBasedCommand command creation protocol.)"
 
-	| representativeRow succeeded maximumSize start |
-
-	aCollectionOfDatabaseRows isEmpty ifTrue: [^true].
-	representativeRow := aCollectionOfDatabaseRows first.
-	representativeRow shouldBeWritten ifFalse: [^true].
-	succeeded := true.
-	maximumSize := self system maximumSizeToGroupWriteFor: aCollectionOfDatabaseRows.
-	start := 1.
-	[start > aCollectionOfDatabaseRows size] whileFalse: [
-		| end |
-		end := (start + maximumSize - 1) min: aCollectionOfDatabaseRows size.
-		succeeded := succeeded
-			& (self writeHomogeneousRows: aCollectionOfDatabaseRows from: start to: end).
-		start := end + 1].
-	^succeeded.
-]
-
-{ #category : #'read/write' }
-GlorpSession >> writeHomogeneousRows: aCollectionOfDatabaseRows from: startIndex to: endIndex [
-	"Write out the specified range from a collection of rows belonging to a single table"
-
-	| succeeded |
-	succeeded := true.
-	^(self system 	
-			canUseGroupedWritesFor: (aCollectionOfDatabaseRows at: startIndex) table)
-		ifTrue: [self groupWrite: (aCollectionOfDatabaseRows copyFrom: startIndex to: endIndex)]
-		ifFalse:
-			[startIndex to: endIndex do: [:i |
-				 |eachRow rowSucceeded |
-				eachRow := aCollectionOfDatabaseRows at: i.
-				rowSucceeded := self writeRow: eachRow.
-				succeeded := succeeded & rowSucceeded].
-			succeeded].
+	^aCollectionOfDatabaseRows size = 1
+		ifTrue: [self writeRow: aCollectionOfDatabaseRows first]
+		ifFalse: [self groupWrite: aCollectionOfDatabaseRows]
 ]
 
 { #category : #'read/write' }
 GlorpSession >> writeRow: aDatabaseRow [
-	| command success |
+	| command |
 	aDatabaseRow shouldBeWritten ifFalse: [^true].
 	aDatabaseRow preWriteAssignSequencesUsing: self.
 	command := self commandForRow: aDatabaseRow.
 	accessor executeCommand: command.
-	success := true.
-	command succeeded
-		ifFalse:
-			[success := (GlorpWriteFailure new)
-				command: command;
-				object: (Array with: aDatabaseRow owner);
-				signal].
-	^success.
+	^command succeeded or:
+		[GlorpWriteFailure new
+			command: command;
+			object: (Array with: aDatabaseRow owner);
+			signal]
 ]
