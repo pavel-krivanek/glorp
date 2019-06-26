@@ -12,7 +12,7 @@ Class {
 	#instVars : [
 		'joins'
 	],
-	#category : #GlorpExpressions
+	#category : #'GlorpExpressions-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -99,15 +99,16 @@ VariableJoin >> generalExpressionPart [
 
 { #category : #'initialize-release' }
 VariableJoin >> initialize [
-	joins := IdentityDictionary new
+	joins := IdentityDictionary new.
 ]
 
 { #category : #converting }
 VariableJoin >> isConstant: aTarget [
-	"The target can be either a constant (which gets turned into a ConstantExpression) or (usually) a DatabaseField, representing a parameter to the query"
+	"The target can be either a constant (which gets turned into a ConstantExpression) or (usually) a DatabaseField, representing a parameter to the query."
+
 	(aTarget class == DatabaseField) ifTrue: [^false].
-	(aTarget isGlorpExpression and: [aTarget isConstantExpression not]) ifTrue: [^false].
-	^true
+	^aTarget isGlorpExpression not
+		or: [aTarget isConstantExpression]
 ]
 
 { #category : #testing }
@@ -189,10 +190,9 @@ VariableJoin >> shortCircuitOnNullComparison: anIdentityDictionary [
 VariableJoin >> targetExpressionFor: eachTarget [ 
 	^(self isConstant: eachTarget)
 		ifTrue: [eachTarget]
-		ifFalse: [
-			eachTarget isGlorpExpression 
-			ifTrue: [eachTarget] 
-			ifFalse: [(self anyJoin base getTable: eachTarget table) getField: eachTarget]].
+		ifFalse: [eachTarget isGlorpExpression 
+				ifTrue: [eachTarget asGlorpExpressionOn: self anyJoin base] 
+				ifFalse: [(self anyJoin base getTable: eachTarget table) getField: eachTarget]].
 ]
 
 { #category : #accessing }
