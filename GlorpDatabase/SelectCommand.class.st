@@ -18,7 +18,7 @@ Class {
 		'parameters',
 		'blockFactor'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
 { #category : #'instance creation' }
@@ -81,11 +81,6 @@ SelectCommand >> parameters [
 { #category : #accessing }
 SelectCommand >> parameters: aDictionary [
 	parameters := aDictionary
-]
-
-{ #category : #accessing }
-SelectCommand >> printSQL [
-	self subclassResponsibility.
 ]
 
 { #category : #testing }
