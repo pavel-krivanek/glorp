@@ -92,14 +92,14 @@ GlorpAttributeModel >> add: anObject to: aCollection in: ourObject [
 			self setValueIn: ourObject to: newCollection.
 			^self].
 	(anObject class == Association and: [anObject key == nil])
-		ifFalse: [aCollection add: anObject]
+		ifFalse: [aCollection add: anObject].
 ]
 
 { #category : #accessing }
 GlorpAttributeModel >> beForPseudoVariable [
 	"Make this be a pseudo-variable - one which is neither read nor written, and doesn't have a corresponding instance variable, but is only used for queries."
 	canRead := false.
-	canWrite := false
+	canWrite := false.
 ]
 
 { #category : #accessing }
@@ -125,7 +125,7 @@ GlorpAttributeModel >> canWrite: aBoolean [
 { #category : #'get/set' }
 GlorpAttributeModel >> checkTargetType: anObject [
 	"Check that anObject's type corresponds to something we know how to handle for this attribute. We expect this to be a real object, not a collection."
-	self checkTargetType: anObject against: self type
+	self checkTargetType: anObject against: self type.
 ]
 
 { #category : #'get/set' }
@@ -138,7 +138,7 @@ GlorpAttributeModel >> checkTargetType: anObject against: aClass [
 	targetModel := self system classModelFor: aClass.
 	targetModel notNil ifTrue: [
 		(targetModel matches: anObject)
-			ifFalse: [(GlorpInvalidTypeError new object: anObject; expectedType: aClass) signal]]
+			ifFalse: [(GlorpInvalidTypeError new object: anObject; expectedType: aClass) signal]].
 ]
 
 { #category : #'get/set' }
@@ -147,13 +147,13 @@ GlorpAttributeModel >> checkTargetTypeForKey: aKey value: anObject [
 	(self system classModelFor: self keyType) isNil 
 		ifFalse: [self checkTargetType: aKey against: self keyType].
 	(self system classModelFor: self type) isNil
-		ifFalse: [self checkTargetType: anObject against: type]
+		ifFalse: [self checkTargetType: anObject against: type].
 ]
 
 { #category : #'get/set' }
 GlorpAttributeModel >> checkType: anObject [
 	(self classModel matches: anObject)
-		ifFalse: [self error: 'Wrong type of object']
+		ifFalse: [self error: 'Wrong type of object'].
 ]
 
 { #category : #accessing }
@@ -211,13 +211,13 @@ GlorpAttributeModel >> getValueFrom: anObject [
 	real := anObject yourSelf.
 	self checkType: real.
 	self useDirectAccess ifTrue: [^self directGetValueFrom: real].
-	^real perform: self name
+	^real perform: self name.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #initialization }
 GlorpAttributeModel >> initialize [
 	canRead := true.
-	canWrite := true
+	canWrite := true.
 ]
 
 { #category : #private }
@@ -236,18 +236,18 @@ GlorpAttributeModel >> instVarIndexIn: anObject [
 
 { #category : #validation }
 GlorpAttributeModel >> isCollectionAttribute [
-	^collectionType notNil
+	^collectionType notNil.
 ]
 
 { #category : #mapping }
 GlorpAttributeModel >> isDictionaryAttribute [
-	^collectionType isBehavior and: [collectionType includesBehavior: Dictionary]
+	^collectionType isBehavior and: [collectionType includesBehavior: Dictionary].
 ]
 
 { #category : #testing }
 GlorpAttributeModel >> isForPseudoVariable [
 	"Return true if this is a pseudo-variable - one which is neither read nor written, and doesn't have a corresponding instance variable, but is only used for queries."
-	^(canRead not & canWrite not) or: [self isValid not]
+	^(canRead not & canWrite not) or: [self isValid not].
 ]
 
 { #category : #validation }
@@ -260,7 +260,7 @@ GlorpAttributeModel >> isReadable [
 
 { #category : #private }
 GlorpAttributeModel >> isValid [
-	^name notNil and: [classModel notNil]
+	^name notNil and: [classModel notNil].
 ]
 
 { #category : #validation }
@@ -326,7 +326,7 @@ GlorpAttributeModel >> loopOver: mightBeACollection doing: aBlock [
 			object := each glorpRealObject. 
 			self checkTargetType: object.
 			aBlock value: index value: object.
-			index := index + 1]
+			index := index + 1].
 ]
 
 { #category : #accessing }
@@ -338,7 +338,7 @@ GlorpAttributeModel >> name [
 GlorpAttributeModel >> name: aSymbol [
 	| symbol |
 	symbol := aSymbol isNil ifTrue: [aSymbol] ifFalse: [aSymbol asSymbol].
-	name := symbol
+	name := symbol.
 ]
 
 { #category : #private }
@@ -349,12 +349,12 @@ GlorpAttributeModel >> newCollection [
 
 { #category : #printing }
 GlorpAttributeModel >> printOn: aStream [
-	aStream nextPutAll: self classModel printString, '>>', self name
+	aStream nextPutAll: self classModel printString, '>>', self name.
 ]
 
 { #category : #private }
 GlorpAttributeModel >> privateUseDirectAccess [
-	^useDirectAccess
+	^useDirectAccess.
 ]
 
 { #category : #private }
@@ -371,7 +371,7 @@ GlorpAttributeModel >> setSelector [
 { #category : #'get/set' }
 GlorpAttributeModel >> setValueIn: anObject to: aValue [ 
 	| real |
-	self isValid ifFalse: [^self].
+	self isValid ifFalse: [^aValue].
 	real := anObject yourSelf.
 	self checkType: real.
 	self useDirectAccess ifTrue: [^self directSetValueIn: real to: aValue].
@@ -403,7 +403,7 @@ GlorpAttributeModel >> useDirectAccess [
 
 { #category : #accessing }
 GlorpAttributeModel >> useDirectAccess: aBoolean [
-	useDirectAccess := aBoolean
+	useDirectAccess := aBoolean.
 ]
 
 { #category : #validation }

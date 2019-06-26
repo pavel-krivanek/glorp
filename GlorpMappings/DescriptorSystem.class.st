@@ -51,16 +51,16 @@ DescriptorSystem class >> createTablesFor: aLogin [
 	session := self sessionForLogin: aLogin.
 	session login.
 	[session createTables] ensure: 
-		[session logout]
+		[session logout].
 ]
 
-{ #category : #configuration }
+{ #category : #'class defaults' }
 DescriptorSystem class >> databaseTableClass [
 
 	^DatabaseTable
 ]
 
-{ #category : #validation }
+{ #category : #'class defaults' }
 DescriptorSystem class >> defaultValidateValue [
 	"Subclasses can define this not answer #always, and to set it to be things like #firstTime, #never, etc."
 
@@ -74,7 +74,7 @@ DescriptorSystem class >> dropTablesFor: aLogin [
 	| session |
 	session := self sessionForLogin: aLogin.
 	session login.
-	[session dropTables] ensure: [session logout]
+	[session dropTables] ensure: [session logout].
 ]
 
 { #category : #'instance creation' }
@@ -87,13 +87,13 @@ DescriptorSystem class >> forPlatform: dbPlatform [
 { #category : #configuration }
 DescriptorSystem class >> includeAllClassesWithDescriptorMethods [
 	"If this is true, the descriptor system will automatically include all classes that define the #glorpSetupDescriptor:forSystem: method on the class side. If false, it will only include classes which have descriptor methods defined in this class, or those explicitly added in the #constructAllClasses method."
-	^false
+	^false.
 ]
 
 { #category : #'instance creation' }
 DescriptorSystem class >> new [
 
-	^super new initialize
+	^super new initialize.
 ]
 
 { #category : #utility }
@@ -103,7 +103,7 @@ DescriptorSystem class >> recreateTablesFor: aLogin [
 	| session |
 	session := self sessionForLogin: aLogin.
 	session login.
-	[session recreateTables] ensure: [session logout]
+	[session recreateTables] ensure: [session logout].
 ]
 
 { #category : #'instance creation' }
@@ -125,10 +125,10 @@ DescriptorSystem class >> sessionForLogin: aGlorpLogin [
 	session := GlorpSession new.
 	session accessor: (DatabaseAccessor forLogin: aGlorpLogin).
 	session system: system.
-	^session
+	^session.
 ]
 
-{ #category : #validation }
+{ #category : #'class defaults' }
 DescriptorSystem class >> validateDescriptorSystem [
 	"Subclasses can define this to do other things, and add their own behavior to do things like only first time, never, etc."
 
@@ -136,7 +136,7 @@ DescriptorSystem class >> validateDescriptorSystem [
 	^validateDescriptorSystem == #always
 ]
 
-{ #category : #validation }
+{ #category : #'class defaults' }
 DescriptorSystem class >> validateDescriptorSystem: aSymbol [
 	"Typical values are #always and #never"
 

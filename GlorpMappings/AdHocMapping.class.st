@@ -18,7 +18,7 @@ Class {
 		'mappedFields',
 		'shouldProxy'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -81,16 +81,16 @@ AdHocMapping >> field [
 	| fields |
 	fields := self mappedFields.
 	fields size = 1 ifFalse: [self error: 'This mapping does not correspond to exactly one field'].
-	^fields first
+	^fields first.
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #'initialize/release' }
 AdHocMapping >> forAttribute: aSymbol fromDb: fromBlock toDb: toBlock mappingFields: aFieldCollection [
 	self
 		setAttribute: aSymbol
 		fromDb: fromBlock
 		toDb: toBlock
-		mappingFields: aFieldCollection
+		mappingFields: aFieldCollection.
 ]
 
 { #category : #testing }
@@ -151,7 +151,7 @@ AdHocMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
 { #category : #mapping }
 AdHocMapping >> mappedFields [
 
-	^mappedFields
+	^mappedFields.
 ]
 
 { #category : #mapping }
@@ -161,33 +161,33 @@ AdHocMapping >> referencedIndependentObjectsFrom: anObject [
 	object := self getValueFrom: anObject.
 	(object isGlorpProxy and: [object isInstantiated not]) ifTrue: [^#()].
 	otherDescriptor := self system descriptorFor: object.
-	^otherDescriptor isNil ifTrue: [#()] ifFalse: [Array with: object]
+	^otherDescriptor isNil ifTrue: [#()] ifFalse: [Array with: object].
 ]
 
-{ #category : #'initialize-release' }
+{ #category : #'initialize/release' }
 AdHocMapping >> setAttribute: aSymbol fromDb: fromBlock toDb: toBlock mappingFields: aFieldCollection [
  
 	self attributeName: aSymbol.
 	fromDbMappingBlock := fromBlock.
 	toDbMappingBlock := toBlock.
-	mappedFields := aFieldCollection
+	mappedFields := aFieldCollection.
 ]
 
 { #category : #accessing }
 AdHocMapping >> shouldProxy [
 
-	^shouldProxy
+	^shouldProxy.
 ]
 
 { #category : #accessing }
 AdHocMapping >> shouldProxy: aBoolean [
 
-	shouldProxy := aBoolean
+	shouldProxy := aBoolean.
 ]
 
 { #category : #mapping }
 AdHocMapping >> trace: aTracing context: anExpression [
-	^self
+	^self.
 ]
 
 { #category : #mapping }
@@ -195,5 +195,5 @@ AdHocMapping >> valueIn: anElementBuilder as: anExpression [
 	^fromDbMappingBlock
 		value: anElementBuilder row
 		value: anElementBuilder
-		value: anExpression
+		value: anExpression.
 ]

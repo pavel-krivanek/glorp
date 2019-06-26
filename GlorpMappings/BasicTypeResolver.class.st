@@ -18,7 +18,7 @@ Class {
 		'rootDescriptor',
 		'rootClass'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -93,7 +93,7 @@ BasicTypeResolver >> typeMappingRootDescriptor [
 
 { #category : #testing }
 BasicTypeResolver >> usesInheritance [
-	^true
+	^true.
 ]
 
 { #category : #validation }

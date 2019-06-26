@@ -16,21 +16,21 @@ Class {
 		'shouldProxy',
 		'query'
 	],
-	#category : #GlorpMappings
+	#category : #'GlorpMappings-Glorp'
 }
 
 { #category : #'instance creation' }
 DirectMapping class >> from: attributeName to: field [
 
 	^self from: attributeName
-			type: field impliedSmalltalkType
-			to: field
+		type: field impliedSmalltalkType
+		to: field
 ]
 
 { #category : #'instance creation' }
 DirectMapping class >> from: attributeName type: aClass to: field [
 
-	^(self new)
+	^self new
 		attributeName: attributeName;
 		field: field;
 		type: aClass.
@@ -40,17 +40,17 @@ DirectMapping class >> from: attributeName type: aClass to: field [
 DirectMapping class >> fromPseudoVariable: attributeName to: field [
 
 	^self fromPseudoVariable: attributeName
-			type: field impliedSmalltalkType
-			to: field
+		type: field impliedSmalltalkType
+		to: field
 ]
 
 { #category : #'instance creation' }
 DirectMapping class >> fromPseudoVariable: attributeName type: aClass to: field [
 
-	^(self new)
+	^self new
 		attributeName: attributeName;
 		field: field;
-		beForPseudoVariable
+		beForPseudoVariable.
 ]
 
 { #category : #'VisualWorks metadata' }
@@ -87,7 +87,7 @@ DirectMapping >> controlsTables [
 DirectMapping >> convertValueToDatabaseForm: aValue [
 	
 	converter isNil ifTrue: [^aValue].
-	^converter convertedDbValueOf: aValue
+	^converter convertedDbValueOf: aValue.
 ]
 
 { #category : #private }
@@ -106,12 +106,12 @@ DirectMapping >> convertedStValueOf: dbValue [
 
 { #category : #accessing }
 DirectMapping >> converter [
-	^converter
+	^converter.
 ]
 
 { #category : #accessing }
 DirectMapping >> converter: aDatabaseConverter [
-	converter := aDatabaseConverter
+	converter := aDatabaseConverter.
 ]
 
 { #category : #mapping }
@@ -141,13 +141,13 @@ DirectMapping >> field: aDatabaseFieldOrExpression [
 		ifTrue: [
 			self beReadOnly.
 			aDatabaseFieldOrExpression asGlorpExpressionOn: (BaseExpression new descriptor: descriptor)]
-		ifFalse: [aDatabaseFieldOrExpression]
+		ifFalse: [aDatabaseFieldOrExpression].
 ]
 
 { #category : #accessing }
 DirectMapping >> fieldsForDescriptorSelectStatement [
 	"Return a collection of fields that this mapping will read from a row when the containing object is read, as opposed to when we're specifically told to use this field. Normally it amounts to the same thing, but if a direct mapping is proxied, we don't want its field when the parent is read"
-	^self shouldProxy ifTrue: [self descriptor primaryTable primaryKeyFields] ifFalse: [super fieldsForDescriptorSelectStatement]
+	^self shouldProxy ifTrue: [self descriptor primaryTable primaryKeyFields] ifFalse: [super fieldsForDescriptorSelectStatement].
 ]
 
 { #category : #'initialize-release' }
@@ -157,7 +157,7 @@ DirectMapping >> from: anAttributeName to: aField [
 	self attributeName: anAttributeName.
 	self field: (descriptor fieldFor: aField).
 	type := self attribute type isNil ifTrue: [field impliedSmalltalkType] ifFalse: [self attribute type].
-	self type: type
+	self type: type.
 ]
 
 { #category : #'initialize-release' }
@@ -166,7 +166,7 @@ DirectMapping >> from: anAttributeName type: aClass to: aField [
 	self
 		attributeName: anAttributeName;
 		field: aField;
-		type: aClass
+		type: aClass.
 ]
 
 { #category : #'initialize-release' }
@@ -181,7 +181,7 @@ DirectMapping >> fromPseudoVariable: anAttributeName to: aField [
 DirectMapping >> fromPseudoVariable: anAttributeName type: aClass to: aField [
 
 	self from: anAttributeName type: aClass to: aField.
-	self beForPseudoVariable
+	self beForPseudoVariable.
 ]
 
 { #category : #'initialize-release' }
@@ -206,7 +206,7 @@ DirectMapping >> isStoredInSameTable [
 { #category : #mapping }
 DirectMapping >> mapFromObject: anObject intoRowsIn: aRowMap [
 
-	^self mapFromObject: anObject toTarget: anObject puttingRowsIn: aRowMap
+	^self mapFromObject: anObject toTarget: anObject puttingRowsIn: aRowMap.
 ]
 
 { #category : #mapping }
@@ -218,7 +218,7 @@ DirectMapping >> mapFromObject: anObject toTarget: target puttingRowsIn: aRowMap
 	value := self session realObjectFor: value ifNone: [^self].
 	dbValue := self convertedDbValueOf: value.
 	row := aRowMap findOrAddRowForTable: self field table withKey: target.
-	row at: field put: dbValue
+	row at: field put: dbValue.
 ]
 
 { #category : #mapping }
@@ -230,7 +230,7 @@ DirectMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
 						parameters: (self parametersIn: anElementBuilder);
 						glorpOwner: anObject)].
 	value := self valueInBuilder: anElementBuilder.
-	self setValueIn: anObject to: value
+	self setValueIn: anObject to: value.
 ]
 
 { #category : #testing }
@@ -242,7 +242,7 @@ DirectMapping >> mappedFields [
 
 { #category : #testing }
 DirectMapping >> mapsSimpleObject [
-	^true
+	^true.
 ]
 
 { #category : #mapping }
@@ -250,12 +250,12 @@ DirectMapping >> parametersIn: anElementBuilder [
 	| parameters |
 	parameters := IdentityDictionary new.
 	descriptor primaryTable primaryKeyFields do: [:each | parameters at: each put: (anElementBuilder valueOfField: each)].
-	^parameters
+	^parameters.
 ]
 
 { #category : #'printing SQL' }
 DirectMapping >> printSQLOn: aStream withParameters: aDictionary [
-	self field printSQLOn: aStream withParameters:aDictionary
+	self field printSQLOn: aStream withParameters:aDictionary.
 ]
 
 { #category : #mapping }
@@ -268,7 +268,7 @@ DirectMapping >> query [
 { #category : #mapping }
 DirectMapping >> queryFor: anObjectBuilder [
 	"If we have a specific query we should use in this case, rather than our general one, construct it. Right now that only applies if we're using filtered reads"
-	^self query
+	^self query.
 ]
 
 { #category : #mapping }
@@ -284,7 +284,7 @@ DirectMapping >> readBackNewRowInformationFor: anObject fromRowsIn: aRowMap [
 { #category : #enumerating }
 DirectMapping >> referencedIndependentObjectsFrom: anObject [
 
-	^#()
+	^#().
 ]
 
 { #category : #'initialize-release' }
@@ -298,25 +298,25 @@ DirectMapping >> setConverterBetween: aClass and: aDbField [
 { #category : #accessing }
 DirectMapping >> shouldProxy [
 
-	^shouldProxy
+	^shouldProxy.
 ]
 
 { #category : #accessing }
 DirectMapping >> shouldProxy: aBoolean [
 
-	shouldProxy := aBoolean
+	shouldProxy := aBoolean.
 ]
 
 { #category : #mapping }
 DirectMapping >> trace: aTracing context: anExpression [
-	^self
+	^self.
 ]
 
 { #category : #accessing }
 DirectMapping >> type: aClass [
 	self attribute type: aClass.
 	field isNil ifFalse: [
-		self setConverterBetween: aClass and: field]
+		self setConverterBetween: aClass and: field].
 ]
 
 { #category : #validation }
@@ -333,23 +333,23 @@ DirectMapping >> valueIn: anElementBuilder as: anExpression [
 		ifFalse: [anExpression].
 	dbValue := anElementBuilder
 		valueOfField: valueToGet.
-	^self convertedStValueOf: dbValue
+	^self convertedStValueOf: dbValue.
 ]
 
 { #category : #mapping }
 DirectMapping >> valueInBuilder: anElementBuilder [
-	^self valueInBuilder: anElementBuilder as: field
+	^self valueInBuilder: anElementBuilder as: field.
 ]
 
 { #category : #mapping }
 DirectMapping >> valueInBuilder: anElementBuilder as: anExpression [
 	| dbValue |
 	dbValue := anElementBuilder valueOfField: anExpression.
-	^self convertedStValueOf: dbValue
+	^self convertedStValueOf: dbValue.
 ]
 
 { #category : #mapping }
 DirectMapping >> valueOfField: aField fromObject: anObject [
 	field = aField ifFalse: [self error: 'Mapping doesn''t describe field'].
-	^self convertedDbValueOf: (self getValueFrom: anObject)
+	^self convertedDbValueOf: (self getValueFrom: anObject).
 ]
