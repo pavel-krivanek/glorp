@@ -1,0 +1,185 @@
+"
+Enough information to log in to a particular database.
+
+Instance Variables:
+	connectString	<String>	The string that will be passed to the driver level to tell us what to connect to. This might be e.g. an ODBC data source name, or it might be a host name plus socket/database name for Postgresql.
+	database	<DatabasePlatform>	The platform describing what type of database this is. Used here mostly to indicate how we need to talk to the underlying connection layer, which may be different by database.
+	name	<String>	A name we can use to describe this. No significance to the database.
+	password	<String>	The connect password.
+	schema	<String>	What should our default schema be. Used mostly internally, to set the schema of the tables we are using.
+	username	<String>	The connect username.
+
+
+"
+Class {
+	#name : #Login,
+	#superclass : #Object,
+	#instVars : [
+		'database',
+		'username',
+		'password',
+		'connectString',
+		'name',
+		'schema',
+		'secure'
+	],
+	#category : #'GlorpDatabase-Glorp'
+}
+
+{ #category : #'instance creation' }
+Login class >> new [
+	^super new initialize.
+]
+
+{ #category : #'VisualWorks metadata' }
+Login class >> visualWorksMetadata [
+
+	^ #(
+		'namespace' 'Glorp'
+	)
+
+]
+
+{ #category : #accessing }
+Login >> = aLogin [ 
+	^self class == aLogin class 
+		and: [self database class = aLogin database class 
+		and: [self username = aLogin username 
+		and: [self connectString = aLogin connectString
+		and: [self schema = aLogin schema]]]]
+]
+
+{ #category : #converting }
+Login >> asGlorpLogin [
+	"Polymorph with objects that know how to convert themselves to Logins, e.g. Store ConnectionProfiles."
+
+	^self
+]
+
+{ #category : #accessing }
+Login >> connectString [
+	^connectString
+]
+
+{ #category : #accessing }
+Login >> connectString: aString [ 
+	connectString := aString
+]
+
+{ #category : #accessing }
+Login >> database [
+	^database
+]
+
+{ #category : #accessing }
+Login >> database: aDatabasePlatform [ 
+	database := aDatabasePlatform
+]
+
+{ #category : #accessing }
+Login >> hash [
+	^self name hash + self database class hash + self username hash + self connectString hash
+]
+
+{ #category : #'initialize-release' }
+Login >> initialize [
+	"My schema supplies the schema to my accessor, to its session and to that session's descriptor system.  Since a DatabaseTable's schema is initialized to the empty string, not nil (and that of a StoreLogin must never be nil), initialize to the empty string here, so that calling code need not check for nil.
+	Initialize secure to true, so that only if the creating code then explicitly resets it to false will the login keep the password in the image beyond the point of first use."
+
+	schema := ''.
+	secure := true.
+]
+
+{ #category : #accessing }
+Login >> name [
+	name isNil ifTrue: [^self connectString] ifFalse: [^name].
+]
+
+{ #category : #accessing }
+Login >> name: aString [
+	name := aString.
+]
+
+{ #category : #accessing }
+Login >> password [
+	"Return the password for this login. If we are in a secure mode, then erase the password as soon as it is accessed."
+	| returnValue |
+	returnValue := password.
+	secure ifTrue: [password := nil].
+	^returnValue.
+]
+
+{ #category : #accessing }
+Login >> password: aString [ 
+	password := aString
+]
+
+{ #category : #accessing }
+Login >> platform [
+	^self database.
+]
+
+{ #category : #login }
+Login >> postLoginInitializeFromAccessor: aDatabaseAccessor [
+	self database postLoginInitializeFromAccessor: aDatabaseAccessor.
+]
+
+{ #category : #login }
+Login >> preLoginInitializeFromAccessor: anAccessor [
+	anAccessor connection initializeFromLogin: self.
+]
+
+{ #category : #printing }
+Login >> printOn: aStream [
+
+	aStream nextPutAll: 'a Login('.
+	database printOn: aStream.
+	aStream nextPutAll: ', '.
+	username printOn: aStream.
+	aStream nextPutAll: ', '.
+	connectString printOn: aStream.
+	aStream nextPutAll: ', '.
+	schema printOn: aStream.
+	aStream nextPutAll: ')'.
+]
+
+{ #category : #accessing }
+Login >> schema [
+	^schema
+]
+
+{ #category : #accessing }
+Login >> schema: aString [
+	schema := aString.
+]
+
+{ #category : #accessing }
+Login >> secure [
+	^secure
+]
+
+{ #category : #accessing }
+Login >> secure: aBoolean [
+	secure := aBoolean
+]
+
+{ #category : #'session creation' }
+Login >> sessionForDescriptorSystem: aDescriptorSystemClass [
+	"Create a session for this login, using aDescriptorSystemClass for its metadata"
+	^aDescriptorSystemClass sessionForLogin: self.
+]
+
+{ #category : #accessing }
+Login >> username [
+	^username
+]
+
+{ #category : #accessing }
+Login >> username: aString [ 
+	username := aString
+]
+
+{ #category : #'session creation' }
+Login >> vwConnectionClass [
+	^self database vwConnectionClass
+]
