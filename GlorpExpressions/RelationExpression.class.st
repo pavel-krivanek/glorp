@@ -344,6 +344,12 @@ RelationExpression >> operationFor: aSymbol [
 	 aSymbol == #ilike: ifTrue: [^#ILIKE].		"Case-insensitive variant of LIKE. Only supported on PostgreSQL at the moment"
 	 aSymbol == #in: ifTrue: [^#IN].
 	 aSymbol == #notIn: ifTrue: [^#'NOT IN'].
+	"ObjectStudio compatibility"
+       aSymbol == #os_LessThan: ifTrue: [^#<].
+       aSymbol == #os_LessEqualThan: ifTrue: [^#<=].
+       aSymbol == #os_Equal: ifTrue: [^#=].
+       aSymbol == #os_GreaterThan: ifTrue: [^#>].
+       aSymbol == #os_GreaterEqualThan: ifTrue: [^#>=].
 
 	^aSymbol.
 ]

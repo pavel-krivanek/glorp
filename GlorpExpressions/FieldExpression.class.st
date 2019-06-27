@@ -23,9 +23,7 @@ Class {
 { #category : #'instance creation' }
 FieldExpression class >> forField: aField basedOn: anObjectExpression [
 
-	^(self new) 
-		field: aField base: anObjectExpression; 
-		yourself
+	^self new field: aField base: anObjectExpression; yourself
 ]
 
 { #category : #'VisualWorks metadata' }
