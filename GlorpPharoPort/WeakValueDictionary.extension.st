@@ -1,6 +1,6 @@
 Extension { #name : #WeakValueDictionary }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpPharoPort' }
 WeakValueDictionary >> manager: anObject [
 	"Added for compatibility - Do nothing."
 	

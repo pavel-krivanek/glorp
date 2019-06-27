@@ -1,6 +1,6 @@
 Extension { #name : #ProcessorScheduler }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpPharoPort' }
 ProcessorScheduler >> activePriorityPlusOne [
 	^self activePriority + 1 
 ]

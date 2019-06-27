@@ -20,15 +20,3 @@ Time >> glorpPrintSQLOn: aCommand [
 		nextPutAll: (self glorpPadToTwoDigits: self seconds);
 		nextPut: $'.
 ]
-
-{ #category : #'*GlorpExtensions' }
-Time >> millisecond: anInteger [ 
-
-	nanos := (anInteger rem: 1000) * 1000000
-
-]
-
-{ #category : #'*GlorpExtensions' }
-Time >> milliseconds [
-	^ (nanos / 1000000.0)truncated 
-]
