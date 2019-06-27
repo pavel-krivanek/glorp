@@ -35,59 +35,6 @@ MySQLPlatform >> areSequencesExplicitlyCreated [
 	^false.
 ]
 
-{ #category : #constants }
-MySQLPlatform >> autoTrimsStringsLongerThanColumnSize [
-	"Answer true if the platform trims an string longer that the column size without triggering any error.
-	E.g. the string 'abcde' is trimmed to 'abcd' during if the column is a CHAR(4)."
-
-	^true
-]
-
-{ #category : #constants }
-MySQLPlatform >> beArchive [
-	engine := 'ARCHIVE'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beBDB [
-	engine := 'BDB'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beBlackHole [
-	engine := 'BLACKHOLE'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beCSV [
-	engine := 'CSV'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beExample [
-	engine := 'EXAMPLE'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beFederated [
-	engine := 'FEDERATED'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beInnoDB [
-	engine := 'InnoDB'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beMemory [
-	engine := 'MEMORY'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> beMyISAM [
-	engine := 'MyISAM'.
-]
-
 { #category : #binding }
 MySQLPlatform >> bindingsForGroupWritingFor: aCommand [
 	"Return the bindings array for a group write. This can be in different formats, depending on the database and perhaps the mechanism in place."
@@ -98,11 +45,6 @@ MySQLPlatform >> bindingsForGroupWritingFor: aCommand [
 MySQLPlatform >> blob [
 	"Return the MySQL type for long blob."
 	^self typeNamed: #blob ifAbsentPut: [GlorpBlobType new typeString: 'LONGBLOB'].
-]
-
-{ #category : #types }
-MySQLPlatform >> boolean [
-	^self typeNamed: #boolean ifAbsentPut: [GlorpMySQLBooleanType new typeString: 'boolean'].
 ]
 
 { #category : #testing }
@@ -116,13 +58,6 @@ MySQLPlatform >> canUseInWhereClause: aValue type: aType [
 ]
 
 { #category : #constants }
-MySQLPlatform >> capitalWritingOfTableName [
-	"^<Boolean>"
-
-	^false
-]
-
-{ #category : #constants }
 MySQLPlatform >> charactersThatNeedEscaping [
 	^#($' $\)
 ]
@@ -131,11 +66,6 @@ MySQLPlatform >> charactersThatNeedEscaping [
 MySQLPlatform >> clob [
 	"Return the MySQL type for long text."
 	^self typeNamed: #clob ifAbsentPut: [GlorpMySQLClobType new typeString: 'LONGTEXT'].
-]
-
-{ #category : #constants }
-MySQLPlatform >> createTableStatementStringFor: aGLORPDatabaseTable [
-	^(super createTableStatementStringFor: aGLORPDatabaseTable), ' ENGINE=', self engine.
 ]
 
 { #category : #sequences }
@@ -147,11 +77,6 @@ MySQLPlatform >> databaseSequenceClass [
 MySQLPlatform >> date [
 	"Return the type we use to represent dates."
 	^self typeNamed: #date ifAbsentPut: [GlorpDateType new].
-]
-
-{ #category : #types }
-MySQLPlatform >> decimal [
-	^self double
 ]
 
 { #category : #constants }
@@ -170,12 +95,6 @@ MySQLPlatform >> double [
 MySQLPlatform >> endColumnQuote [
 	"Return the character used to start quoting the name of a column so that we can avoid conflicts with reserved names. The default MySQL quoting is to use backquotes rather than the ANSI style."
 	^'`'.
-]
-
-{ #category : #constants }
-MySQLPlatform >> engine [
-	engine ifNil: [ self beInnoDB ].
-	^engine
 ]
 
 { #category : #types }
@@ -197,7 +116,6 @@ MySQLPlatform >> float8 [
 MySQLPlatform >> initializeFunctions [
 	super initializeFunctions.
 	functions at: #regexMatches: put: (InfixFunction named: 'REGEXP').
-	functions at: #, put: (PrefixFunction named: 'CONCAT').
 ]
 
 { #category : #constants }
@@ -390,16 +308,9 @@ MySQLPlatform >> supportsANSIJoins [
 ]
 
 { #category : #testing }
-MySQLPlatform >> supportsArithmeticOperatorsOnDates [
-	"Answer whether arithmetic operators such as + or - can be used on DATE like columns.
-	Some platforms require the use of specific functions."
-	
-	^false
-]
-
-{ #category : #testing }
 MySQLPlatform >> supportsBinding [
-	^ true
+	"MySQL supports binding, although early versions didn't."
+	^true.
 ]
 
 { #category : #testing }
@@ -477,11 +388,6 @@ MySQLPlatform >> typeWithDatabaseName: aString characterWidth: aNumber extraInfo
 	"Return our type which matches the database name for the type. Assumes all variable width fields are strings right now."
 	extraValue = 'auto_increment' ifTrue: [^self serial].
 	^super typeWithDatabaseName: aString characterWidth: aNumber.
-]
-
-{ #category : #testing }
-MySQLPlatform >> usesArrayBindingRatherThanGrouping [
-	^false.
 ]
 
 { #category : #testing }
