@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpTestUpdatingTimestampInRecord,
 	#superclass : #GlorpSessionBasedTest,
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTestModels'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -27,7 +27,7 @@ GlorpTestUpdatingTimestampInRecord >> testUpdating [
 	record := session readOneOf: GlorpRecordWithUpdateTime.
 	self assert: record id = 12.
 	firstTime := record updateTime asSeconds.
-	self assert: (firstTime - DateAndTime now asSeconds) < 2.
+	self assert: (firstTime - Timestamp now asSeconds) < 2.
 	"Now wait long enough for the timestamp to definitely change, and verify that if modify the object it changes"
 	(Delay forSeconds: 2) wait.
 	session modify: record in: [record name: 'different'].
