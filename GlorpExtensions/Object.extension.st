@@ -27,24 +27,6 @@ Object >> glorpCanHaveDescriptorDirectly [
 	^self isBehavior.
 ]
 
-{ #category : #'*GlorpExtensions' }
-Object >> glorpCopyIn: aDictionary [
-	"For non-storeForGlorp objects, just copy normally"
-	^self copy.
-]
-
-{ #category : #'*GlorpExtensions' }
-Object >> glorpEndOfIndexedInstVars [
-	"Return the index at which indexed instance variables start. The same as basicSize for most dialects, but funny for ObjectStudio"
-
-	^self basicSize.
-]
-
-{ #category : #'*GlorpExtensions' }
-Object >> glorpIsBlock [
-	^false.
-]
-
 { #category : #'*GlorpExtensions-glorp' }
 Object >> glorpIsCollection [
 
@@ -86,12 +68,6 @@ Object >> glorpPrintSelectSQLOn: aCommand [
 Object >> glorpRealObject [
 	"Return the real object. Will force instantiation of a proxy, even on compilers which inline yourself"
 	^self.
-]
-
-{ #category : #'*GlorpExtensions' }
-Object >> glorpStartOfIndexedInstVars [
-	"Return the index at which indexed instance variables start. 1 for most dialects, but funny for ObjectStudio"
-	^1.
 ]
 
 { #category : #'*GlorpExtensions-glorp' }

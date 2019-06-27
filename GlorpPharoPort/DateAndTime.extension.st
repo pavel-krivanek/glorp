@@ -1,6 +1,6 @@
 Extension { #name : #DateAndTime }
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpPharoPort' }
 DateAndTime >> asMilliseconds [
 	"Answer the number of milliseconds since midnight"
 
@@ -8,7 +8,7 @@ DateAndTime >> asMilliseconds [
 
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpPharoPort' }
 DateAndTime >> milliseconds [
 	"Added for GLORP compatibility"
 
