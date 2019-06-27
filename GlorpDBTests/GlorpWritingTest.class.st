@@ -75,7 +75,7 @@ GlorpWritingTest >> testMultipleWritesAndReads [
 									yourself)].
 	session commitUnitOfWork.
 	customers := session read: GlorpCustomer.
-	self assert: (names asSortedCollection hasEqualElements: (customers collect: [:ea | ea name]) asSortedCollection).
+	self assert: (names asSortedCollection isSameSequenceAs: (customers collect: [:ea | ea name]) asSortedCollection).
 	] 
 			ensure: [session rollbackTransaction]
 ]
