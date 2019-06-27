@@ -1,7 +1,7 @@
 Class {
 	#name : #AbstractLOBTest,
 	#superclass : #GlorpDatabaseTypeIndividualDBTests,
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -67,24 +67,20 @@ AbstractLOBTest >> helpTestValue: anObject compareModelWith: modelBlock compareW
 { #category : #private }
 AbstractLOBTest >> readBackModelWithValue: anObject [
 	"For SQL-Server, use CONVERT (which is easier than CAST for now), with = instead of LIKE."
-
-	^ self useEqualityToCompare
-		ifTrue: [ | converted |
-			converted := self platform isSQLServerPlatform ifTrue: [ self convertToTypeFrom: anObject ] ifFalse: [ anObject ].
+	
+	^self platform isSQLServerPlatform
+		ifTrue:
+			[| converted |
+			converted := self convertToTypeFrom: anObject.
 			session
 				readOneOf: GlorpTypeTestsModelClass
-				where: [ :each | each test = converted ] ]
-		ifFalse: [ session
+				where: [:each | each test = converted]]
+		ifFalse:
+			[session
 				readOneOf: GlorpTypeTestsModelClass
-				where: [ :each | each test like: anObject ] ]
+				where: [:each | each test like: anObject]]
 
 	"^session
 		readOneOf: GlorpTypeTestsModelClass
 		where: [:each | each test like: (Cast value: anObject as: type queryType)]."
-]
-
-{ #category : #private }
-AbstractLOBTest >> useEqualityToCompare [
-	^ self platform isSQLServerPlatform
-		or: [ self platform isPostgreSQLPlatform ]
 ]
