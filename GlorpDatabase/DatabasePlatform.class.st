@@ -137,14 +137,6 @@ DatabasePlatform >> asTimestamp: anObject for: aType [
 ]
 
 { #category : #constants }
-DatabasePlatform >> autoTrimsStringsLongerThanColumnSize [
-	"Answer true if the platform trims an string longer that the column size without triggering any error.
-	E.g. the string 'abcde' is trimmed to 'abcd' during if the column is a CHAR(4)."
-
-	^false
-]
-
-{ #category : #constants }
 DatabasePlatform >> batchWriteStatementTerminatorString [
 	"^<String> This statement return the string to be used to devide several statement during batch write ..."
 
@@ -167,11 +159,6 @@ DatabasePlatform >> blob [
 DatabasePlatform >> boolean [
 	"By default, we represent booleans as small integers."
 	^self smallint.
-]
-
-{ #category : #types }
-DatabasePlatform >> booleanFalse [
-^ 0.
 ]
 
 { #category : #'conversion-boolean' }
@@ -258,13 +245,6 @@ DatabasePlatform >> capitalWritingOfColumnName [
 DatabasePlatform >> capitalWritingOfCreatorName [
 	"^<Boolean> This method returns true, if the dbms wants to have column 
 	names written in capital letters"
-
-	^true
-]
-
-{ #category : #constants }
-DatabasePlatform >> capitalWritingOfDatabaseName [
-	"^<Boolean>"
 
 	^true
 ]
@@ -404,13 +384,6 @@ DatabasePlatform >> convertTFToBoolean: aString for: aType [
 	aString = 'T' ifTrue: [^true].
 	aString = 'F' ifTrue: [^false].
 	self error: 'invalid boolean conversion'.
-]
-
-{ #category : #'conversion-numbers' }
-DatabasePlatform >> convertToDecimal: aNumber for: type [
-
- 	aNumber isNil ifTrue: [^nil].
-	^ScaledDecimal newFromNumber: aNumber scale: type scale.
 ]
 
 { #category : #'conversion-numbers' }
@@ -740,21 +713,6 @@ DatabasePlatform >> createTableIndexStatementStringFor: aGLORPDatabaseTable inde
 ]
 
 { #category : #'services tables' }
-DatabasePlatform >> createTableIndexStatementStringsFor: aGLORPDatabaseTable [
-	^aGLORPDatabaseTable indexes
-		collect:
-			[:idx | 
-			| sqlStatementStream |
-			sqlStatementStream := WriteStream on: String new.
-			sqlStatementStream nextPutAll: 'CREATE INDEX '.
-			sqlStatementStream nextPutAll: idx name.
-			sqlStatementStream nextPutAll: ' ON '.
-			self printDDLTableNameFor: aGLORPDatabaseTable on: sqlStatementStream.
-			idx printStatementOn: sqlStatementStream.
-			sqlStatementStream contents].
-]
-
-{ #category : #'services tables' }
 DatabasePlatform >> createTableStatementStringFor: aGLORPDatabaseTable [ 
 	"This method returns a string which can be used to create a database table ..."
 
@@ -868,13 +826,6 @@ DatabasePlatform >> defaultOptimalINClauseLimit [
 	^500
 ]
 
-{ #category : #accessing }
-DatabasePlatform >> defaultPort [
-	"self subclassResponsibility.
-	for this instance i'll return 5432, but all platforms must be return you own port"
-	^ '5432'.
-]
-
 { #category : #constants }
 DatabasePlatform >> deleteViewWithTableSyntax [
 
@@ -945,11 +896,6 @@ DatabasePlatform >> initializeFunctions [
 { #category : #constants }
 DatabasePlatform >> initializeReservedWords [
 	reservedWords := Set new.
-]
-
-{ #category : #constants }
-DatabasePlatform >> initializeTypes [
-	types := nil.
 ]
 
 { #category : #commands }
@@ -1146,16 +1092,6 @@ DatabasePlatform >> nullConverter [
 DatabasePlatform >> number [
 
 	^self typeNamed: #number ifAbsentPut: [GlorpNumericType new].
-]
-
-{ #category : #'conversion-numbers' }
-DatabasePlatform >> numberToDecimalConverter [
-
-	^DelegatingDatabaseConverter
-		named: #numberToDecimal
-		hostedBy: self
-		fromStToDb: #convertToDecimal:for:
-		fromDbToSt: #convertToDecimal:for:.
 ]
 
 { #category : #'conversion-numbers' }
@@ -1391,11 +1327,6 @@ DatabasePlatform >> printEscapedString: aString on: aCommand [
 { #category : #'database-specific' }
 DatabasePlatform >> printOffset: anInteger on: aCommand [
 	"By default, do nothing"
-]
-
-{ #category : #'database-specific' }
-DatabasePlatform >> printOffset: anInteger on: aCommand withLimit: aBoolean [
-	self printOffset: anInteger  on: aCommand. 
 ]
 
 { #category : #'database-specific' }
@@ -1747,11 +1678,6 @@ DatabasePlatform >> requiresCastsForNullsInUnions [
 ]
 
 { #category : #constants }
-DatabasePlatform >> requiresEscapeFor: aCharacter [
-	^self charactersThatNeedEscaping includes: aCharacter.
-]
-
-{ #category : #constants }
 DatabasePlatform >> requiresTransactionForTableOperations [
 	"Return true if we need a transaction in order to do table creation, deletion, and so forth. Some databases require it. Others don't like it"
 	^true.
@@ -2019,14 +1945,6 @@ DatabasePlatform >> supportsAliasInCompoundQuery [
 	^true.
 ]
 
-{ #category : #testing }
-DatabasePlatform >> supportsArithmeticOperatorsOnDates [
-	"Answer whether arithmetic operators such as + or - can be used on DATE like columns.
-	Some platforms require the use of specific functions."
-	
-	^true
-]
-
 { #category : #constants }
 DatabasePlatform >> supportsAuthentication [
 	^true
@@ -2234,11 +2152,6 @@ DatabasePlatform >> timestampToDateConverter [
 		fromDbToSt: #readDate:for:.
 ]
 
-{ #category : #'type converters' }
-DatabasePlatform >> tinyint [
-	^self number
-]
-
 { #category : #'conversion-times' }
 DatabasePlatform >> toDate: anObject for: aType [
 	"SQL supports adding an integer to a date, meaning incrementing the date by that number of days, so we pass integer values here as well as dates."
@@ -2390,12 +2303,6 @@ DatabasePlatform >> useMicrosoftOuterJoins [
 DatabasePlatform >> useOracleOuterJoins [
 	"Return true if we use the old Oracle x = y (+) syntax for outer joins"
 	^false.
-]
-
-{ #category : #testing }
-DatabasePlatform >> usesArrayBindingRatherThanGrouping [
-	"Return true if we use array binding for grouped writes rather than printing the sql multiple times. Only applies if we support grouped writes"
-	^self subclassResponsibility.
 ]
 
 { #category : #testing }
