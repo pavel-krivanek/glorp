@@ -10,7 +10,7 @@ Class {
 	#category : #GlorpDBTypeTests
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpDatabaseTypeDBTests class >> resources [
 	^Array with: GlorpSessionResource
 ]
