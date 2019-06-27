@@ -10,6 +10,11 @@ Class {
 	#category : #GlorpDBTests
 }
 
+{ #category : #resources }
+AnySatisfyTest class >> resources [
+	^Array with: GlorpSessionResource
+]
+
 { #category : #'VisualWorks metadata' }
 AnySatisfyTest class >> visualWorksMetadata [
 
@@ -62,18 +67,23 @@ AnySatisfyTest >> setUp [
 
 { #category : #running }
 AnySatisfyTest >> testAnySatisfyNested [
-	session readOneOf: ASCustomer
-		where: 
-			[:cust |
-			cust orders anySatisfy: 
-					[:order |
-					order lineItems
-						anySatisfy: [:lineItem | (lineItem item name like: 'os%') & (lineItem quantity > 0)]]]
+	| customer |
+	customer := session readOneOf: ASCustomer where:
+		[:cust |
+		cust orders anySatisfy: 
+			[:order |
+			order lineItems anySatisfy:
+				[:lineItem | (lineItem item name like: 'os%') & (lineItem quantity > 0)]]].
+	self assert: (customer orders anySatisfy:
+				[:order | order lineItems anySatisfy:
+					[:lineItem | (lineItem item name like: 'os%') and: [lineItem quantity > 0]]])
+		description: 'Nested where-block anySatisfy: does not agree with image anySatisfy:'.
 ]
 
 { #category : #running }
 AnySatisfyTest >> testAnySatisfyTwiceNested [
-	session readOneOf: ASCustomer where:
+	| customer |
+	customer := session readOneOf: ASCustomer where:
 		[:cust |
 		cust name = 'Informing AG' AND:
 			[cust orders anySatisfy:
@@ -82,4 +92,10 @@ AnySatisfyTest >> testAnySatisfyTwiceNested [
 					[:lineItem |
 					lineItem item bonuses anySatisfy:
 						[:itemBonus | itemBonus bonus credits > 50]]]]].
+	self assert: customer name = 'Informing AG'.
+	self assert: (customer orders anySatisfy:
+				[:order | order lineItems anySatisfy:
+					[:lineItem | lineItem item bonuses anySatisfy:
+						[:itemBonus | itemBonus bonus credits > 50]]])
+		description: 'Three-deep where-block anySatisfy: does not agree with image anySatisfy:'.
 ]

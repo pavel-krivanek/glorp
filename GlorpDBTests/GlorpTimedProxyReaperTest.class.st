@@ -26,6 +26,9 @@ GlorpTimedProxyReaperTest >> README [
 
 { #category : #support }
 GlorpTimedProxyReaperTest >> setUp [
+	Dialect isVisualAge ifTrue: [Transcript cr; show: 'Avoiding ', self class name, ' for VisualAge'. ^self].
+	Dialect isObjectStudio ifTrue: [Transcript cr; show: 'Avoiding ', self class name, ' for ObjectStudio'. ^self].
+
 	reaper := TimedProxyReaper new.
 	reaper delay: 0.5.
 ]
@@ -41,6 +44,8 @@ GlorpTimedProxyReaperTest >> tearDown [
 GlorpTimedProxyReaperTest >> testAddObjects [
 
 	| proxies |
+	Dialect isVisualAge ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testAddObjects for VisualAge'. ^self].
+	Dialect isObjectStudio ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testAddObjects for ObjectStudio'. ^self].
 	proxies := OrderedCollection new.
 	1 to: 10 do: [:index | 
 		proxies add: (TimedProxy readOneOf: Object where: nil in: nil).
@@ -55,6 +60,9 @@ GlorpTimedProxyReaperTest >> testAddObjects [
 GlorpTimedProxyReaperTest >> testExpireObjects [
 
 	| proxies |
+	Dialect isVisualAge ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testExpireObjects for VisualAge'. ^self].
+	Dialect isObjectStudio ifTrue: [Transcript cr; show: 'Avoiding t', self class name, '>>estExpireObjects for ObjectStudio'. ^self].
+
 	proxies := OrderedCollection new.
 	1 to: 10 do: [:index | 
 		proxies add: (TimedProxy readOneOf: Object where: nil in: nil).
@@ -69,6 +77,10 @@ GlorpTimedProxyReaperTest >> testExpireObjects [
 GlorpTimedProxyReaperTest >> testTouchAndExpireObjectsWhileOtherObjectsAreBeingReaped [
 
 	| expiringProxy proxy |
+	Dialect isVisualAge ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testTouchAndExpireObjectsWhileOtherObjectsAreBeingReaped for VisualAge'. ^self].
+	Dialect isObjectStudio ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testTouchAndExpireObjectsWhileOtherObjectsAreBeingReaped for ObjectStudio'. ^self].
+
+
 	reaper delay: 0.25.
 	expiringProxy := TimedProxy readOneOf: Object where: nil in: nil.
 	expiringProxy glorpSecondsToLive: 1.
@@ -91,6 +103,9 @@ GlorpTimedProxyReaperTest >> testTouchAndExpireObjectsWhileOtherObjectsAreBeingR
 GlorpTimedProxyReaperTest >> testTouchObjects [
 
 	| proxy |
+	Dialect isVisualAge ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testTouchObjects for VisualAge'. ^self].
+	Dialect isObjectStudio ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testTouchObjects for ObjectStudio'. ^self].
+
 	reaper delay: 0.25.
 	proxy := TimedProxy readOneOf: Object where: nil in: nil.
 	proxy glorpSecondsToLive: 2.

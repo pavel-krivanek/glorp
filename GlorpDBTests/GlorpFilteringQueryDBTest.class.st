@@ -35,7 +35,7 @@ GlorpFilteringQueryDBTest >> testReadDictionary [
 	encyclopedias := system exampleEncyclopedias.
 	entryMapping := (system descriptorFor: GlorpEncyclopedia) mappingForAttributeNamed: #entries.
 	entryMapping useFilteredRead.
-	session transact: [session register: encyclopedias].
+	session transact: [encyclopedias].
 	session reset.
 	query := Query read: GlorpEncyclopedia.
 	query orderBy: [:each | each name].
