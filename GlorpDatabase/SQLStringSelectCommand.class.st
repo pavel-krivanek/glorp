@@ -6,7 +6,7 @@ This is a select command whose SQL is given, rather than being generated from a 
 Class {
 	#name : #SQLStringSelectCommand,
 	#superclass : #QuerySelectCommand,
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-GlorpCore'
 }
 
 { #category : #'As yet unclassified' }
