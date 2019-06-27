@@ -1,6 +1,6 @@
 Extension { #name : #Join }
 
-{ #category : #'*GlorpQueries' }
+{ #category : #'*GlorpQueries-api' }
 Join >> addSource: aField target: anotherField [ 
 	| value targetValue |
 	value := (self isConstant: aField) 
@@ -10,7 +10,7 @@ Join >> addSource: aField target: anotherField [
 	targetValue := anotherField class == SimpleQuery
 		ifTrue: [anotherField asGlorpExpressionOn: base] 
 		ifFalse: [anotherField].
-	(self isConstant: targetValue) ifTrue: [
-		self error: 'You are attempting to set a constant value as the target of a relationship. I suspect you want to set it on the source instead. Either that or you''re trying to use a field name where a field object is required.'].
-	targets add: targetValue
+	((self isConstant: targetValue) and: [(Dialect isBlock: targetValue) not]) ifTrue:
+		[self error: 'You are attempting to set a constant value as the target of a relationship. I suspect you want to set it on the source instead. Either that or you''re trying to use a field name where a field object is required.'].
+	targets add: targetValue.
 ]

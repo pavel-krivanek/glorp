@@ -43,6 +43,11 @@ CompoundQuery class >> visualWorksMetadata [
 
 ]
 
+{ #category : #preparing }
+CompoundQuery >> addBoundExpressionsIn: aCommand [
+	queries do: [:each | each addBoundExpressionsIn: aCommand].
+]
+
 { #category : #accessing }
 CompoundQuery >> addQuery: aQuery [
 	queries isEmpty ifTrue: [primaryQuery := aQuery].
@@ -152,7 +157,9 @@ CompoundQuery >> prepare [
 	ordering isNil ifFalse: [
 		ordering := ordering collect: [:each |
 			(self expressionBlockFor: each) asGlorpExpressionOn: queries first baseExpression]].
-	grouping isNil ifFalse: [grouping := (self expressionBlockFor: grouping) asGlorpExpressionOn: queries first baseExpression]
+	grouping isNil ifFalse: [
+		grouping := grouping collect: [:each |
+			(self expressionBlockFor: each) asGlorpExpressionOn: queries first baseExpression]].
 ]
 
 { #category : #accessing }
@@ -265,11 +272,6 @@ CompoundQuery >> rowsFromDatabaseWithParameters: anArray [
 { #category : #testing }
 CompoundQuery >> shortCircuitEmptyReturn [
 	^false.
-]
-
-{ #category : #accessing }
-CompoundQuery >> shortCircuitEmptyReturn: parameters [
-	^false
 ]
 
 { #category : #accessing }

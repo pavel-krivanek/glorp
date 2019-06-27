@@ -95,7 +95,7 @@ FilteringQuery >> filter: aBlock [
 { #category : #executing }
 FilteringQuery >> filterResultsForParameters: parameterArray [
 	| passing seen |
-	seen := Dialect newIdentitySet.
+	seen := IdentitySet new.
 	passing := collection
 		select:
 			[:each | 
@@ -107,7 +107,7 @@ FilteringQuery >> filterResultsForParameters: parameterArray [
 					[new := (seen includes: value) not.
 					new ifTrue: [seen add: value]].
 			passes and: [new]].
-	^passing
+	^passing.
 ]
 
 { #category : #accessing }

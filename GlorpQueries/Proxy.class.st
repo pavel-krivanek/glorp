@@ -17,7 +17,7 @@ Class {
 		'parameters',
 		'action'
 	],
-	#category : #GlorpQueries
+	#category : #'GlorpQueries-Glorp'
 }
 
 { #category : #'instance creation' }
@@ -84,14 +84,6 @@ Proxy class >> visualWorksMetadata [
 		'superclassNamespace' 'Glorp'
 	)
 
-]
-
-{ #category : #accessing }
-Proxy >> = anObject [
-	"In VA we inherit this as identity. Need to override"
-	^self isGlorpProxy & anObject isGlorpProxy
-		ifTrue: [ self getValue = anObject getValue ]
-		ifFalse: [ super = anObject ]
 ]
 
 { #category : #accessing }
@@ -206,14 +198,4 @@ Proxy >> session [
 { #category : #accessing }
 Proxy >> session: aSession [ 
 	session := aSession
-]
-
-{ #category : #accessing }
-Proxy >> species [
-
-	self isInstantiated ifTrue: [^value species].
-	query isNil ifTrue: [^Proxy].
-	query resultClass isNil ifTrue: [^Proxy].
-	^query resultClass species
-
 ]
