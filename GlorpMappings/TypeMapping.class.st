@@ -58,7 +58,7 @@ TypeMapping >> descriptorForSuperclass [
 { #category : #testing }
 TypeMapping >> hasAttribute [
 	"Return true if this maps an attribute, which is normally true"
-	^false
+	^false.
 ]
 
 { #category : #testing }

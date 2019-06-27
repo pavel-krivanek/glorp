@@ -67,7 +67,7 @@ FilteredTypeMapping >> buildKeyDictionary [
 { #category : #types }
 FilteredTypeMapping >> describedConcreteClassFor: aRow withBuilder: builder [
 
-	^self keyDictionary at: (aRow at: (builder translateFieldPosition: field))
+	^self keyDictionary at: (aRow atIndex: (builder translateFieldPosition: field))
 ]
 
 { #category : #accessing }
