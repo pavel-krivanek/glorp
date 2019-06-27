@@ -968,12 +968,6 @@ DatabasePlatform >> isMySQLPlatform [
 ]
 
 { #category : #testing }
-DatabasePlatform >> isNBSQLite3Platform [
-
-	^false
-]
-
-{ #category : #testing }
 DatabasePlatform >> isODBCPlatform [
 
 	^false
