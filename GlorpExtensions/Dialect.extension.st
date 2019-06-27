@@ -360,6 +360,7 @@ Dialect class >> readFixedPointFrom: aString [
 		].
 	self isVisualAge ifTrue: [ ^(self smalltalkAt: #Decimal) fromString: aString].
 	self isObjectStudio ifTrue: [^(self smalltalkAt: #Decimal) newString: aString].
+	self isPharo ifTrue: [^ Number readFrom: (ReadStream on: aString , 's')].
 	self error: 'not implemented'.
 	^ self
 ]
