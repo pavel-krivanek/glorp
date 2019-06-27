@@ -7,7 +7,7 @@ Class {
 	#instVars : [
 		'connection'
 	],
-	#category : #GlorpDatabase
+	#category : #GlorpPharoPort
 }
 
 { #category : #executing }
