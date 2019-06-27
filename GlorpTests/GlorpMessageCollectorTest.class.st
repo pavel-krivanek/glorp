@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'collector'
 	],
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -43,6 +43,8 @@ GlorpMessageCollectorTest >> testExpressionCreation [
 { #category : #tests }
 GlorpMessageCollectorTest >> testMessageCollectorDNU [
 	| message caught |
+	Dialect isObjectStudio ifTrue: [
+		^self messageCollectorDNUObjectStudio].
 	message := Message selector: #foo arguments: #().
 	caught := false.
 	[collector basicDoesNotUnderstand: message] on: MessageNotUnderstood
