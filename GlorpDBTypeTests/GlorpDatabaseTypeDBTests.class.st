@@ -7,7 +7,7 @@ Class {
 		'connection',
 		'session'
 	],
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
 { #category : #accessing }

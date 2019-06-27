@@ -11,7 +11,7 @@ Class {
 		'id2',
 		'oldReuseState'
 	],
-	#category : #GlorpDBTests
+	#category : #'GlorpDBTests-GlorpTest'
 }
 
 { #category : #resources }

@@ -8,7 +8,7 @@ Class {
 		'session',
 		'table'
 	],
-	#category : #GlorpDBTypeTests
+	#category : #'GlorpDBTypeTests-Glorp-DBTests'
 }
 
 { #category : #'as yet unclassified' }
