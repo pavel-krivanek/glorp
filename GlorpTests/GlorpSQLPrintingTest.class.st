@@ -61,21 +61,6 @@ GlorpSQLPrintingTest >> assertGroupWritingIdentityOnPlatform: platform printsSQL
 		resumable: true.
 ]
 
-{ #category : #utilities }
-GlorpSQLPrintingTest >> assertGroupWritingOnPlatform: platform [
-	| system row1 row2 command string session |
-	session := GlorpDemoDescriptorSystem sessionForLogin: (Login new database: platform).
-	system := session system.
-	row1 := DatabaseRow newForTable: (system tableNamed: 'GR_ADDRESS').
-	row1 atFieldNamed: 'ID' put: 1.
-	row2 := DatabaseRow newForTable: (system tableNamed: 'GR_ADDRESS').
-	row2 atFieldNamed: 'ID' put: 2.
-	command := InsertCommand forRows: (Array with: row1 with: row2) useBinding: false session: session.
-	string := command sqlString.
-	self assert: (string includes: $;).
-	self assert: string = 'INSERT INTO GR_ADDRESS (ID,STREET,HOUSE_NUM)  VALUES (1,NULL,NULL); INSERT INTO GR_ADDRESS (ID,STREET,HOUSE_NUM)  VALUES (2,NULL,NULL)'.
-]
-
 { #category : #'utilities-insert' }
 GlorpSQLPrintingTest >> assertGroupWritingOnPlatform: platform printsSQL: aString [
 	"The parameter platform instance is configured to allow group writing.  Verify that a two-row InsertCommand created from it will group-write by evaluating the relevant code in RowBasedCommand>>execute{Bound|Unbound}In:, which is
@@ -234,23 +219,6 @@ GlorpSQLPrintingTest >> testDatePrinting [
 	stream := WriteStream on: String new.
 	date glorpPrintSQLOn: stream.
 	self assert: stream contents = '''2002-05-02'''.
-]
-
-{ #category : #tests }
-GlorpSQLPrintingTest >> testGroupWriting [
-	"Oracle does not group-write:  when binding, it says it does solely to take the code path that leads to array buinding.  We therefore do not test Oracle here."
-
-	| platform |
-	platform := PostgreSQLPlatform new.
-	platform useBinding: false.
-	self assertGroupWritingOnPlatform: platform.
-
-	platform := SQLServerPlatform new.
-	platform useBinding: false.
-	self assertGroupWritingOnPlatform: platform.
-	platform := SQLServerPlatform new.
-	platform useBinding: true.
-	self assertGroupWritingOnPlatform: platform.
 ]
 
 { #category : #tests }
