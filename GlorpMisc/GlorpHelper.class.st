@@ -4,7 +4,7 @@ This is a helper class for methods that I'd like to be able to add as extensions
 Class {
 	#name : #GlorpHelper,
 	#superclass : #Object,
-	#category : #GlorpMisc
+	#category : #'GlorpMisc-Glorp'
 }
 
 { #category : #classes }
