@@ -7,7 +7,7 @@ Class {
 	#classVars : [
 		'Singleton'
 	],
-	#category : #GlorpDatabase
+	#category : #'GlorpDatabase-Glorp'
 }
 
 { #category : #defaults }

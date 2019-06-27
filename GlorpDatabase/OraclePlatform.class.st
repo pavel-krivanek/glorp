@@ -520,7 +520,7 @@ OraclePlatform >> supportsANSIJoins [
 { #category : #testing }
 OraclePlatform >> supportsBinding [
 	"Binding works only with VW EXDI so far"
-	^false.
+	^Dialect isVisualWorks.
 ]
 
 { #category : #testing }
