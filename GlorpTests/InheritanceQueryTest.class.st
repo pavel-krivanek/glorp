@@ -45,8 +45,8 @@ InheritanceQueryTest >> queryForSuccessor [
 { #category : #running }
 InheritanceQueryTest >> setUp [
 	super setUp.
-	system := TESTDescriptorSystem forPlatform: session platform.
-	session system: system.
+	system := TESTDescriptorSystem forPlatform: session platform.	"VW_TRANSLATION:Glorp.TESTDescriptorSystem:TESTDescriptorSystem"
+	session system: system
 ]
 
 { #category : #running }
