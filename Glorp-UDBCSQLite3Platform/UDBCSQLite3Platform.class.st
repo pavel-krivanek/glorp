@@ -4,7 +4,7 @@ I support Glorp's use of the SQLite database through NBSQLite3, the NativeBoost 
 Class {
 	#name : #UDBCSQLite3Platform,
 	#superclass : #SQLite3Platform,
-	#category : #GlorpDatabase
+	#category : #'Glorp-UDBCSQLite3Platform'
 }
 
 { #category : #types }
