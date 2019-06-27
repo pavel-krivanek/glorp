@@ -133,7 +133,7 @@ DatabasePlatform >> asTimestamp: anObject for: aType [
 	anObject isNil ifTrue: [^nil].
 	^anObject class = Time
 		ifTrue: [Dialect newTimestampFromDate: Date today time: anObject]
-		ifFalse: [anObject asDateAndTime].
+		ifFalse: [anObject asTimestamp].
 ]
 
 { #category : #constants }
@@ -1631,7 +1631,7 @@ DatabasePlatform >> readTimestamp: anObject for: aType [
 			[| stream |
 			stream := ReadStream on: anObject.
 			^self readTimestampFromStream: stream for: aType].
-	^anObject asDateAndTime.
+	^anObject asTimestamp.
 ]
 
 { #category : #'conversion-times' }
@@ -2181,7 +2181,7 @@ DatabasePlatform >> toTimestamp: anObject for: aType [
 	anObject isNil ifTrue: [^nil].
 	anObject class = Dialect timestampClass ifTrue: [^anObject].
 	anObject isInteger ifTrue: [^anObject].
-	^anObject asDateAndTime
+	^anObject asTimestamp
 ]
 
 { #category : #'conversion-strings' }

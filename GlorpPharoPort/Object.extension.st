@@ -1,6 +1,12 @@
 Extension { #name : #Object }
 
 { #category : #'*GlorpPharoPort' }
+Object >> asTimestamp [
+
+	^ self asDateAndTime
+]
+
+{ #category : #'*GlorpPharoPort' }
 Object >> glorpEndOfIndexedInstVars [
 	"Return the index at which indexed instance variables start. The same as basicSize for most dialects, but funny for ObjectStudio"
 
