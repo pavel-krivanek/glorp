@@ -847,7 +847,7 @@ Descriptor >> validate [
 		ifFalse: [MultipleMappingsForInstanceVariable new
 					model: self describedClass;
 					readableMappings: readableMappings;
-					signal].
+					raiseRequest].
 
 	self typeResolver validate.
 ]

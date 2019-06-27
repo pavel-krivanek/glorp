@@ -107,17 +107,6 @@ DescriptorSystem class >> recreateTablesFor: aLogin [
 ]
 
 { #category : #'instance creation' }
-DescriptorSystem class >> sessionForAccessor: aDatabaseAccesor [.
-	"Create a session associated with the given accesseor, and using us as a descriptor system. 
-	This is the easiest way to get a full blown session going."
-	
-	^(GlorpSession forSystem: (self forPlatform: aDatabaseAccesor platform))
-		accessor: aDatabaseAccesor;
-		yourself
-
-]
-
-{ #category : #'instance creation' }
 DescriptorSystem class >> sessionForLogin: aGlorpLogin [
 	"Create a session associated with the given login, and using us as a descriptor system. This is the easiest way to get a full blown session going."
 	| system session |
@@ -405,18 +394,6 @@ DescriptorSystem >> descriptorFor: aClassOrObject [
 ]
 
 { #category : #api }
-DescriptorSystem >> descriptorForTable: aTable [
-	"Return a descriptor that uses aTable. If there is more than one, the choice is random."
-	^descriptors detect: [:each | each tables includes: aTable] ifNone: [nil]
-]
-
-{ #category : #api }
-DescriptorSystem >> descriptorsForTable: aTable [
-	"Return all descriptors that use aTable."
-	^descriptors select: [:each | each tables includes: aTable]
-]
-
-{ #category : #api }
 DescriptorSystem >> existingTableNamed: aString [
 
 	^tables at: aString asUppercase ifAbsent: [self error: 'missing table'].
@@ -640,7 +617,7 @@ DescriptorSystem >> sessionForLogin: aGlorpLogin [
 	| newSession |
 	platform isNil ifTrue: [self platform: aGlorpLogin database].
 	aGlorpLogin database class = self platform class ifFalse: [self error: 'Login is incompatible with the database specified in the descriptor system'].
-	session isNil ifFalse: [InvalidSessionSetup signal: 'DescriptorSystem already has a session; resume this error if this was intended.'].
+	session isNil ifFalse: [InvalidSessionSetup raiseErrorString: 'DescriptorSystem already has a session; resume this error if this was intended.'].
 	newSession := GlorpSession new.
 	newSession accessor: (DatabaseAccessor forLogin: aGlorpLogin).
 	newSession system: self.
@@ -757,7 +734,7 @@ DescriptorSystem >> useJoinsForAnySatisfy: aBoolean [
 
 { #category : #validation }
 DescriptorSystem >> validate [
-	session isNil ifFalse: [session system == self ifFalse: [InvalidSessionSetup signal: 'Invalid session setup']].
+	session isNil ifFalse: [session system == self ifFalse: [InvalidSessionSetup  raiseErrorString:  'Invalid session setup']].
 	self allTables do: [:each | each validateIn: self].
 	self allClassModels do: [:each | each validateIn: self].
 	self allDescriptors do: [:each | each validate].
