@@ -1,7 +1,7 @@
 Class {
 	#name : #GlorpDatabasePlatformTest,
 	#superclass : #GlorpTestCase,
-	#category : #GlorpTests
+	#category : #'GlorpTests-GlorpTest'
 }
 
 { #category : #'VisualWorks metadata' }
@@ -34,7 +34,7 @@ GlorpDatabasePlatformTest >> helpTestPrintTimestamp: aTimestampString [
 	aStream := WriteStream on: String new.
 	DatabasePlatform new printDate: ts isoFormatOn: aStream.
 	aStream nextPut: Character space.
-	DatabasePlatform new printTime: ts isoFormatOn: aStream milliseconds: Dialect supportsMillisecondsInTimes .
+	DatabasePlatform new printTime: ts isoFormatOn: aStream milliseconds: true.
 	timestamp := aStream contents.
 	self assert: timestamp = aTimestampString.
 ]
@@ -42,7 +42,11 @@ GlorpDatabasePlatformTest >> helpTestPrintTimestamp: aTimestampString [
 { #category : #tests }
 GlorpDatabasePlatformTest >> string20 [
 	| platform |
-	platform := PostgresPlatform new.
+	platform := Dialect isVisualAge
+		ifTrue:
+			[Transcript cr; show: self class name, '>>string20: testing Oracle, not PostgreSQL'.
+			OraclePlatform new]
+		ifFalse: [PostgresSocketPlatform new].
 	platform characterEncoding: #'utf-8'.
 	^platform varchar: 20.
 ]
@@ -169,6 +173,7 @@ GlorpDatabasePlatformTest >> testTrimString1 [
 GlorpDatabasePlatformTest >> testTrimString2 [
 	"Some special characters"
 	| type plat string |
+	Dialect isVisualAge ifTrue: [Transcript cr; show: self class name; show: '>>testTrimString2 skipped in VA'. ^self].
 
 	type := self string20.
 	plat := type platform.
