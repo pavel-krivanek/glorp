@@ -76,6 +76,7 @@ Dialect class >> selectorsFor: aClass do: aBlock [
 	self isVisualWorks ifTrue: [^aClass selectorsAndMethodsDo: [:key :value | aBlock value: key]].
 	self isVisualAge ifTrue: [^ aClass methodDictionary keysDo: aBlock].
 	self isSqueak ifTrue: [^aClass methodDict keysDo: aBlock].
+	self isPharo ifTrue: [^aClass methodDict keysDo: aBlock].
 	self error: 'Not yet implemented'.
 ]
 

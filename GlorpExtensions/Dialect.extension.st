@@ -39,6 +39,7 @@ Dialect class >> argumentCountFor: aBlock [
 	Dialect isDolphin ifTrue: [^aBlock argumentCount].
 	Dialect isSqueak ifTrue: [^aBlock numArgs].	"argumentCount would also work"
 	Dialect isGNU ifTrue: [^ self error: 'not implemented yet'].
+	Dialect isPharo ifTrue: [^aBlock argumentCount].
 	self error: 'not implemented yet'.
 	^ self
 ]
@@ -480,6 +481,7 @@ Dialect class >> timestampClass [
 	(Dialect isSqueak or: [Dialect isDolphin.])
 		ifTrue: [^ timestampClass := self smalltalkAt: #TimeStamp].
 	Dialect isVisualAge ifTrue: [^ timestampClass := self smalltalkAt: #Timestamp].
+	Dialect isPharo ifTrue: [^ timestampClass := self smalltalkAt: #Timestamp].
 	self error: 'Not yet implemented'.
 	^ self
 ]

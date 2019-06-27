@@ -3,7 +3,7 @@ This is an abstract superclass for all descriptor systems whose tables should be
 "
 Class {
 	#name : #GlorpTestDescriptorSystem,
-	#superclass : #AnObsoleteDescriptorSystem,
+	#superclass : #DescriptorSystem,
 	#category : #'GlorpTestModels-Glorp'
 }
 

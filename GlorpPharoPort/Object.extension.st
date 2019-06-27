@@ -1,6 +1,12 @@
 Extension { #name : #Object }
 
 { #category : #'*GlorpPharoPort' }
+Object >> asNanoseconds [
+
+	^ self asNanoSeconds
+]
+
+{ #category : #'*GlorpPharoPort' }
 Object >> asTimestamp [
 
 	^ self asDateAndTime

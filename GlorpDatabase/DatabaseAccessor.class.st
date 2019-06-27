@@ -53,6 +53,7 @@ DatabaseAccessor class >> classForThisPlatform [
 	Dialect isSqueak ifTrue: [^Dialect smalltalkAt: #SqueakDatabaseAccessor].
 	Dialect isVisualAge ifTrue: [^Dialect smalltalkAt: #VADatabaseAccessor].
 	Dialect isDolphin ifTrue: [^Dialect smalltalkAt: #DolphinDatabaseAccessor].
+	Dialect isPharo ifTrue: [^Dialect smalltalkAt: #PharoDatabaseAccessor].
 	self error: 'unknown dialect'.
 	^self
 ]
