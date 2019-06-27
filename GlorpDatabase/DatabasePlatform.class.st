@@ -356,8 +356,7 @@ DatabasePlatform >> convertByteArrayToSQLString: aByteArray for: aType [
 
 { #category : #'conversion-strings' }
 DatabasePlatform >> convertByteArrayToString: aByteArray for: aType [
-	
-	^aByteArray ifNotNil: [ aByteArray asString ]
+	^aByteArray asString.
 ]
 
 { #category : #'conversion-boolean' }
@@ -375,7 +374,7 @@ DatabasePlatform >> convertIntegerToBoolean: anInteger for: aType [
 
 { #category : #'conversion-strings' }
 DatabasePlatform >> convertStringToByteArray: aString for: aType [
-	^aString ifNotNil:  [aString asByteArray]
+	^aString asByteArray.
 ]
 
 { #category : #'conversion-boolean' }
@@ -1610,8 +1609,7 @@ DatabasePlatform >> readTimeFromStream: aStream for: aType [
 				millisecondAccumulator nextPut: aStream next].
 			milliseconds := millisecondAccumulator contents asNumber]
 		ifFalse: [milliseconds := 0].
-	timeZoneOffset := aStream upToEnd.
-	timeZoneOffset := Number readFrom: timeZoneOffset ifFail: [ 0 ].
+	timeZoneOffset := aStream upToEnd asNumber.
 	^Dialect newTimeWithHours: hours minutes: minutes seconds: seconds milliseconds: milliseconds.
 	"^Dialect addSeconds: (timeZoneOffset * -1* 60 * 60) to: aTime."
 ]
@@ -1652,7 +1650,8 @@ DatabasePlatform >> readTimestampFromStream: aStream for: aType [
 				millisecondAccumulator nextPut: aStream next].
 			milliseconds := millisecondAccumulator contents asNumber]
 		ifFalse: [milliseconds := 0].
-	timeZoneOffset := Number readFrom: aStream upToEnd ifFail: [ 0 ].
+	timeZoneOffset := aStream upToEnd asNumber.
+	timeZoneOffset isNil ifTrue: [timeZoneOffset := 0].
 	timeZoneOffset := timeZoneOffset * 60 * 60.
 	^Dialect 
 		newTimestampWithYears: years

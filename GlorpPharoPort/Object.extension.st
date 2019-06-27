@@ -7,6 +7,12 @@ Object >> asTimestamp [
 ]
 
 { #category : #'*GlorpPharoPort' }
+Object >> glorpCopyIn: aDictionary [
+	"For non-storeForGlorp objects, just copy normally"
+	^self copy.
+]
+
+{ #category : #'*GlorpPharoPort' }
 Object >> glorpEndOfIndexedInstVars [
 	"Return the index at which indexed instance variables start. The same as basicSize for most dialects, but funny for ObjectStudio"
 
