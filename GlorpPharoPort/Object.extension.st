@@ -35,3 +35,11 @@ Object >> glorpStartOfIndexedInstVars [
 	"Return the index at which indexed instance variables start. 1 for most dialects, but funny for ObjectStudio"
 	^1.
 ]
+
+{ #category : #'*GlorpPharoPort' }
+Object >> respondsToArithmetic [
+	"Answer whether the object responds to the numeric (#+, #-, #*, #/)
+	protocol as defined in the class ArithmeticValue"
+
+	^false
+]
