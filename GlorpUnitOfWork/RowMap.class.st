@@ -93,11 +93,11 @@ RowMap >> at: aField key: anObject put: aValue [
 { #category : #'private/deletion' }
 RowMap >> collapseMatchingInsertsAndDeletes [
 	^rowDictionary
-		inject: Dialect identitySetClass new
+		inject: IdentitySet new
 		into:
 			[:sum :eachTablesRowList | 
 			sum addAll: (self collapseMatchingInsertsAndDeletesFor: eachTablesRowList).
-			sum]
+			sum].
 ]
 
 { #category : #'private/deletion' }
