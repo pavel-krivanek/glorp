@@ -125,8 +125,11 @@ InfixFunction >> printTreeOn: aStream [
 
 { #category : #printing }
 InfixFunction >> printUnqualifiedSQLOn: aStream withParameters: aDictionary [
+	"The initial call of functionParts guarantees its (lazy) initialization, after which we can safely refer to the instvar directly."
+
 	base printUnqualifiedSQLOn: aStream withParameters: aDictionary.
-	self functionParts with: arguments do: [:functionPart :arg |
+	self functionParts with: arguments do:
+		[:functionPart :arg |
 		aStream 
 			nextPut: $ ;
 			nextPutAll: functionPart;
@@ -143,4 +146,19 @@ InfixFunction >> rebuildOn: aBaseExpression startingFrom: anExpression withOuter
 	rebuilt := (base rebuildOn: aBaseExpression startingFrom: anExpression withOuterScopeBase: ultimateBaseExpression) get: self symbol withArguments: newArgs.
 	rebuilt alias: self alias.
 	^rebuilt.
+]
+
+{ #category : #mapping }
+InfixFunction >> valueInBuilder: anElementBuilder [
+	^anElementBuilder valueOfField: self
+
+"Example:  an InfixFunction
+	Base(Glorp.ASCustomer) NOT EXISTS #(subselect(a SimpleQuery for ASOrder))
+results from the #retrieve: block in
+	 query := Query read: ASCustomer where:
+		[:cust | cust name = 'Informing AG' AND: [cust orders notEmpty]].
+	query setUpBaseFromSession: session.
+	query retrieve:[:each | each orders isEmpty].
+	query executeIn: session.
+In anElementBuilder's fieldTranslations, this function keys 1 (in the example, it is the first - and only - retrieval).  Therefore it extracts the first value from the row (which will be false in the example)."
 ]

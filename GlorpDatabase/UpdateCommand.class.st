@@ -33,14 +33,16 @@ UpdateCommand class >> visualWorksMetadata [
 
 { #category : #executing }
 UpdateCommand >> allRowsGrouped: maxSizeInteger evaluate: aBlock [
-	"If we are array binding and are updating only changed fields or have nullable lock fields, we need to group our rows into subsets that generate the same SQL into which values can be bound.  The SQL in the SET clause must have the same fields to uopdate for all rows.  Each lock field's initial value will appear in the where clause comparison, along with the primary key values, but whereas primary keys cannot be null, lock fields just might be.  In each group we write, each lock field must have either no nil values or all nil values so that the SQL in the where clause can be either ... lockField IS NULL or else ... lockField=?, with ? never being bound to nil value."
+	"If we are array binding and are updating only changed fields or have nullable lock fields, we need to group our rows into subsets that generate the same SQL into which values can be bound.  The SQL in the SET clause must have the same fields to uopdate for all rows.  Each lock field's initial value will appear in the where clause comparison, along with the primary key values, but whereas primary keys cannot be null, lock fields just might be.  In each group we write, each lock field must have either no nil values or all nil values so that the SQL in the where clause can be either ... lockField IS NULL or else ... lockField=?, with ? never being bound to nil value.
+	If we are batch binding, it is possible to print the row-by-row-varying SQL and compute the corresponding row-by-row-varying bindings, but it is far simpler to group the rows into subsets as above, and so compute the bindings one per subset."
 
 	| theRows nullableLockKeyFields compatibleRowGroups compatibleRowKeys |
-	self useBinding ifFalse:	"unbound SQL can handle variations in which fields to update and/or which lock fields are nil"
+	self useBinding ifFalse:	"unbound SQL can handle row-by-row variation in which fields to update and/or which lock fields are nil"
 		[^super allRowsGrouped: maxSizeInteger evaluate: aBlock].
-	self platform usesArrayBindingToGroupWrite ifFalse:	"batch-statement-grouped rows can handle variations"
+	nullableLockKeyFields := self lockKeyFields select: [:each | each isNullable].
+	"if no lock field can be nil, can't have rows with clashing nil states.  If all fields are updated, can't have differing field lists."
+	(nullableLockKeyFields isEmpty and: [self shouldUpdateOnlyChangedFields not]) ifTrue:
 		[^super allRowsGrouped: maxSizeInteger evaluate: aBlock].
-	nullableLockKeyFields := row lockKeyFields select: [:each | each isNullable].	"if no lock field can be nil, can't have rows with clashing nil states"
 	"Sort the rows into compatible groups.  Collect the keys as well as the groups, instead of just using #groupedBy:, to preserve order as much as possible."
 	compatibleRowGroups := Dictionary new.
 	compatibleRowKeys := OrderedCollection new.
@@ -87,7 +89,7 @@ UpdateCommand >> arrayBindings [
 
 	| basicBindings lockKeyNonNilFields lockKeyWhereClauseBindings |
 	basicBindings := super arrayBindings.
-	lockKeyNonNilFields := row lockKeyFields select:
+	lockKeyNonNilFields := self lockKeyFields select:
 		[:each | each isNullable not or: [(row oldVersionAt: each ifAbsent: [nil]) notNil]].
 	lockKeyNonNilFields isEmpty ifTrue: [^basicBindings].
 	lockKeyWhereClauseBindings := (1 to: lockKeyNonNilFields size) collect: [:each | Array new: allRows size].
@@ -105,7 +107,7 @@ UpdateCommand >> arrayBindings [
 
 { #category : #'bound values' }
 UpdateCommand >> arrayBoundFields [
-	"Array binding binds one or more values to the same SQL so all rows must agree which fields need update.  We also have to bind any optimistic lock field twice, once here with its current to-write value and once in the where clause with its older was-read value;  this second where-clause bind is appended by the caller."
+	"Array binding binds one or more values to the same SQL so all rows must agree which fields need update.  We also have to bind any optimistic lock field twice, once here with its current to-write value and once in the where clause with its older was-read value;  this second where-clause bind is appended by the caller.  (Lock fields are always written.)  We need only check the first row to see which fields are being updated because #allRowsGrouped:evaluate: ensures all rows in a given group have the same set of changed fields."
 
 	| basicFields |
 	basicFields := self fieldsNeedingUpdate: row.
@@ -117,7 +119,7 @@ UpdateCommand >> batchStatementBindings [
 	"As the super implementation but we add the where clause bindings for any lock fields."
 
 	| bound fields lockKeyFields |
-	lockKeyFields := row lockKeyFields.
+	lockKeyFields := self lockKeyFields.
 	lockKeyFields isEmpty ifTrue: [^super batchStatementBindings].
 	fields := self arrayBoundFields.
 	bound := OrderedCollection new: allRows size * (fields size + lockKeyFields size).
@@ -138,9 +140,9 @@ UpdateCommand >> bindingTypes [
 	A lock field appears in the UPDATE clause, with its to-write value, and again in the WHERE clause, with its was-read value, so my #printSQL method writes IS NULL if a lock field's read value is nil (see #printLockEqualityForField:on:, which leads through a RelationalEpression to #printWithNullOn:).  If there is only one lock field then its final nil binding value would have no bind marker and could just be ignored (as happened in older Glorp).  If there were two lock fields (a rare case - how likely is it?), a nil read value for the first gets bound to the second's ? in the SQL, its own value being ignored.  Therefore avoid binding nil to a lock field."
 
 	| lockKeyWhereClauseBindingTypes lockType |
-	row lockKeyFields isEmpty ifTrue: [^super bindingTypes].
-	lockKeyWhereClauseBindingTypes := OrderedCollection new: row lockKeyFields size.
-	row lockKeyFields do:
+	self lockKeyFields isEmpty ifTrue: [^super bindingTypes].
+	lockKeyWhereClauseBindingTypes := OrderedCollection new: self lockKeyFields size.
+	self lockKeyFields do:
 		[:each || fieldValue | fieldValue := row oldVersionAt: each ifAbsent: [nil].
 		(fieldValue notNil and: [self canBind: fieldValue to: (lockType := each type)])
 			ifTrue: [lockKeyWhereClauseBindingTypes add: lockType]].
@@ -154,11 +156,16 @@ UpdateCommand >> fieldsNeedingUpdate: aDatabaseRow [
 		ifFalse: [aDatabaseRow nonPrimaryKeyFields]
 ]
 
+{ #category : #'bound values' }
+UpdateCommand >> lockKeyFields [
+	^row lockKeyFields
+]
+
 { #category : #testing }
 UpdateCommand >> needsRowCount [
 	"We need to know whether any of the rows we attempted to update were not updated, i.e. whether any of them had changed lock key values from when we read them, so did not match their where clause, so did not update."
 
-	^row lockKeyFields isEmpty not
+	^self lockKeyFields isEmpty not
 ]
 
 { #category : #executing }
@@ -183,7 +190,7 @@ UpdateCommand >> printSQLForFirstRow: aRow [
 		separatedBy: [self nextPut: $,].
 	self nextPutAll: ' WHERE '.
 	aRow printPrimaryKeyTemplateOn: self.
-	aRow lockKeyFields do:
+	self lockKeyFields do:
 		[:field | self nextPutAll: ' AND '.
 		aRow printLockEqualityForField: field on: self].
 ]
@@ -197,7 +204,9 @@ UpdateCommand >> printSQLForNextRow: aRow [
 
 { #category : #testing }
 UpdateCommand >> shouldUpdateOnlyChangedFields [
-	"Return true if we should write only changed fields out in an update statement, or if we should write all of them. The tradeoff is that writing only the changed ones will produce less SQL, but make more variations of the statement, and require us to keep more prepared statements around if we're using binding. By default, use this option only if we're not using binding by default."
+	"In an update statement, should we write out only changed fields or all of them?  The tradeoff is that writing only the changed ones will produce less SQL but make more variations of the statement, so require us to keep more prepared statements around if we're using binding.  DescriptorSystem returns true as the default, but a specific descriptor system can make #shouldUpdateOnlyChangedFieldsFor return
+	aCommand useBinding not
+if they prefer more SQL and fewer prepared statements."
 
 	^self system shouldUpdateOnlyChangedFieldsFor: self.
 ]
@@ -207,7 +216,7 @@ UpdateCommand >> singleRowBindings [
 	"In an update command, lock fields appear twice, once in the UPDATE clause, with (current) to-write value, and again in the WHERE clause, with (prior) was-read value;  add these where clause values (see class comment)."
 
 	| lockKeyWhereClauseBindings |
-	row lockKeyFields isEmpty ifTrue: [^super singleRowBindings].
+	self lockKeyFields isEmpty ifTrue: [^super singleRowBindings].
 	lockKeyWhereClauseBindings := OrderedCollection new: row lockKeyFields size.
 	row lockKeyFields do:
 		[:each || fieldValue | fieldValue := row oldVersionAt: each ifAbsent: [nil].

@@ -1,12 +1,16 @@
 "
 This is a platform for the libpq C protocol 3 API of the open-source PostgreSQL database.
 
+Instance Variables:
+	canRecurse	<Boolean>	is recursive SQL supported
+	supportsGroupWritingValues	<Boolean>	can a single INSERT statement be followed by multiple VALUES
 "
 Class {
 	#name : #PostgresLibpqPlatform,
 	#superclass : #PostgresPlatform,
 	#instVars : [
-		'supportsGroupWritingValues'
+		'supportsGroupWritingValues',
+		'canRecurse'
 	],
 	#category : #GlorpDatabase
 }
@@ -26,6 +30,20 @@ PostgresLibpqPlatform class >> visualWorksMetadata [
 
 ]
 
+{ #category : #testing }
+PostgresLibpqPlatform >> canRecurse [
+	^canRecurse
+]
+
+{ #category : #'initialize-release' }
+PostgresLibpqPlatform >> initialize [
+	"I have supported group writing since version 8.2 and recursion since 8.4.  For safety, we initialize to false, resetting in postLoginInitializeFromAccessor:."
+
+	super initialize.
+	canRecurse := false.
+	supportsGroupWritingValues := false.
+]
+
 { #category : #commands }
 PostgresLibpqPlatform >> insertCommandForRows: aCollectionOfDatabaseRows binding: aBoolean session: aSession [
 	"When unbound, Postgres can group ;-separated INSERT statements or (in 8.2 and after) ,-separated values following a single INSERT statement.  When bound, only the latter works.  We group using values in both cases, because we must when bound and to minimise the length of the round-trip SQL when unbound."
@@ -38,9 +56,7 @@ PostgresLibpqPlatform >> insertCommandForRows: aCollectionOfDatabaseRows binding
 
 { #category : #'conversion-strings' }
 PostgresLibpqPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
-	"If we cannot get the standard_conforming_strings state, assume the database is too old to understand it.  Likewise if we have no version avoid"
-
-	| standardConformingStrings dbmsVersion verNum |
+	| standardConformingStrings dbmsVersion |
 	charactersThatNeedEscaping isNil ifFalse: [^self].	"All values are set first time round, so we need only check one."
 	"Only the VWDatabaseAccessor calls this method at the moment, so we need not check
 	Dialect isVisualWorks ifFalse: [^super postLoginInitializeFromAccessor: aDatabaseAccessor]."
@@ -49,8 +65,8 @@ PostgresLibpqPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
 		ifTrue: [charactersThatNeedEscaping := '''']	"escape single quote characters only"
 		ifFalse: [charactersThatNeedEscaping := '''\'].	"escape single quote and backslash"
 	dbmsVersion := aDatabaseAccessor connection serverVersion tokensBasedOn: $..
-	supportsGroupWritingValues := (verNum := dbmsVersion first asNumber) > 8
-		or: [verNum = 8 and: [(dbmsVersion at: 2) asNumber > 1]].
+	supportsGroupWritingValues := self isVersion: #(8 2) notNewerThan: dbmsVersion.
+	canRecurse := self isVersion: #(8 4) notNewerThan: dbmsVersion.
 ]
 
 { #category : #testing }
@@ -59,7 +75,7 @@ PostgresLibpqPlatform >> supportsGroupWritingFor: aCommand [
 
 	^(super supportsGroupWritingFor: aCommand) and:
 		[aCommand supportsGroupWritingValues or:
-			[self useBinding not and: [aCommand needsRowCount not]]]
+			[self useBinding not and: [aCommand needsRowCount not and: [aCommand class ~= ReturningUpdateCommand]]]]
 ]
 
 { #category : #testing }

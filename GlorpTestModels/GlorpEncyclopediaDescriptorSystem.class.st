@@ -22,7 +22,7 @@ GlorpEncyclopediaDescriptorSystem >> allTableNames [
 	^#('ENCYC' 'ENCYC_ENTRY' 'ENCYC_ENTRY_LINK' 'ENCYC_AUTHOR' 'ENCYC_AUTHOR_ENTRY_LINK' 'IMAGINARY_MEDIA_TYPE' 'GR_PUBLISHER' 'PUBLISHER_TITLE' 'PUB_TITLES_STOCK' 'PUB_TITLE_LINK' 'PUBLISHER_TITLE2' 'PUB_EMP_LINK' 'PUBLISHER_EMP').
 ]
 
-{ #category : #descriptors }
+{ #category : #classes }
 GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopedia: aClassModel [ 
  
 	aClassModel newAttributeNamed: #id.
@@ -34,20 +34,20 @@ GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopedia: aClassModel
 	aClassModel newAttributeNamed: #entriesByAuthor dictionaryFrom: GlorpEncyclopediaAuthor to: GlorpEncyclopediaEntry.
 ]
 
-{ #category : #descriptors }
+{ #category : #classes }
 GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopediaAuthor: aClassModel [
 	aClassModel newAttributeNamed: #id.
 	aClassModel newAttributeNamed: #name.
 ]
 
-{ #category : #descriptors }
+{ #category : #classes }
 GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopediaBioEntry: aClassModel [ 
 	aClassModel newAttributeNamed: #owner type: GlorpEncyclopedia.
 	aClassModel newAttributeNamed: #title.
 	aClassModel newAttributeNamed: #text.
 ]
 
-{ #category : #descriptors }
+{ #category : #classes }
 GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopediaEntry: aClassModel [ 
 	aClassModel newAttributeNamed: #id.
 	aClassModel newAttributeNamed: #title.
@@ -55,13 +55,13 @@ GlorpEncyclopediaDescriptorSystem >> classModelForGlorpEncyclopediaEntry: aClass
 	aClassModel newAttributeNamed: #mediaType type: GlorpMediaType
 ]
 
-{ #category : #descriptors }
+{ #category : #classes }
 GlorpEncyclopediaDescriptorSystem >> classModelForGlorpMediaType: aClassModel [ 
 	aClassModel newAttributeNamed: #name.
 	aClassModel newAttributeNamed: #mimeType
 ]
 
-{ #category : #descriptors }
+{ #category : #classes }
 GlorpEncyclopediaDescriptorSystem >> classModelForGlorpPublisher: aClassModel [ 
  
 	aClassModel newAttributeNamed: #id.
@@ -74,7 +74,7 @@ GlorpEncyclopediaDescriptorSystem >> classModelForGlorpPublisher: aClassModel [
 "	aClassModel newAttributeNamed: #titlesWithNumberInStockLink collection: Dictionary of: Integer."
 ]
 
-{ #category : #descriptors }
+{ #category : #classes }
 GlorpEncyclopediaDescriptorSystem >> classModelForGlorpPublisherEmployee: aClassModel [ 
  
 	aClassModel newAttributeNamed: #id.
@@ -122,9 +122,9 @@ GlorpEncyclopediaDescriptorSystem >> descriptorForGlorpEncyclopedia: aDescriptor
 	entriesByAuthor
 		attributeName: #entriesByAuthor;
 		referenceClass: GlorpEncyclopediaEntry;
-		usesLinkTable: true;													"Maybe some or all of ..."
-		join: (Join from: (table fieldNamed: 'ID') to: (linkTable fieldNamed: 'ENCYC_ID'));	"... these three lines  ..."
-		linkFields: (Array with: (linkTable fieldNamed: 'ENCYC_ENTRY_ID'));			"... may not be needed."
+		usesLinkTable: true;													"Some or all of these"
+		join: (Join from: (table fieldNamed: 'ID') to: (linkTable fieldNamed: 'ENCYC_ID'));	"...  three lines may"
+		linkFields: (Array with: (linkTable fieldNamed: 'ENCYC_ENTRY_ID'));				"... not be needed."
 		"constructRowMapKeyAs: [:encyc :entry :author | MultipleRowMapKey with: encyc yourSelf with: author yourSelf];"
 		keyMapping: ((entriesByAuthor newMapping: OneToOneMapping)
 			attributeName: #key;
@@ -174,13 +174,13 @@ GlorpEncyclopediaDescriptorSystem >> descriptorForGlorpEncyclopediaEntry: aDescr
 	(aDescriptor newMapping: EmbeddedValueOneToOneMapping)
 		attributeName: #mediaType;
 		referenceClass: GlorpMediaType;
-		fieldTranslation: ((Join new)
-					addSource: (entryTable fieldNamed: 'MEDIA_TYPE_NAME')
+		fieldTranslation: (Join new
+						addSource: (entryTable fieldNamed: 'MEDIA_TYPE_NAME')
 						target: ((self tableNamed: 'IMAGINARY_MEDIA_TYPE') 
-								fieldNamed: 'MEDIA_TYPE_NAME');
-					addSource: (entryTable fieldNamed: 'MEDIA_TYPE_MIME')
+									fieldNamed: 'MEDIA_TYPE_NAME');
+						addSource: (entryTable fieldNamed: 'MEDIA_TYPE_MIME')
 						target: ((self tableNamed: 'IMAGINARY_MEDIA_TYPE') 
-								fieldNamed: 'MEDIA_TYPE_MIME');
+									fieldNamed: 'MEDIA_TYPE_MIME');
 					yourself).
 	^aDescriptor
 ]
@@ -457,12 +457,13 @@ GlorpEncyclopediaDescriptorSystem >> tableForPUBLISHER_TITLE2: aTable [
 ]
 
 { #category : #tables }
-GlorpEncyclopediaDescriptorSystem >> tableForPUBLISHER_TITLE: aTable [ 
+GlorpEncyclopediaDescriptorSystem >> tableForPUBLISHER_TITLE: aTable [
+	"This table exists to test DirectToManyMapping.  It holds a collection of title strings, keyed by their publisher's id and their order in the collection, reached via the publisher's #titles mapping."
 
 	| pubId |
 	pubId := aTable createFieldNamed: 'PUBLISHER_ID' type: platform int4.
 	aTable addForeignKeyFrom: pubId  to: ((self tableNamed: 'GR_PUBLISHER') fieldNamed: 'ID').
-	aTable createFieldNamed: 'POSITION' type: (platform int4).	
+	aTable createFieldNamed: 'POSITION' type: platform int4.
 	aTable createFieldNamed: 'TITLE' type: (platform varChar: 50).
 ]
 

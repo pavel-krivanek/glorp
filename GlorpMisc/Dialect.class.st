@@ -47,11 +47,6 @@ Dialect class >> convert: aByteArray toStringWithEncoding: encodingName [
 	self error: 'Not yet implemented'.
 ]
 
-{ #category : #collections }
-Dialect class >> needsCollectionMementoFor: aCollection [
-	^true.
-]
-
 { #category : #reflection }
 Dialect class >> selectorsFor: aClass do: aBlock [
 	"Stupid dialects"

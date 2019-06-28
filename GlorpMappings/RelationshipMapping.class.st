@@ -105,24 +105,26 @@ RelationshipMapping >> buildGeneralQueryIn: anObjectBuilder [
 
 { #category : #mapping }
 RelationshipMapping >> buildQuery [
-	| toMany |
+	| toMany builtQuery |
 	toMany := self attribute isCollectionAttribute.
-	query := toMany
+	builtQuery := toMany
 		ifTrue: [Query read: self referenceClass where: self join]
 		ifFalse: [Query readOneOf: self referenceClass where: self join].
-	query session: self session.
-	query baseExpression descriptor: (self session descriptorFor: self referenceClass).
-	query collectionType: self collectionType.
-	self usesLinkTable ifTrue: [
-		query AND: (self expressionFromLinkToReferenceTableWithBase: query baseExpression)].
-	^query.
+	builtQuery session: self session.
+	builtQuery baseExpression descriptor: (self session descriptorFor: self referenceClass).
+	builtQuery collectionType: self collectionType.
+	self usesLinkTable ifTrue:
+		[builtQuery AND: (self expressionFromLinkToReferenceTableWithBase: builtQuery baseExpression)].
+	^builtQuery
 ]
 
 { #category : #mapping }
 RelationshipMapping >> buildRowMapKeyForSource: source target: target index: index [
+	"Caller must ensure source and target cannot be proxies.  Put target first:  because we iterate from the source, it is probably quicker not to match than the source, especially in ToManyMappings."
+
 	^(RowMapKey new)
-		key1: target yourSelf;
-		key2: source yourSelf.
+		key1: target;
+		key2: source
 ]
 
 { #category : #accessing }
@@ -160,7 +162,8 @@ RelationshipMapping >> constraintsFrom: oneTableSet to: anotherTableSet [
 
 { #category : #api }
 RelationshipMapping >> constructRowMapKeyAs: aBlock [
-	"Give us the opportunity to construct a custom row map key. This is useful if you need to force two relationships to share a link table entry"
+	"Give us the opportunity to construct a custom row map key. This is useful if, for example, you need to force two relationships to share a link table entry, or you split a String into multiple rows to write it to the database, but use the overall string to manage identity.  The block has two arguments in a OneToOneMapping and three if it is ToManyMapping:  the first two arguments are the source and target of the relationship;  the third is the index."
+
 	rowMapKeyConstructorBlock := aBlock.
 ]
 
@@ -179,27 +182,26 @@ RelationshipMapping >> controlsTables: aBoolean [
 
 { #category : #mapping }
 RelationshipMapping >> createDeleteRowFor: anObject in: aRowMap [
-	"This is like firing the mapping, but instead of creating the data, we just need to check if there are link table entries, and if so, make sure they are deleted"
-	| target mementoizedTarget|
+	"This is like firing the mapping, but instead of creating the data, we just need to check if there are link table entries, and if so, make sure they are deleted."
+
+	| target|
 	self canWrite ifFalse: [^self].
 	self usesLinkTable ifFalse: [^self].
 	target := self getValueFrom: anObject.
 	target := self session realObjectFor: target ifNone: [^self].
-	(self isValidTarget: target) ifTrue: [
-		mementoizedTarget := aRowMap collectionMementoFor: target.
-		self createDeleteRowForLinkFrom: anObject toTarget: mementoizedTarget in: aRowMap].
+	target := aRowMap collectionMementoFor: target.
+	self createDeleteRowForLinkFrom: anObject toTarget: target in: aRowMap.
 ]
 
 { #category : #mapping }
 RelationshipMapping >> createDeleteRowForLinkFrom: anObject toTarget: target in: aRowMap [
 	| linkTable |
-	self usesLinkTable ifFalse: [^false].
+	"self usesLinkTable ifFalse: [^false].	This check is duplicated in my only caller; review deleting the duplicate here (or there?)."
 	linkTable := self linkTableJoin allTables asArray first.
 	self attribute
 		loopOver: target
 		doing:
-			[:index :eachTarget | 
-			| intermediate |
+			[:index :eachTarget || intermediate |
 			intermediate := self
 				rowMapKeyForSource: anObject
 				target: eachTarget
@@ -209,6 +211,11 @@ RelationshipMapping >> createDeleteRowForLinkFrom: anObject toTarget: target in:
 				withKey: intermediate
 				ifPresent:
 					[:linkRow | linkRow isEmpty ifFalse: [linkRow forDeletion: true]]].
+]
+
+{ #category : #mapping }
+RelationshipMapping >> customRowMapKeyForSource: anObject target: anotherObject index: anInteger [
+	^rowMapKeyConstructorBlock value: anObject value: anotherObject
 ]
 
 { #category : #'private/expressions' }
@@ -251,12 +258,13 @@ RelationshipMapping >> field [
 
 { #category : #testing }
 RelationshipMapping >> hasValueThatCanProvideField: aField from: anObject [
-	"Return true if we have enough information in ourselves to populate our fields. The only time this won't be true is if we're either holding an uninstantiated proxy or have a to-many relationship mapping with an empty collection. Assumes that aField is one that we map."
+	"Return true if we have enough information in ourselves to populate the field. The only time this won't be true is if we're either holding an uninstantiated proxy (and do not have the value in a parameter) or have a to-many relationship mapping with an empty collection. This implementation assumes that aField is one that we map."
+
 	| value |
 	value := self getValueFrom: anObject.
 	value isGlorpProxy ifFalse: [^value notNil].
 	value isInstantiated ifTrue: [^true].
-	^value parameters includesKey: aField.
+	^value parameters includesKey: aField
 ]
 
 { #category : #initializing }
@@ -321,14 +329,6 @@ RelationshipMapping >> isToManyRelationship [
 	^self attribute isCollectionAttribute.
 ]
 
-{ #category : #mapping }
-RelationshipMapping >> isValidTarget: anObject [
-
-	^anObject isGlorpProxy
-		ifTrue: [anObject isInstantiated]
-		ifFalse: [true].
-]
-
 { #category : #accessing }
 RelationshipMapping >> join [
 	join isNil ifTrue: [self initializeJoin].
@@ -379,9 +379,11 @@ RelationshipMapping >> joinFromLinkToReferenceTable [
 ]
 
 { #category : #mapping }
-RelationshipMapping >> knitFromBuilder: sourceBuilder toBuilder: targetBuilder [ 
+RelationshipMapping >> knitFromBuilder: sourceBuilder toBuilder: targetBuilder [
+	"This is the coding for a non-collection attribute.  Subclasses override to handle the case when attribute isCollectionAttribute."
+
 	self canRead ifFalse: [^self].
-	self attribute knit: sourceBuilder instance to: targetBuilder instance
+	^self attribute setValueIn: sourceBuilder instance to: targetBuilder instance
 ]
 
 { #category : #api }
@@ -415,14 +417,14 @@ RelationshipMapping >> linkTableJoin: aJoin [
 
 { #category : #mapping }
 RelationshipMapping >> mapFromObject: anObject intoRowsIn: aRowMap [ 
-	"Our target is a collection. The tricky bit is that if we're building rows into a RowMapForMementos, then the collection we contain isn't the one we want to use. We want the old version. Ask the row map to give it to us. If it's a normal row map, we'll just get the same thing back" 
-	| target mementoizedTarget|
+	"If our target is a collection and we're building rows into a RowMapForMementos, then the collection we contain isn't the one we want to use:  we want the old version.  Ask the row map to give it to us.  If the row map is just a normal row map and/or if the target is not a collection, we'll just get the same thing back."
+
+	| target|
 	self canWrite ifFalse: [^self].
 	target := self getValueFrom: anObject.
 	target := self session realObjectFor: target ifNone: [^self].
-	(self isValidTarget: target) ifTrue: [
-		mementoizedTarget := aRowMap collectionMementoFor: target.
-		self mapFromObject: anObject toTarget: mementoizedTarget puttingRowsIn: aRowMap].
+	target := aRowMap collectionMementoFor: target.
+	self mapFromObject: anObject toTarget: target puttingRowsIn: aRowMap.
 ]
 
 { #category : #mapping }
@@ -464,7 +466,7 @@ RelationshipMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
 			[(self queryFor: anElementBuilder)
 				executeWithParameters: parameters
 				in: session].
-	^self setValueIn: anObject to: value.
+	^self setValueIn: anObject to: value
 ]
 
 { #category : #mapping }
@@ -544,6 +546,13 @@ RelationshipMapping >> parametersIn: anElementBuilder [
 	^parameters.
 ]
 
+{ #category : #mapping }
+RelationshipMapping >> privateAndBasicSetQuery: aQuery [
+	"To be used with caution, or in the development of a new mapping type."
+
+	query := aQuery.
+]
+
 { #category : #accessing }
 RelationshipMapping >> proxyAction [
 	"Return an action each proxy should take when it's instantiated. This is a two-argument block
@@ -560,39 +569,38 @@ RelationshipMapping >> proxyAction: aBlock [
 
 { #category : #mapping }
 RelationshipMapping >> query [
-
-	query isNil ifTrue: [self buildQuery].
-	^query.
+	query isNil ifTrue: [query := self buildQuery].
+	^query
 ]
 
 { #category : #proxies }
-RelationshipMapping >> queryFor: anObjectBuilder [ 
-	"If we have a specific query we should use in this case, rather than our general one, construct it. Right now that only applies if we're using filtered reads"
+RelationshipMapping >> queryFor: anObjectBuilder [
+	"If we have a specific query we should use in this case, rather than our general one, construct it.  Right now that only applies if we're being alsoFetched (so the alsoFetching builder has put a NullQuery in our builder to save us time) or because we are using filtered reads."
+
 	| basicQuery collection primaryKey newQuery cachedQuery filterBlock |
-	self shouldUseFilteredRead 
-		ifFalse: [^self query].
-	cachedQuery := anObjectBuilder cachedQueryFor: self.
-	cachedQuery isNil 
-		ifTrue: 
+	self shouldUseFilteredRead ifFalse:
+		[^anObjectBuilder cachedQueryFor: self ifAbsent: [self query]].
+	cachedQuery := anObjectBuilder cachedQueryFor: self ifAbsent: [nil].
+	collection := cachedQuery isNil
+		ifFalse: [cachedQuery collection]
+		ifTrue:
 			[basicQuery := self buildGeneralQueryIn: anObjectBuilder.
-			self query tracing alsoFetchExpressions 
-				do: [:each | basicQuery alsoFetch: each].
-			collection := GlorpVirtualCollection new setQuery: basicQuery]
-		ifFalse: [collection := cachedQuery collection].
+			self query tracing alsoFetchExpressions do:
+				[:each | basicQuery alsoFetch: each].
+			GlorpVirtualCollection new setQuery: basicQuery].
 	primaryKey := anObjectBuilder primaryKey.
-	filterBlock := self descriptor keyFields size = 1 
-				ifTrue: [[:objects :parameters | (objects at: 1) = primaryKey]]
-				ifFalse: 
-					[
-					[:objects :parameters | 
-					(1 to: primaryKey size) inject: true
-						into: [:sum :i | sum and: [(primaryKey at: i) = (objects at: i)]]]].
+	filterBlock := self descriptor keyFields size = 1
+		ifTrue: [[:objects :parameters | (objects at: 1) = primaryKey]]
+		ifFalse:
+			[[:objects :parameters |
+			(1 to: primaryKey size)
+				inject: true
+				into: [:sum :i | sum and: [(primaryKey at: i) = (objects at: i)]]]].
 	newQuery := FilteringQuery on: collection filter: filterBlock.
 	newQuery collectBlock: [:each | each last].
 	newQuery readsOneObject: self attribute isCollectionAttribute not.
 	newQuery collectionType: self collectionType.
-	anObjectBuilder cachedQueryFor: self is: newQuery.
-	^newQuery
+	^anObjectBuilder cachedQueryFor: self put: newQuery
 ]
 
 { #category : #accessing }
@@ -604,13 +612,6 @@ RelationshipMapping >> referenceClass: aClass [
 RelationshipMapping >> referenceDescriptor [
 
 	^self system descriptorFor: self referenceClass.
-]
-
-{ #category : #mapping }
-RelationshipMapping >> referenceTableFieldFor: aField [
-	^self usesLinkTable
-		ifTrue: [nil]
-		ifFalse: [self join targetForSource: aField].
 ]
 
 { #category : #api }
@@ -625,16 +626,19 @@ RelationshipMapping >> referencedIndependentObjectsFrom: anObject [
 
 { #category : #initializing }
 RelationshipMapping >> relatedTables [
+	"If the user has told a RelationshipMapping to use a linkTable but not specified the join or the linkField(s) then this method seeks all tables that have at least one foreign key constraint to one of the relation's source tables and another to one of  the relation's target tables, checking that these two constraints are not in fact the same constraint (of course, that can only occur when the relation's source and target are the same)."
+
 	| otherTables possibleLinkTables |
 	otherTables := self basicReferenceDescriptor tables.
 	usesLinkTable ifFalse: [^otherTables].
-
 	linkFields isNil ifFalse: [^(linkFields collect: [:each | each table]) asSet asArray].
-	possibleLinkTables := self system allTables
-		select:
-			[:each | 
-			(each hasConstraintsToAnyOf: self descriptor tables)
-				and: [each hasConstraintsToAnyOf: otherTables]].
+	"The user has not told us the linkField(s), so they must think there is only one possible candidate."
+	possibleLinkTables := self system allTables reject:
+		[:each || linkToMeConstraints linkToOtherConstraints |
+		(linkToMeConstraints := each constraintsToAnyOf: self descriptor tables) isEmpty
+		or: [(linkToOtherConstraints := each constraintsToAnyOf: otherTables) isEmpty
+		or: [(linkToMeConstraints size = 1) & (linkToOtherConstraints size = 1)
+			and: [linkToMeConstraints first ==  linkToOtherConstraints first]]]].
 	possibleLinkTables size ~= 1
 		ifTrue: [CannotAutomaticallyDetermineJoin new
 			tables: possibleLinkTables;
@@ -688,18 +692,15 @@ RelationshipMapping >> reverseMapping [
 
 { #category : #mapping }
 RelationshipMapping >> rowMapKeyForSource: source target: target index: index [
-	"Create the row map key. Make sure we're holding onto the real objects, so proxies don't time out on us"
+	"Create the row map key. Make sure we're holding onto the real objects, so proxies don't time out on us."
 
-	self needsSpecialRowMapKey ifFalse: [^target].
-	(target yourSelf isNil or: [source yourSelf isNil]) ifTrue: [^nil].
+	| realTarget realSource |
+	self needsSpecialRowMapKey ifFalse: [^target glorpRealObject].
+	(realTarget := target glorpRealObject) isNil ifTrue: [^nil].
+	(realSource := source glorpRealObject) isNil ifTrue: [^nil].
 	^rowMapKeyConstructorBlock isNil
-		ifTrue:
-			[self
-				buildRowMapKeyForSource: source
-				target: target
-				index: index]
-		ifFalse:
-			[rowMapKeyConstructorBlock value: source yourSelf value: target yourSelf].
+		ifTrue: [self buildRowMapKeyForSource: realSource target: realTarget index: index]
+		ifFalse: [self customRowMapKeyForSource: realSource target: realTarget index: index]
 ]
 
 { #category : #mapping }
@@ -764,8 +765,8 @@ RelationshipMapping >> targetTables [
 
 { #category : #processing }
 RelationshipMapping >> trace: aTracing context: anExpression [
-	"Currently we don't trace relationships across tables, so all we do here
-is accumulate the list of embedded mappings"
+	"Currently we don't trace relationships across tables, so all we do here is accumulate the list of embedded mappings."
+
 	| newContext |
 	(aTracing tracesThrough: self) ifFalse: [^self].
 	newContext := anExpression get: self attributeName.
@@ -814,10 +815,7 @@ RelationshipMapping >> validate [
 					[self
 						error:
 							'Joins should go to the table(s) associated with the reference class of the mapping']].
-
-	join allSourceFields asSet size = join allSourceFields size ifFalse: [self error: 'The same field occurs twice in the join. This might be legal, but is probably a cut and paste error.'].
-	join allTargetFields asSet size = join allTargetFields size ifFalse: [self error: 'The same field occurs twice in the join. This might be legal, but is probably a cut and paste error.'].
-
+	join validate.
 	(self isExclusive and: [self canWrite not]) ifTrue: [self error: 'It is not meaningful to have an exclusive relationship that is read-only.'].
 ]
 
@@ -828,24 +826,28 @@ RelationshipMapping >> valueOfField: aField fromObject: anObject [
 
 { #category : #mapping }
 RelationshipMapping >> valueOfField: aField fromObject: anObject ifNone: aBlock [
-	"Return the value of a given field in our target object. Used in extracting primary keys when they are mapped via relationships"
+	"I am used to extract primary key values when they are mapped via relationships.  I return the value of a given field for the object.  I first verify the join maps the source field, only getting the target when we know this is so.  If the target is an uninstantiated proxy, we have to get the field's value from that proxy's parameters.  Otherwise, we try to get it from the object first, and from the parameters if that does not work."
+
 	| targetField target |
-	targetField := self referenceTableFieldFor: aField.
+	self usesLinkTable ifTrue: [^aBlock value].
+	targetField := self join
+		targetForSource: aField
+		valueOfTargetField:  "VariableJoin uses target value's class to find targetField, so needs value not proxy."
+			[target := self getValueFrom: anObject.
+			target glorpRealObjectIfNone: [^target parameters at: aField]].
 	targetField isNil ifTrue: [^aBlock value].
-	target := self getValueFrom: anObject.
-	"If it's a proxy and uninstantiated, we have to get the value from the proxy"
-	(target isGlorpProxy and: [target isInstantiated not])
-		ifTrue: [^target parameters at: aField].
-	"If the object is instantiated, then we prefer to get the value from the object, because if it's non-primary key then the proxy may not know it, or it may vary from what the proxy has. Well, that seems unlikely, but try this anyway"
-	self attribute 	
-		loopOver: target 
-		doing: [:index :eachTarget | | value |
-			value := self referenceDescriptor valueOfField: targetField fromObject: eachTarget ifNone: [self].
+	"If the target is an instantiated proxy, then we prefer to get the value from the target, because (if it is not a primary key then the proxy may not know it, or) it may vary from what the proxy has.  Well, that seems unlikely, but try this anyway."
+	self attribute
+		loopOver: target
+		doing:
+			[:index :eachTarget || value |
+			value := self referenceDescriptor
+				valueOfField: targetField fromObject: eachTarget ifNone: [self].
 			value == self ifFalse: [^value]].
-	"We couldn't get it from the object, probably because it's unmapped. See if the proxy has it after all"
+	"We couldn't get it from the object, probably because it's unmapped;  see if the proxy has it after all."
 	target isGlorpProxy ifTrue: [^target parameters at: aField].
-	"We couldn't get the value at all. This may mean that the object is new, so it has no proxies holding the value. Return nil and hope it's new and that it will all get figured out"
-	^aBlock value.
+	"We couldn't get the value at all. This may mean that the target is new, so it is an object, not a proxy with parameters holding its field values.  Return the ifNone case and hope the target is new and that it will all get figured out."
+	^aBlock value
 ]
 
 { #category : #mapping }

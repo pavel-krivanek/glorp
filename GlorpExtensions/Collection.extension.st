@@ -36,8 +36,9 @@ returns a Dictionary with values
 
 { #category : #'*GlorpExtensions-testing' }
 Collection >> glorpIsCollection [
+	"Glorp uses this method in two ways: inside its own code, to know when to iterate (see e.g. #expectsToGetValueFor:); when writing to the database, to know when to write elements (see e.g. #loopOver:doing:)."
 
-	^true.
+	^true
 ]
 
 { #category : #'*GlorpExtensions-testing' }

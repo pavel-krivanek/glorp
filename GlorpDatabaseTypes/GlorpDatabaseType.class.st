@@ -150,6 +150,11 @@ GlorpDatabaseType >> isIdentityColumn [
 	^false.
 ]
 
+{ #category : #accessing }
+GlorpDatabaseType >> isRelativeType [
+	^false
+]
+
 { #category : #testing }
 GlorpDatabaseType >> isSerial [
 	"answer if this is a database-generated primary key column"
@@ -235,6 +240,17 @@ GlorpDatabaseType >> printNullCastOn: aStream [
 { #category : #SQL }
 GlorpDatabaseType >> printSelectSQLOn: aCommand withParameters: aDictionary [
 	aCommand nextPutAll: self typeString.
+]
+
+{ #category : #SQL }
+GlorpDatabaseType >> printValueForField: aField inRow: aRow on: aCommand [
+	"I am the type of aField."
+
+	| fieldValue |
+	fieldValue := aRow at: aField ifAbsent: [nil].
+	(aCommand canBind: fieldValue to: self)
+		ifTrue: [aCommand nextPutBindMarkerIn: nil]
+		ifFalse: [self print: fieldValue on: aCommand].
 ]
 
 { #category : #accessing }

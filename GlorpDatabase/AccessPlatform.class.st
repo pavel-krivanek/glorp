@@ -34,15 +34,6 @@ AccessPlatform >> blob [
 	^self typeNamed: #blob ifAbsentPut: [GlorpBlobType new typeString: 'longbinary'].
 ]
 
-{ #category : #'conversion-boolean' }
-AccessPlatform >> booleanToBooleanConverter [
-	^DelegatingDatabaseConverter
-		named: #booleanToBoolean
-		hostedBy: self
-		fromStToDb: #convertBooleanToDBBoolean:for:
-		fromDbToSt: #convertDBBooleanToBoolean:for:.
-]
-
 { #category : #testing }
 AccessPlatform >> canBind: aValue to: aType [
 
@@ -53,6 +44,11 @@ AccessPlatform >> canBind: aValue to: aType [
 				includes: aValue class name asSymbol])
 		ifTrue: [aType = self int8 ifTrue: [^false]].
 	^super canBind: aValue to: aType
+]
+
+{ #category : #testing }
+AccessPlatform >> canRecurse [
+	^false
 ]
 
 { #category : #testing }
@@ -69,6 +65,21 @@ AccessPlatform >> canUseInWhereClause: aValue type: aType [
 AccessPlatform >> clob [
 
 	^self typeNamed: #clob ifAbsentPut: [GlorpClobType new typeString: 'memo'].
+]
+
+{ #category : #'conversion-boolean' }
+AccessPlatform >> convertBooleanToDBBoolean: aBoolean for: aType [
+	"I use NULL to meaning FALSE in a boolean column."
+
+	aBoolean isNil ifTrue: [^false].
+	^aBoolean
+]
+
+{ #category : #'conversion-boolean' }
+AccessPlatform >> convertDBBooleanToBoolean: aDBBoolean for: aType [
+	"I treat NULL as false;  a value write as nil by the image will be returned as fals when read."
+
+	^aDBBoolean
 ]
 
 { #category : #'services tables' }
@@ -198,7 +209,7 @@ AccessPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
 
 { #category : #'conversion-boolean' }
 AccessPlatform >> printBoolean: aBoolean for: aType [
-	"If the platform is MS SQL Server, a boolean object in a SELECT needs to be converted to  BIT type, since T, Y, or true make SQLServer complain. "
+	"Like MS SQL Server, Access requires that a boolean object in a SELECT be converted to bit-valued type, since T, Y, or true raise an error, but the conversion code differs."
 	
 	| string |
 	aBoolean isNil ifTrue: [^'NULL'].
@@ -319,11 +330,12 @@ AccessPlatform >> text [
 
 { #category : #'type helpers' }
 AccessPlatform >> typesWithValues [
-	self nclob.
-	self ntext.
+	"Remove types applicable to my SQLServerPlatform superclass but not to me."
+
 	super typesWithValues.
 	types removeKey: #nvarchar ifAbsent: [].
 	types removeKey: #nchar ifAbsent: [].
+	self nclob.
 	^types
 ]
 
@@ -340,6 +352,7 @@ AccessPlatform >> usesLengthNotEndPosInSubstring [
 
 { #category : #constants }
 AccessPlatform >> usesNullForFalse [
-	"Return true if this database is likely to use nil as an empty string value"
-	^true.
+	"I use NULL to meaning FALSE when occurring in a boolean column."
+
+	^true
 ]

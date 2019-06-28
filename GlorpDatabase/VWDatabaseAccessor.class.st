@@ -36,19 +36,19 @@ VWDatabaseAccessor class >> visualWorksMetadata [
 
 { #category : #executing }
 VWDatabaseAccessor >> answerForCommand: aCommand fromDBSession: aSession [
-	"This may only be called immediately after execute.  Get the first answer.  If there are no rows returned but the command needa a count of rows affected, set the rowCount.  This may mean sending answer repeatedly if needed (i.e. by batched update or query-delete commands - or insert, but insert commands do not need row counts)."
+	"This may only be called immediately after execute.  Return the first answer that is not #noAnswerStream (normally, the first answer that is either an ExternalDatabaseAnswerStream or #noMoreAnswers).  This will simply be the first answer unless aCommand produces multiple SQL-statements (e.g. INSERT ...; SELECT ....;  the INSERT returns #noAnswerStream, then the SELECT returns an answer stream).  If the command needs a count of rows affected (to measure if it succceeded or not), sum the rowCount of all #noAnswerStream statements.  (UPDATE, DELETE and INSERT return #noAnswerStream but we do not bother to track the row count of INSERT.  For batched update and query-delete commands, we check the row count to verify success)."
 
-	| ans |
+	| ans needsRowCount |
 	ans := aSession answer.
-	aCommand needsRowCount ifFalse: [^ans].
 	"Do not use optimistic locking if supportsRowCountFor: is false"
-	(self platform supportsRowCountFor: aCommand) ifFalse: 
-		["aCommand rowCount: nil would make clear it's not a valid value - but value should be nil anyway"
-		"aCommand rowCount: aCommand expectedNumberOfModifiedRows would pretend we knew it worked"
-		^ans].
-	aCommand rowCount: aSession rowCount.
-	[(ans := aSession answer) == #noAnswerStream]
-		whileTrue: [aCommand rowCount: aCommand rowCount + aSession rowCount].
+	ans == #noAnswerStream ifFalse: [^ans].
+	(needsRowCount := aCommand needsRowCount and: [self platform supportsRowCountFor: aCommand])
+		ifTrue: [aCommand rowCount: aSession rowCount].
+	"	ifFalse, leave aCommand rowCount unset:
+			- aCommand rowCount: nil would make clear it's not a valid value, but rowCount should be nil anyway.
+			- aCommand rowCount: aCommand expectedNumberOfModifiedRows would pretend we knew it worked."
+	[(ans := aSession answer) == #noAnswerStream] whileTrue:
+		[needsRowCount ifTrue: [aCommand rowCount: aCommand rowCount + aSession rowCount]].
 	^ans
 ]
 
@@ -101,6 +101,13 @@ VWDatabaseAccessor >> beginTransaction [
 	self log: 'Begin Transaction'.
 	self logOnly ifTrue: [^self].
 	mutex critical: [connection begin]
+]
+
+{ #category : #accessing }
+VWDatabaseAccessor >> bindReturningVariableAt: index forStatement: statement [
+	"Return the bound variable at the specified index, which is expected to contain bound output data.  (This feature is currently only supported in OracleEXDI.)"
+
+	^statement statement bindVariable: index
 ]
 
 { #category : #transactions }
@@ -233,15 +240,6 @@ VWDatabaseAccessor >> executeCommandUnbound: aCommand [
 	time := Time millisecondsToRun: block.
 	self logTime: time.
 	^cursor.
-]
-
-{ #category : #executing }
-VWDatabaseAccessor >> executeSQLStringsNoResult: aString [
-	"Executing an empty string returns an empty result, which then DNUs when sent #first, arguably a bug but while it exists we must avoid it.  We therefore check the supplied parameter size (to check for nil or empty) and exit quietly if so."
-
-	aString size = 0 ifTrue: [^self].
-	(aString tokensBasedOn: $;)
-		do: [:each | each notEmpty ifTrue: [self executeSQLStringNoResult: each]].
 ]
 
 { #category : #executing }
@@ -399,6 +397,29 @@ VWDatabaseAccessor >> upToEndOfResultSet: aGlorpCursoredStream [
 	nextUnderlyingCursor == #noAnswerStream] whileTrue.
 	nextUnderlyingCursor == #noMoreAnswers
 		ifTrue: [aGlorpCursoredStream cursor: nil; release]
+		ifFalse: [aGlorpCursoredStream cursor: nextUnderlyingCursor].
+	^resultSetContents
+]
+
+{ #category : #cursors }
+VWDatabaseAccessor >> upToEndOfReturningResultSet: aGlorpCursoredStream [
+	"Ask the relative type how to assign returned value(s) to the target column(s) of my rows.  As result returns an array of arrays, we need the inner array.  If relative fields and values are not the same size, #with:do: will raise an error."
+	| nextUnderlyingCursor resultSetContents aCommand latestResultRowCount|
+	aCommand := aGlorpCursoredStream command.
+	(aCommand needsRowCount and: [aCommand rowCount isNil]) ifTrue: [aCommand rowCount: 0].
+	resultSetContents := aGlorpCursoredStream cursor upToEnd.
+	"With SQL Server, we are allowed to capture rowCount after answer has been acquired."
+	aCommand needsRowCount
+				ifTrue: [latestResultRowCount := aGlorpCursoredStream statement statement rowCount.
+						aCommand shouldUseGroupWriting
+							ifTrue: [aCommand rowCount: aCommand rowCount + latestResultRowCount ]
+							ifFalse: [aCommand rowCount: latestResultRowCount ]].
+
+	[nextUnderlyingCursor := aGlorpCursoredStream statement statement answer.
+	nextUnderlyingCursor == #noAnswerStream] whileTrue: [].
+	nextUnderlyingCursor == #noMoreAnswers
+		ifTrue: [
+				aGlorpCursoredStream cursor: nil; release]
 		ifFalse: [aGlorpCursoredStream cursor: nextUnderlyingCursor].
 	^resultSetContents
 ]

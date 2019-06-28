@@ -86,7 +86,7 @@ GlorpExpression >> OR: anExpression [
 ]
 
 { #category : #preparing }
-GlorpExpression >> addBoundExpressionsIn: aQuery [
+GlorpExpression >> addBoundExpressionsIn: aCommand [
 ]
 
 { #category : #preparing }
@@ -284,7 +284,9 @@ GlorpExpression >> base [
 
 { #category : #accessing }
 GlorpExpression >> beOuterJoin [
-	"A no-op"
+	"This creates a left outer join."
+
+	self privateBeOuterJoin: true.
 ]
 
 { #category : #preparing }
@@ -341,6 +343,21 @@ GlorpExpression >> collect: aBlock [
 	newCollection := OrderedCollection new.
 	self do: [:each | newCollection add: (aBlock value: each)].
 	^newCollection.
+]
+
+{ #category : #accessing }
+GlorpExpression >> commonTableExpressionName [
+	"If we decide to store values obtained via this expression in a field of common table expression, e.g. to recursively collect such values, what should that field be called."
+
+	| newName maxNameLength |
+	newName := self mappingSequenceName.
+	maxNameLength := self system platform maximumLengthOfColumnName.
+	^maxNameLength < newName size
+		ifFalse: [newName]
+		ifTrue:
+			[(newName copyFrom: 1 to: (maxNameLength * 0.25) rounded) 
+				, '_' ,
+			(newName copyFrom: newName size - (maxNameLength * 0.75) rounded + 3 to: newName size)]
 ]
 
 { #category : #preparing }
@@ -470,14 +487,15 @@ GlorpExpression >> hasTableAliases [
 	^false.
 ]
 
-{ #category : #initialize }
+{ #category : #'initialize-release' }
 GlorpExpression >> in: anExpression [
 
 	^RelationExpression named: #IN basedOn: self withArguments: (Array with: anExpression).
 ]
 
-{ #category : #initialize }
+{ #category : #'initialize-release' }
 GlorpExpression >> initialize [
+	"Not all dialects implement Object>>initialize so we reimplement here."
 ]
 
 { #category : #iterating }
@@ -548,7 +566,14 @@ GlorpExpression >> isMappable [
 	^true.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
+GlorpExpression >> isOuterJoin [
+	"Only used in prepareIn: as a prudential test before join-checking the outermost whereClause itself, not to rehandle it unless needed.  Remove this method if that use is dropped."
+
+	^false
+]
+
+{ #category : #comparing }
 GlorpExpression >> isSameAliasedFieldAs: aFieldOrFunction [
 	^self == aFieldOrFunction
 ]
@@ -578,12 +603,17 @@ GlorpExpression >> prepareIn: aQuery [
 	"A little weird, because what we end up asking for additional expressions from, might not be us"
 
 	aQuery adjustWhereClause.
-	(aQuery whereClause additionalExpressionsIn: aQuery)
-		do:
-			[:each | 
-			(aQuery shouldExpressionBeJoin: each)
-				ifTrue: [aQuery addJoin: each]
-				ifFalse: [aQuery privateAnd: each]].
+	(aQuery whereClause additionalExpressionsIn: aQuery) do:
+		[:each | 
+		(aQuery shouldExpressionBeJoin: each)
+			ifTrue: [aQuery addJoin: each]
+			ifFalse: [aQuery privateAnd: each]].
+	aQuery whereClause isOuterJoin ifTrue:	"ANSI syntax does not support outer joins in the where clause"
+		[(aQuery shouldExpressionBeJoin: aQuery whereClause)
+			ifTrue:
+				[aQuery addJoin: aQuery whereClause.
+				aQuery whereClause: (EmptyExpression new base: aQuery baseExpression)]
+			ifFalse: [self error: 'Our whereClause wants to be treated as an outer join but should not be a join']].
 ]
 
 { #category : #'primary keys' }
@@ -612,6 +642,11 @@ GlorpExpression >> printTreeOn: aStream [
 GlorpExpression >> printsTable [
 
 	^false.
+]
+
+{ #category : #private }
+GlorpExpression >> privateBeOuterJoin: anOuterJoin [
+	"NEVER use this method when defining joins in your descriptor systems;  always use paramaterless #beOuterJoin and similar API methods.  Before version 8.3.1, Glorp only supported inner joins and the setting was a boolean.  It then changed to a boolean or nil, and what false meant also changed.  It may evolve further."
 ]
 
 { #category : #navigating }
@@ -720,9 +755,8 @@ GlorpExpression >> shortCircuitOnNullComparison: anObject [
 ]
 
 { #category : #converting }
-GlorpExpression >> sourceForTarget: aField [
-
-	^nil.
+GlorpExpression >> sourceForTarget: aField ifNone: aBlock [
+	^aBlock value
 ]
 
 { #category : #preparing }

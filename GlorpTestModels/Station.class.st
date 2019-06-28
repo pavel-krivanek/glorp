@@ -16,3 +16,27 @@ Station class >> visualWorksMetadata [
 	)
 
 ]
+
+{ #category : #accessing }
+Station >> id [
+
+	^id
+]
+
+{ #category : #accessing }
+Station >> id: anObject [
+
+	id := anObject
+]
+
+{ #category : #accessing }
+Station >> successor [
+
+	^successor
+]
+
+{ #category : #accessing }
+Station >> successor: anObject [
+
+	successor := anObject
+]

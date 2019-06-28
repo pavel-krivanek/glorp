@@ -101,12 +101,6 @@ ObjectTransaction >> mementoFor: anObject [
 ]
 
 { #category : #registering }
-ObjectTransaction >> needsCollectionMementoFor: aCollection [
-	"We can avoid the need for a collection copy if the collection has no internal structure - that is, if we'll be able to loop over a simple shallow copy. This is dialect and collection class dependent"
-	^Dialect needsCollectionMementoFor: aCollection.
-]
-
-{ #category : #registering }
 ObjectTransaction >> realObjectFor: anObject [ 
 	"If this is a proxy, return the contents (if available). Otherwise, return nil"
 	^self realObjectFor: anObject ifNone: [nil].
@@ -140,8 +134,7 @@ ObjectTransaction >> registerTransientInternalsOfCollection: aCollection [
 
 	aCollection glorpIsCollection ifFalse: [^self].
 	aCollection class isBits ifTrue: [^self].
-	(self needsCollectionMementoFor: aCollection)
-		ifTrue: [collectionMementos at: aCollection put: aCollection copy].
+	collectionMementos at: aCollection put: aCollection copy.
 	aCollection glorpRegisterCollectionInternalsIn: self.
 
 "For this to work, the dialect must not copy collections so shallowly that internals are reused identically.

@@ -1,3 +1,7 @@
+"
+I am the root class of a FilteredType-resolved hierarchy.
+
+"
 Class {
 	#name : #GlorpEmployee,
 	#superclass : #GlorpWorkingStiff,

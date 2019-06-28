@@ -7,7 +7,7 @@ Instance Variables:
 	mappedFields	<Collection of: DatabaseField>	The database fields we have mappings for (cached computed value)
 	mappings	<(Collection of: Mapping)>	Our mappings.
 	mapsPrimaryKeys	<Object>	Do we map the primary keys (cached computed value)
-	multipleTableCriteria	<(Collection of: Join)>	description of multipleTableCriteria
+	multipleTableJoin	<(Collection of: Join)>	If the descriptor builds its object from one row in each of several tables, put the joins between the tables here.  The joins can be outer joins.
 	system	<DescriptorSystem>	The descriptor system that we belong to.
 	tables	<(SequenceableCollection of: (DatabaseTable))>	The tables that we map
 	typeResolver	<TypeResolver>	description of typeResolver
@@ -67,8 +67,10 @@ Descriptor >> addMultipleTableJoin: anExpression [
 ]
 
 { #category : #accessing }
-Descriptor >> addTable: aDatabaseTable [ 
-	tables add: aDatabaseTable.
+Descriptor >> addTable: aDatabaseTable [
+	"I insist on being given an actual table.  Use #table: if it could be just a name."
+
+	^tables add: aDatabaseTable
 ]
 
 { #category : #'type mapping' }
@@ -97,59 +99,67 @@ Descriptor >> asRecursiveDescriptorOnMapping: originalMapping retrievingAll: map
 	originalClassModel := self classModel copy.
 	self postCopyForRecursion.
 	self classModel: (recursionClassModel := originalClassModel initialize).
-	self table: (recursionTable := DatabaseTable named: 'RecursionOn_', originalTable name).
+	self table: (recursionTable := DatabaseTable named: 'RecursionOn_' , originalTable name).
 	"Needs generalising;  for now, assume all our target fields are directly mapped in our mappings."
 	mappingExpressions do:
-		[:each || originalField newField newMapping newAttribute |
-		originalField := each mapping field.
-		newField := recursionTable
-			createFieldNamed: each mappingSequenceName
-			type: originalField type.
-		originalField name = newField name
-			ifTrue: [originalField isPrimaryKey ifTrue: [newField bePrimaryKey]].
-		newMapping := each mapping copy.
-		newMapping field: newField.
+		[:each || newMapping newAttribute |
+		newMapping := each createMappingToFieldInRecursionTable: recursionTable.
 		newAttribute := newMapping attribute copy.
-		newAttribute name: newField name.
+		newAttribute name: newMapping field name.
 		recursionClassModel addAttribute: newAttribute.
-		newMapping descriptor: nil.		"prevents the next line from adding the old name to the new class model"
+		newMapping descriptor: nil.	"prevents the next line from adding the old name to the new class model"
 		newMapping attributeName: newAttribute name.
 		self addMapping: newMapping].	"now we add the renamed attribute to the class model"
 	"Get the mapping expressions that start from the recursion mapping"
 	recursionMappingExpressions := mappingExpressions select:
-		[:each | each penultimateBaseExpression name = originalMapping attributeName].
+		[:each |	"An aliased constant, or a cast of an aliased constant, indicates a computed field"
+		(each isConstantExpression or: [each base isConstantExpression]) not and:
+			[each anySatisfy: [:eachBase | eachBase class == MappingExpression and: [eachBase name = originalMapping attributeName]]]].
 	recursionTargetFields := originalMapping join allTargetFields collect:
 		[:eachField || recursionMappingExpression |
 		recursionMappingExpression := recursionMappingExpressions
-			detect: [:each | each penultimateBaseExpression mapping field = eachField]
+			detect:
+				[:each || penultimateMapping penultimateField |
+				penultimateMapping := originalMapping.
+				penultimateField := penultimateMapping class == DictionaryMapping
+					ifTrue: [penultimateMapping join allTargetFields first]
+					ifFalse: [originalMapping field].
+				"Because GlorpExpression equality is not yet defined (i.e. is identity) send #asField to get self for field,
+				underlying field for Prefix/PostfixExpression.  Later, define = on FieldExpression and FunctionExpression
+				(and others yet later as needed, and drop #asField from the line below)."
+				penultimateField asField = eachField asField]
 			ifNone: [self halt: 'recursion field not in retrievals;  revise code to add it automatically?'].
 		recursionTable
-			fieldNamed: recursionMappingExpression mappingSequenceName
+			fieldNamed: recursionMappingExpression commonTableExpressionName
 			ifAbsent: [self halt: 'Impossible (i.e. coding error) as we added it above']
 			caseSensitive: false].
 	temporarySourceJoin := Join new.
 	originalMapping join allSourceFields with: recursionTargetFields do:
-		[:eachField :eachTargetField |
-		temporarySourceJoin addSource: eachField target: eachTargetField].
-	recursionJoin := originalMapping join
-		replacing: originalTable
-		withEquivalenceFrom: temporarySourceJoin.
+		[:eachField :eachTargetField | temporarySourceJoin addSource: eachField target: eachTargetField].
+	recursionJoin := originalMapping class == DictionaryMapping
+		ifTrue: [temporarySourceJoin inverseJoin]
+		ifFalse: [originalMapping join
+				replacing: originalTable
+				withEquivalenceFrom: temporarySourceJoin].
 	originalMapping usesLinkTable ifTrue:
 		[temporaryTargetJoin := Join new.
-		originalMapping join allTargetFields  with: originalMapping reverseJoin allTargetFields do:
-			[:eachField :eachTargetField |
-			temporaryTargetJoin addSource: eachField target: eachTargetField].
+		originalMapping join allTargetFields with: originalMapping reverseJoin allTargetFields do:
+			[:eachField :eachTargetField | temporaryTargetJoin addSource: eachField target: eachTargetField].
 		originalMapping join allTargetFields do:
-			[:each || origTable | origTable := each table.
+			[:each |
 			recursionJoin := (recursionJoin inverseJoin
-				replacing: origTable
+				replacing: each table
 				withEquivalenceFrom: temporaryTargetJoin) inverseJoin]].
 	recursionAttribute := originalMapping attribute copy.
 	recursionAttribute name: 'recurse'.
 	recursionClassModel addAttribute: recursionAttribute.
-	recursionMapping := self newMapping: originalMapping class.
+	recursionMapping := originalMapping class == DictionaryMapping
+			ifTrue: [self newMapping: OneToOneMapping]
+			ifFalse: [self newMapping: originalMapping class].
 	recursionMapping attributeName: recursionAttribute name.
 	recursionMapping join: recursionJoin.
+	originalMapping class = DictionaryMapping ifTrue:
+		[recursionAttribute type: recursionAttribute keyType].
 ]
 
 { #category : #accessing }
@@ -157,6 +167,7 @@ Descriptor >> basicAddMapping: aMapping [
 	mappings := mappings, (Array with: aMapping).
 	aMapping descriptor: self.
 	self resetMappedFields.
+	^aMapping
 ]
 
 { #category : #internal }
@@ -262,24 +273,32 @@ Descriptor >> createDeleteRowFor: anObject table: aTable in: aRowMap [
 
 { #category : #deleting }
 Descriptor >> createDeleteRowsFor: anObject in: aRowMap [
-	"Create records for rows that require deletion"
+	"If we don't map primary keys then we're something that gets wholly embedded, and a delete isn't necessary.  If we do, our 'tables' cannot be empty: we must have at least a primaryTable.  We handle it first, then any other tables, because we must handle it specially in the rare case that we have no non-primaryKey mappings to it and related object(s) provide our primaryKey(s).  A related object will not (and indeed should not) be instantiated if its proxy has the needed field value as a parameter, but the RelationshipMapping will not write it from a proxy.  When we see no row in this very rare case, we know we have the value in our parameters (else the proxy would have been instantiated by now) and so we call #setFieldValue:in:from: to set it."
 
-	|  |
 	anObject class == self describedClass ifFalse: [self error: 'wrong descriptor for this object'].
-	"If we don't map primary keys, then we're something that gets embedded, and a delete isn't necessary"
-	self mapsPrimaryKeys ifFalse: [^self]. 
-
-	self tables do: [:eachTable |
+	self mapsPrimaryKeys ifFalse: [^self].
+	self createDeleteRowFor: anObject table: self primaryTable in: aRowMap.
+	(aRowMap rowForTable: self primaryTable withKey: anObject ifAbsent:
+		[| row | row := DatabaseRow newForTable: self primaryTable withOwner: anObject.
+		aRowMap addRow: row.
+		self primaryTable primaryKeyFields do:
+			[:each | self setFieldValue: each in: row from: anObject].
+		row])
+			forDeletion: true.
+	2 to: self tables size do:
+		[:index || eachTable | eachTable := self tables at: index.
 		self createDeleteRowFor: anObject table: eachTable in: aRowMap.
 		aRowMap rowForTable: eachTable withKey: anObject ifPresent: [:eachRow | eachRow forDeletion: true]].
-	"It's possible that we might not have any direct mapping for a secondary table's primary keys, so 
-allow the multiple table criteria to specify them if that's the only one. If they're not, then they don't do any harm"
-	self multipleTableJoin do: [:each |
+	"If we do not have any direct mapping for a secondary table's primary keys (rare but possible), use
+	the multiple table join(s) to specify them (and if we do, the statement below doesn't do any harm)."
+	self multipleTableJoin do:
+		[:each |
 		each mapFromSource: anObject andTarget: anObject intoRowsIn: aRowMap.
-		each allTables do: [:eachTable |
+		each allTables do:
+			[:eachTable |
 			aRowMap rowForTable: eachTable withKey: anObject ifPresent: [:eachRow | eachRow forDeletion: true]]].
-
-	self mappings do: [:each | each  createDeleteRowFor: anObject in: aRowMap].
+	"This line handles deleting rows in linkTables connected to deleted rows."
+	self mappings do: [:each | each createDeleteRowFor: anObject in: aRowMap].
 ]
 
 { #category : #mapping }
@@ -303,11 +322,6 @@ Descriptor >> createRowsFor: anObject in: aRowMap [
 						mapFromSource: anObject
 						andTarget: anObject
 						intoRowsIn: aRowMap]].
-]
-
-{ #category : #tracing }
-Descriptor >> defaultTracing [
-	^Tracing new.
 ]
 
 { #category : #accessing }
@@ -344,11 +358,9 @@ Descriptor >> directMappingFor: attributeName [
 
 { #category : #accessing }
 Descriptor >> directMappingForField: aField [ 
-	"Return a single, direct mapping for this field.  There may conceivably be more than one, 
-	but they all have to agree, so it shouldn't matter as far as the value. There may also be none.
-	Exclude pseudoVariable mappings by ensuring that the detected mapping can be read into an object."
+	"Return a direct mapping for this field if there is one (there could be more than one, but they would all point to the same field so would all have to agree as far as the value is concerned).  Exclude pseudoVariable mappings by ensuring that the detected mapping can be read from the database (i.e. to be written to the object;  to exclude a full pseudoVariable, we could instead check #canWrite, which goes the other way, or check both, but setting the value on the object is the usual follow-on from calling this method)."
 
-	^(self mappingsForFields at: aField ifAbsent: [^nil]) 
+	^(self mappingsForFields at: aField ifAbsent: [^nil])
 		detect: [:each | each isRelationship not & each canRead]
 		ifNone: [nil]
 ]
@@ -359,6 +371,16 @@ Descriptor >> directMappingsForField: aField [
 
 	^(self mappingsForFields at: aField ifAbsent: [^#()]) 
 		reject: [:each | each isRelationship].
+]
+
+{ #category : #'creating mappings' }
+Descriptor >> directToManyMapping [
+	^self newMapping: DirectToManyMapping
+]
+
+{ #category : #'creating mappings' }
+Descriptor >> directToOneMapping [
+	^self newMapping: DirectToOneMapping
 ]
 
 { #category : #'creating mappings' }
@@ -455,9 +477,13 @@ Descriptor >> mappedFields [
 
 { #category : #accessing }
 Descriptor >> mappingForAttributeNamed: aSymbol [
+	"This returns nil if there is no mapping of that name."
 
-	^mappings detect: [:each | each attributeName == aSymbol] ifNone: [
-		self isForAssociation ifTrue: [self valueDescriptor mappingForAttributeNamed: aSymbol]]
+	^mappings
+		detect: [:each | each attributeName == aSymbol]
+		ifNone:
+			[self isForAssociation ifTrue:
+				[self valueDescriptor mappingForAttributeNamed: aSymbol]]
 ]
 
 { #category : #accessing }
@@ -499,8 +525,7 @@ Descriptor >> multipleTableJoin [
 Descriptor >> newMapping: aClass [
 	| mapping |
 	mapping := aClass new.
-	self basicAddMapping: mapping.
-	^mapping.
+	^self basicAddMapping: mapping
 ]
 
 { #category : #'creating mappings' }
@@ -522,7 +547,7 @@ Descriptor >> populateObject: anObject inBuilder: anElementBuilder [
 
 { #category : #recursion }
 Descriptor >> postCopyForRecursion [
-	"Copy anything whose identity would make for problems custructing the recursive expressions"
+	"Copy anything whose identity would make for problems constructing the recursive expressions"
 
 	self initialize.
 	mapsPrimaryKeys := nil.
@@ -570,7 +595,7 @@ Descriptor >> primaryKeyExpressionFor: anObject basedOn: anExpression relation: 
 		clause := each expressionFor: value basedOn: anExpression relation: aSymbol.
 		(value class == GeneralSubSelectExpression and: [self system platform supportsCompositeKeyArgsForOperand: aSymbol])
 			ifFalse: [expression := aSymbol = #<> ifTrue: [clause OR: expression] ifFalse: [clause AND: expression]]
-			ifTrue: [expression leftChild: (expression leftChild asExpressionGroup add: clause leftChild; yourself)]].
+			ifTrue: [expression leftChild: (expression leftChild asExpressionGroup add: clause leftChild)]].
 	^expression
 ]
 
@@ -589,29 +614,30 @@ Descriptor >> primaryKeyFor: anObject [
 
 { #category : #mapping }
 Descriptor >> primaryKeyMappings [
-	"Return things that map to our primary key fields. Prefer direct mappings"
+	"Return a mapping, if one exists, for each of our primary key fields.  Use a direct mapping if available."
+
 	| fields pkMappings |
 	fields := self primaryTable primaryKeyFields.
 	pkMappings := OrderedCollection new: fields size.
-	fields do: [:each |  | mapping |
+	fields do:
+		[:each || mapping |
 		mapping := self directMappingForField: each.
 		mapping isNil ifTrue: [mapping := self mappingForField: each].
 		mapping isNil ifFalse: [pkMappings add: mapping]].
-	^pkMappings.
+	^pkMappings
 ]
 
 { #category : #deleting }
 Descriptor >> primaryKeyMappingsFor: aTable [
-	"Return our primary key mappings as a collection of mappings, one collection per primary key"
+	"Return our primary key mappings as a collection of mappings, one collection per primary key.  For performance, descriptor systems will ideally be coded so that any field with multiple mappings will have any one-one mappings before any one-many mappings before any many-many mappings, but we do not attempt to enforce that as it is a rare and small point, and could even be the wrong thing to do in the even rarer case that instantiating a to-many collection of small objects was faster than instantiating one large object."
 
 	| allMappings |
 	allMappings := Dictionary new: aTable primaryKeyFields size.
-	aTable primaryKeyFields
-		do: [:each | 
-			| mappingsForField |
-			mappingsForField := self mappingsForFields at: each ifAbsent: [nil].
-			mappingsForField isNil ifFalse: [allMappings at: each put: mappingsForField]].
-	^allMappings.
+	aTable primaryKeyFields do:
+		[:each || mappingsForField |
+		mappingsForField := self mappingsForFields at: each ifAbsent: [nil].
+		mappingsForField isNil ifFalse: [allMappings at: each put: mappingsForField]].
+	^allMappings
 ]
 
 { #category : #accessing }
@@ -629,13 +655,20 @@ Descriptor >> printOn: aStream [
 	aStream nextPutAll: ')'.
 ]
 
+{ #category : #recursion }
+Descriptor >> privateAndBasicSetMapsPrimaryKeys: aBoolean [
+	"A conditional mapping may cause a descriptor to appear to map primary keys even when the object it describes usually does not.  In this case only, set the desired value explicitly instead of letting it be set lazily."
+
+	mapsPrimaryKeys := aBoolean.
+]
+
 { #category : #internal }
 Descriptor >> readBackNewRowInformationFor: anObject [
 ]
 
 { #category : #mapping }
 Descriptor >> readBackNewRowInformationFor: anObject in: aRowMap [ 
-	anObject yourSelf class == self describedClass ifFalse: [self error: 'wrong descriptor for this object'].
+	anObject glorpRealObject class == self describedClass ifFalse: [self error: 'wrong descriptor for this object'].
 	mappings do: [:each | each readBackNewRowInformationFor: anObject fromRowsIn: aRowMap]
 ]
 
@@ -685,8 +718,8 @@ Descriptor >> relationshipMappingsForField: aField [
 
 { #category : #accessing }
 Descriptor >> removeMapping:  aMapping [
-
-	mappings := mappings copyWithout: aMapping
+	mappings := mappings copyWithout: aMapping.
+	^aMapping
 ]
 
 { #category : #accessing }
@@ -701,39 +734,28 @@ Descriptor >> session [
 ]
 
 { #category : #mapping }
-Descriptor >> setFieldValue: each in: row from: anObject [
-	"Try to set the value of the field, which is normally a primary key field, in the row, based on data in the object. Useful for the case where we have only a relationship mapping to the object that holds our primary key, and it is uninstantiated"
+Descriptor >> setFieldValue: aPkField in: row from: anObject [
+	"Try to set the value of the primary key field into the row, based on data in the object.  Useful for the case where we have only a relationship mapping to the object that holds our primary key and it is uninstantiated."
+
 	| value |
-	(row wrapperAt: each ifAbsent: [FieldValueWrapper new]) hasValue
-		ifFalse:
-			[value := self valueOfField: each fromObject: anObject ifNone: [^self].
-			"We're using this to get primary key fields. Nil is not a useful answer."
-			value isNil ifTrue: [^self].
-			row at: each put: value].
+	(row wrapperAt: aPkField ifAbsent: [FieldValueWrapper new]) hasValue ifFalse:
+		[value := self valueOfField: aPkField fromObject: anObject ifNone: [^self].
+		value isNil ifTrue: [^self].	"for a primary key field, nil is not a useful answer"
+		row at: aPkField put: value].
 ]
 
 { #category : #internal }
 Descriptor >> setRetrievalExpressionsInReplacementTableForQuery: subQuery fromMapping: sourceMapping toMapping: targetMapping [
-	self primaryTable fields
-		do:
-			[:each | 
-			| sourceReplacement replacement expression |
-			sourceReplacement := sourceMapping join targetForSource: each.
-			replacement := sourceReplacement isNil
-				ifTrue: [targetMapping join targetForSource: each]
-				ifFalse: [sourceReplacement].
-			expression := replacement isGlorpExpression
-				ifTrue: [replacement] 
-				ifFalse: [(BaseExpression new getTable: replacement table) getField: replacement].
-			expression alias: each name.
-			subQuery retrieve: expression].
-]
-
-{ #category : #tracing }
-Descriptor >> setupTracing: aTracing [
-	"Find all the other objects that need to be read when this one is read"
-
-	self trace: aTracing context: aTracing base.
+	self primaryTable fields do:
+		[:each || replacement expression |
+		replacement := sourceMapping join targetForSource: each.
+		replacement isNil ifTrue: 
+			[replacement := targetMapping join targetForSource: each].
+		expression := replacement isGlorpExpression
+			ifTrue: [replacement]
+			ifFalse: [(BaseExpression new getTable: replacement table) getField: replacement].
+		expression alias: each name.
+		subQuery retrieve: expression].
 ]
 
 { #category : #testing }
@@ -760,13 +782,14 @@ Descriptor >> table [
 ]
 
 { #category : #accessing }
-Descriptor >> table: aDatabaseTable [
-	
+Descriptor >> table: aDatabaseTableOrString [
+	"I accept an actual table or just its name.  I always return an actual table."
+
 	| table |
-	table := aDatabaseTable isString
-		ifTrue: [table := self system tableNamed: aDatabaseTable]
-		ifFalse: [aDatabaseTable].
-	tables add: table.
+	table := aDatabaseTableOrString isString
+		ifTrue: [table := self system tableNamed: aDatabaseTableOrString]
+		ifFalse: [aDatabaseTableOrString].
+	^self addTable: table
 ]
 
 { #category : #accessing }
@@ -867,18 +890,17 @@ Descriptor >> valueOfField: aField fromObject: anObject [
 
 { #category : #mapping }
 Descriptor >> valueOfField: aField fromObject: anObject ifNone: aBlock [
+	"If the mapping is direct then the ifNone: parameter is ignored, since we cannot fail to get a value."
+
 	| directMapping notFound |
 	directMapping := self directMappingForField: aField.
-	directMapping isNil
-		ifFalse: [^directMapping valueOfField: aField fromObject: anObject].
+	directMapping isNil ifFalse:
+		[^directMapping valueOfField: aField fromObject: anObject].
 	notFound := Object new.
-	(self relationshipMappingsForField: aField)
-		do:
-			[:each | 
-			| candidate |
-			(each hasValueThatCanProvideField: aField from: anObject)
-				ifTrue: [
-					candidate := each valueOfField: aField fromObject: anObject ifNone: [notFound].
-					candidate == notFound ifFalse: [^candidate]]].
-	^aBlock value.
+	(self relationshipMappingsForField: aField) do:
+		[:each || candidate |
+		(each hasValueThatCanProvideField: aField from: anObject) ifTrue:
+			[candidate := each valueOfField: aField fromObject: anObject ifNone: [notFound].
+			candidate == notFound ifFalse: [^candidate]]].
+	^aBlock value
 ]

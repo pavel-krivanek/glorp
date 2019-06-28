@@ -362,7 +362,7 @@ GlorpReadingTest >> testCustomSQLInAddressMapping [
 	rowToWrite := session system exampleAddressRow.
 	session writeRow: rowToWrite.
 	query := Query read: GlorpAddress.
-	query sql: 'select id, street, house_num from gr_address where id = 123'.
+	query sql: 'select ID, STREET, HOUSE_NUM from GR_ADDRESS where ID = 123'.
 	results := query executeIn: session] 
 			ensure: [session rollbackTransaction].
 	self assert: results size = 1.
@@ -760,24 +760,25 @@ GlorpReadingTest >> testReadAccountsWithNestedAnySatisfyMixed2 [
 
 { #category : #tests }
 GlorpReadingTest >> testReadAccountsWithVirtualCollectionAndAlsoFetch [
-	| query result |
-	 
-	[| block |
-	((session system descriptorFor: GlorpBankAccount) mappingForAttributeNamed: #accountHolders) collectionType: GlorpVirtualCollection.
+	"A GlorpVirtualCollection assumes that any non-Filtering relationship to which it is assigned is proxied.  Should we change that generally, as in FilteredQuery>>collection: and so avoid any need to send shouldProxy: below?  Until/unless we do, send it to ensure that #accountHolders (which proxies by default) is robust to test-run-config-induced changes."
+
+	[| query result |
+	((session system descriptorFor: GlorpBankAccount) mappingForAttributeNamed: #accountHolders)
+		collectionType: GlorpVirtualCollection;
+		shouldProxy: true.
 	session beginTransaction.
 	self writeCustomer1Rows.
-	block := 
-			[:account | 
-			(account accountHolders anySatisfyExists: [:each | each id = 24]) 
-				| (account accountHolders anySatisfyJoin: [:each | each id = 27])].
-	query := Query read: GlorpBankAccount where: block.
+	query := Query read: GlorpBankAccount where:
+		[:account | (account accountHolders anySatisfyExists: [:each | each id = 24])
+					| (account accountHolders anySatisfyJoin: [:each | each id = 27])].
 	query alsoFetch: #accountHolders.
 	result := session execute: query.
 	self assert: result size = 2.
-	self assert: result first accountHolders class == OrderedCollection] 
-			ensure: [
-				((session system descriptorFor: GlorpBankAccount) mappingForAttributeNamed: #accountHolders) collectionType: OrderedCollection.
-				session rollbackTransaction]
+	self assert: result first accountHolders class == OrderedCollection]
+		ensure: 
+			[((session system descriptorFor: GlorpBankAccount) mappingForAttributeNamed: #accountHolders)
+				collectionType: OrderedCollection.
+			session rollbackTransaction].
 ]
 
 { #category : #tests }
@@ -946,7 +947,7 @@ GlorpReadingTest >> testReadAddressWithCustomSQL [
 	rowToWrite := session system exampleAddressRow.
 	session writeRow: rowToWrite.
 	query := Query read: GlorpAddress.
-	query sql: 'select id, street, house_num from gr_address where id = 123'.
+	query sql: 'select ID, STREET, HOUSE_NUM from GR_ADDRESS where ID = 123'.
 	results := query executeIn: session] 
 			ensure: [session rollbackTransaction].
 	self assert: results size = 1.
@@ -967,7 +968,7 @@ GlorpReadingTest >> testReadAddressWithCustomSQLBinding [
 	rowToWrite := session system exampleAddressRow.
 	session writeRow: rowToWrite.
 	query := Query read: GlorpAddress.
-	query sql: 'select id, street, house_num from gr_address where id = ?'.
+	query sql: 'select ID, STREET, HOUSE_NUM from GR_ADDRESS where ID = ?'.
 	results := query executeWithParameters: #(123) in: session] 
 			ensure: [session rollbackTransaction].
 	self assert: results size = 1.
@@ -1065,15 +1066,15 @@ GlorpReadingTest >> testReadCustomerWithAccounts [
 				where: [:person | person id = 27].
 	result := session execute: query.
 	self assert: result seenPostFetch = true.
-	accounts := result accounts getValue.
+	accounts := result accounts glorpRealObject.
 	self assert: accounts size = 2.
 	self assert: (accounts first id = id1 or: [accounts last id = id1]).
 	self assert: (accounts first id = id2 or: [accounts last id = id2]).
 	self assert: accounts first id ~= accounts last id.
-	backRef1 := accounts first accountHolders getValue.
+	backRef1 := accounts first accountHolders glorpRealObject.
 	self assert: backRef1 size = 1.
 	self assert: backRef1 first = result.
-	backRef2 := accounts first accountHolders getValue.
+	backRef2 := accounts first accountHolders glorpRealObject.
 	self assert: backRef2 size = 1.
 	self assert: backRef2 first = result] 
 			ensure: [session rollbackTransaction]
@@ -1091,7 +1092,7 @@ GlorpReadingTest >> testReadCustomerWithAnySatisfyExists [
 					person accounts anySatisfyExists: [:each | each accountNumber branchNumber > 0]].
 	result := session execute: query.
 	self assert: result size = 1.
-	accounts := result first accounts getValue.
+	accounts := result first accounts glorpRealObject.
 	self assert: accounts size = 2.
 	query := Query read: GlorpCustomer
 				where: 
@@ -1099,7 +1100,7 @@ GlorpReadingTest >> testReadCustomerWithAnySatisfyExists [
 					person accounts anySatisfy: [:each | each accountNumber branchNumber = 2]].
 	result := session execute: query.
 	self assert: result size = 1.
-	accounts := result first accounts getValue.
+	accounts := result first accounts glorpRealObject.
 	self assert: accounts size = 2] 
 			ensure: [session rollbackTransaction]
 ]
@@ -1116,7 +1117,7 @@ GlorpReadingTest >> testReadCustomerWithAnySatisfyJoin [
 					person accounts anySatisfyJoin: [:each | each accountNumber branchNumber > 0]].
 	result := session execute: query.
 	self assert: result size = 1.
-	accounts := result first accounts getValue.
+	accounts := result first accounts glorpRealObject.
 	self assert: accounts size = 2.
 	query := Query read: GlorpCustomer
 				where: 
@@ -1124,7 +1125,7 @@ GlorpReadingTest >> testReadCustomerWithAnySatisfyJoin [
 					person accounts anySatisfy: [:each | each accountNumber branchNumber = 2]].
 	result := session execute: query.
 	self assert: result size = 1.
-	accounts := result first accounts getValue.
+	accounts := result first accounts glorpRealObject.
 	self assert: accounts size = 2] 
 			ensure: [session rollbackTransaction]
 ]
@@ -1142,7 +1143,7 @@ GlorpReadingTest >> testReadCustomerWithIncludes [
 					person accounts includes: account].
 	result := session execute: query.
 	self assert: result size = 1.
-	accounts := result first accounts getValue.
+	accounts := result first accounts glorpRealObject.
 	self assert: (accounts includes: account).
 	self assert: accounts size = 2] 
 			ensure: [session rollbackTransaction]
@@ -1669,21 +1670,24 @@ GlorpReadingTest >> testRegisteringWithEmbeddedMapping [
 
 { #category : #'tests-functions' }
 GlorpReadingTest >> testRetrieveComputed [
-	| query  results |
-	
+	"This test also exercises aliasing functions, specifically an infix function and a prefix function."
+
+	| query results |
 	[session beginTransaction.
 	self writeCustomer1Rows.
-
 	query := Query read: GlorpBankAccount.
-	query retrieve: [:each | each  id].
-	query retrieve: [:each | each  id * 2].
+	query retrieve: [:each | each id].
+	query retrieve: [:each | each id * 2 alias: 'idDoubled'].
 	query retrieve: [:each | 2].
-	query retrieve: [:each | each  id * each  id].
+	query retrieve: [:each | each id negated alias: 'idNegated'].
+	query retrieve: [:each | each id * each id].
 	results := query executeIn: session.
-	results do: [:eachRow  | 
-		self assert: (eachRow first * eachRow first) = eachRow last.
-		self assert: (eachRow at: 2) = (2* eachRow first).
-		self assert: (eachRow at: 3) = 2]]
+	results do:
+		[:eachRow  |
+		self assert: eachRow first * eachRow first = eachRow last.
+		self assert: (eachRow at: 2) = (2 * eachRow first).
+		self assert: (eachRow at: 3) = 2.
+		self assert: eachRow first + (eachRow at: 4) = 0]]
 			ensure: [session rollbackTransaction]
 ]
 

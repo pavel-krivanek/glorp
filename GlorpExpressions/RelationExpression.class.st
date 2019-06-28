@@ -4,7 +4,8 @@ This represents a relationship between two sub-expressions, that is something li
 Instance Variables:
 	leftChild	<GlorpExpression>	The left child.
 	rightChild	<GlorpExpression>	The right child.
-	outerJoin	<Boolean>	Is this an outer join (only makes sense if we are an equality comparison.
+	outerJoin	<Boolean | nil>	If this is nil, we are an inner join.  If it is true we are a left outer join.  If it is false we are a right outer join.
+						Note that for us to be an outer join only makes sense if we are an equality comparison.
 	relation	<String>	The string or symbol that we print for our relationship.
 
 
@@ -49,12 +50,6 @@ RelationExpression >> addBoundExpressionsIn: aCommand [
 	(aCommand boundExpressions includes: self) ifTrue: [^self].
 	translated := self convertValueOf: rightChild in: aCommand parameters.
 	(self useBindingFor: translated to: leftChild type in: aCommand) ifTrue: [aCommand boundExpressions add: self].
-]
-
-{ #category : #preparing }
-RelationExpression >> additionalExpressions [
-
-	^#().
 ]
 
 { #category : #accessing }
@@ -114,13 +109,19 @@ RelationExpression >> asGeneralGlorpExpressionWithFields [
 
 { #category : #converting }
 RelationExpression >> asIndependentJoins [
-	| |
-	"If this is an ANDed clause, referring to two different tables split it into independent joins"
+	"If this is an ANDed clause whose two sides refer to two different (sets of) tables, split it into independent joins.  If both sides refers to the same tables, or one side's tables are a proper subset of the other (which could arise if one side compares to a constant), keep it together."
+
+	| oneSidesTables otherSidesTables temp |
 	relation == #AND ifFalse: [^Array with: self].
-	leftChild tablesForANSIJoin asSortedCollection = rightChild tablesForANSIJoin asSortedCollection
+	oneSidesTables := leftChild tablesForANSIJoin.
+	otherSidesTables := rightChild tablesForANSIJoin.
+	oneSidesTables size > otherSidesTables size ifTrue:
+		[temp := otherSidesTables. otherSidesTables := oneSidesTables. oneSidesTables := temp].
+	(oneSidesTables allSatisfy: [:each | otherSidesTables includes: each])
 		ifTrue: [^Array with: self].
-	^(Array with: leftChild with: rightChild) inject: OrderedCollection new into: [:sum :each |
-		sum addAll: each asIndependentJoins. sum].
+	^(OrderedCollection withAll: leftChild asIndependentJoins)
+		addAll: rightChild asIndependentJoins;
+		yourself
 ]
 
 { #category : #converting }
@@ -142,13 +143,6 @@ RelationExpression >> assembleCompositePrimaryKeyFrom: anArray and: anotherArray
 		[:index || other | other := anotherArray at: index.
 		other == DatabaseRow emptySlot ifFalse: [anArray at: index put: other]].
 	^anArray
-]
-
-{ #category : #accessing }
-RelationExpression >> beOuterJoin [
-	outerJoin := true.
-	leftChild beOuterJoin.
-	rightChild beOuterJoin.
 ]
 
 { #category : #preparing }
@@ -286,8 +280,7 @@ RelationExpression >> isNeutralInPrimaryKeyExpression [
 
 { #category : #accessing }
 RelationExpression >> isOuterJoin [
-	outerJoin isNil ifTrue: [outerJoin := false].
-	^outerJoin.
+	^outerJoin notNil
 ]
 
 { #category : #accessing }
@@ -316,7 +309,6 @@ RelationExpression >> mappedFields [
 RelationExpression >> named: aSymbol basedOn: anExpression withArguments: anArray [
 
 	| base right rightBase |
-	outerJoin := false.
 	relation := self operationFor: aSymbol.
 	leftChild := anExpression.
 
@@ -354,18 +346,7 @@ RelationExpression >> operationFor: aSymbol [
 	^aSymbol.
 ]
 
-{ #category : #accessing }
-RelationExpression >> outerJoin [
-	outerJoin isNil ifTrue: [outerJoin := false].
-	^outerJoin.
-]
-
-{ #category : #accessing }
-RelationExpression >> outerJoin: aBoolean [
-	outerJoin := aBoolean.
-]
-
-{ #category : #'As yet unclassified' }
+{ #category : #'primary keys' }
 RelationExpression >> primaryKeyFromDictionary: aDictionary [
 	"Given a set of parameters, return a primary key suitable for retrieving our target. Do this only if the expression is for a primary key, and has no other conditions than the primary key one.  If the table's primary key is composite, return the array that will be needed with the found values in the right position and nils elsewhere.
 	A query that also has non-primaryKey values will throw away this attempt to get a cache-matching primary key, returning nil.  If it only has primaryKey fields but the set is incomplete, this method will return that set, with unmatchable values in the missing primaryKey rows (not nils:  if there were primaryKey fields unreferenced in the query but all were nillable, the incomplete set could accidentally match.)"
@@ -394,26 +375,28 @@ RelationExpression >> primaryKeyFromDictionary: aDictionary [
 ]
 
 { #category : #'printing SQL' }
-RelationExpression >> printBasicSQLOn: aCommand withParameters: aDictionary [ 
+RelationExpression >> printBasicSQLOn: aCommand withParameters: aDictionary [
 	aCommand nextPut: $(.
 	leftChild printSQLOn: aCommand withParameters: aDictionary.
-	self 
-		printComparisonTo: rightChild
-		withParameters: aDictionary
-		on: aCommand.
-	self printOracleOuterJoinOn: aCommand.
+	self
+		printOracleOuterJoinOn: aCommand
+		around: [self
+				printComparisonTo: rightChild
+				withParameters: aDictionary
+				on: aCommand].
 	aCommand nextPut: $).
 ]
 
 { #category : #'printing SQL' }
-RelationExpression >> printBasicUnqualifiedSQLOn: aCommand withParameters: aDictionary [ 
+RelationExpression >> printBasicUnqualifiedSQLOn: aCommand withParameters: aDictionary [
 	aCommand nextPut: $(.
 	leftChild printUnqualifiedSQLOn: aCommand withParameters: aDictionary.
-	self 
-		printUnqualifiedComparisonTo: rightChild
-		withParameters: aDictionary
-		on: aCommand.
-	self printOracleOuterJoinOn: aCommand.
+	self
+		printOracleOuterJoinOn: aCommand
+		around: [self
+				printUnqualifiedComparisonTo: rightChild
+				withParameters: aDictionary
+				on: aCommand].
 	aCommand nextPut: $).
 ]
 
@@ -439,21 +422,25 @@ RelationExpression >> printComparisonTo: value withParameters: aDictionary on: a
 
 { #category : #'printing SQL' }
 RelationExpression >> printForANSIJoinTo: table on: aCommand [
-	"Print ourselves as table JOIN otherTable USING (criteria). Return the table we joined"
+	"Print ourselves as table {LEFT OUTER} JOIN otherTable ON criteria."
 
-	self outerJoin
-		ifTrue: [aCommand nextPutAll: ' LEFT OUTER JOIN ']
-		ifFalse: [aCommand nextPutAll: ' INNER JOIN '].
+	self isOuterJoin
+		ifFalse: [aCommand nextPutAll: ' INNER JOIN ']
+		ifTrue: [outerJoin
+				ifTrue: [aCommand nextPutAll: ' LEFT OUTER JOIN ']
+				ifFalse: [aCommand nextPutAll: ' RIGHT OUTER JOIN ']].
 	aCommand nextPutAll: table sqlTableName.
 	aCommand nextPutAll: ' ON '.
 	self printSQLOn: aCommand withParameters: aCommand parameters.
-	^table.
+
+"ANSI makes shorter forms avaliable:  all or most compliant databases will accept JOIN for INNER JOIN and LEFT for LEFT OUTER JOIN.  ANSI also makes other forms available: RIGHT (long form RIGHT OUTER JOIN) swaps which table's unmatching rows are shown, while FULL (long form FULL OUTER JOIN) will show all the unmatched rows of both tables, and CROSS (long form CROSS JOIN) provides a cartesian product of the two tables.  The syntax 'table JOIN otherTable USING fieldNameList' can be used when the field names are common to both tables, while 'table JOIN otherTable NATURAL' means that all field names common to both tables define the join."
 ]
 
 { #category : #'printing SQL' }
 RelationExpression >> printMicrosoftOuterJoinOn: aCommand [
 	self isOuterJoin ifFalse: [^self].
-	aCommand platform useMicrosoftOuterJoins ifTrue: [
+	aCommand platform useMicrosoftOuterJoins ifTrue:
+		[outerJoin ifFalse: [self error: 'Old Microsoft notation not supported for right outer joins'].
 		aCommand nextPutAll: '*'].
 ]
 
@@ -464,12 +451,32 @@ RelationExpression >> printOnlySelfOn: aStream [
 ]
 
 { #category : #'printing SQL' }
-RelationExpression >> printOracleOuterJoinOn: aCommand [
-	self isOuterJoin ifFalse: [^self].
-	(self leftChild class == self class and: [self leftChild isOuterJoin]) ifTrue: [^self].
-	(self rightChild class == self class and: [self rightChild isOuterJoin]) ifTrue: [^self].
-	aCommand platform useOracleOuterJoins ifTrue: [
-		aCommand nextPutAll: ' (+) '].
+RelationExpression >> printOracleOuterJoinOn: aCommand around: aBlock [
+	"In Oracle, (+) denotes the 'optional' table in the JOIN."
+
+	self isOuterJoin ifFalse: [^aBlock value].
+	(self leftChild class == self class and: [self leftChild isOuterJoin]) ifTrue: [^aBlock value].
+	(self rightChild class == self class and: [self rightChild isOuterJoin]) ifTrue: [^aBlock value].
+	aCommand platform useOracleOuterJoins ifFalse: [^aBlock value].
+	outerJoin
+		ifTrue:	"left outer join"
+			[aBlock value.
+			aCommand nextPutAll: ' (+) ']
+		ifFalse:	"right outer join"
+			[aCommand nextPutAll: ' (+) '.
+			aBlock value].
+
+"Examples
+=======
+SELECT P.Part_Id, S.Supplier_Name
+FROM Part P, Supplier S
+WHERE P.Supplier_Id = S.Supplier_Id (+)	/* P LEFT OUTER JOIN S
+
+SELECT P.Part_Id, S.Supplier_Name
+FROM Part P, Supplier S
+WHERE S.Supplier_Id (+) = P.Supplier_Id	/* S RIGHT OUTER JOIN P
+
+So in the first query, it's a P LEFT OUTER JOIN S. In the second query, it's S RIGHT OUTER JOIN P. They're functionally equivalent."
 ]
 
 { #category : #'printing SQL' }
@@ -487,7 +494,7 @@ RelationExpression >> printSQLOn: aStream withParameters: aDictionary [
 		ifTrue:
 			[| impliedClauses |
 			impliedClauses := self leftChild allRelationsFor: self.
-			impliedClauses outerJoin: self outerJoin.
+			impliedClauses privateBeOuterJoin: outerJoin.
 			impliedClauses
 				printSQLOn: aStream
 				withParameters: aDictionary]
@@ -547,7 +554,7 @@ RelationExpression >> printUnqualifiedSQLOn: aStream withParameters: aDictionary
 		ifTrue:
 			[| impliedClauses |
 			impliedClauses := self leftChild allRelationsFor: self.
-			impliedClauses outerJoin: self outerJoin.
+			impliedClauses privateBeOuterJoin: outerJoin.
 			impliedClauses
 				printUnqualifiedSQLOn: aStream
 				withParameters: aDictionary]
@@ -559,15 +566,17 @@ RelationExpression >> printUnqualifiedSQLOn: aStream withParameters: aDictionary
 
 { #category : #'printing SQL' }
 RelationExpression >> printValue: value on: aCommand [
+	"Glorp manipulations in a QuerySelectCommand may have caused me to be referenced from two places inside a larger expression, in which case, if binding, I must use the same bind marker in both places."
 
 	| type |
-	type := [self leftChild type] on: Dialect error
-				do: [:ex | self error: 'Invalid comparison operation: ' , self printString].
+	type := [self leftChild type]
+		on: Dialect error
+		do: [:ex | self error: 'Invalid comparison operation: ' , self printString].
 	(self useBindingFor: value to: type in: aCommand)
 		ifTrue: [^aCommand nextPutBindMarkerIn: self].
 	self expectsCollectionArgument
 		ifTrue: [type printCollection: value on: aCommand]
-		ifFalse: [type print: value on: aCommand]
+		ifFalse: [type print: value on: aCommand].
 ]
 
 { #category : #'printing SQL' }
@@ -576,6 +585,21 @@ RelationExpression >> printWithNullOn: aStream [
 	self relation = #<> ifTrue: [
 		aStream nextPutAll: 'NOT '].
 	aStream nextPutAll: 'NULL'.
+]
+
+{ #category : #private }
+RelationExpression >> privateBeOuterJoin: anOuterJoin [
+	"NEVER use this method when defining joins in your descriptor systems;  always use paramaterless #beOuterJoin and similar API methods.  Before version 8.3.1, Glorp only supported inner joins and the setting was a boolean.  It then changed to a boolean or nil, and what false meant also changed.  It may evolve further."
+
+	anOuterJoin isNil ifTrue: [^self].
+	outerJoin := anOuterJoin.
+	leftChild privateBeOuterJoin: anOuterJoin.
+	rightChild privateBeOuterJoin: anOuterJoin.
+]
+
+{ #category : #private }
+RelationExpression >> privateGetOuterJoin [
+	^outerJoin
 ]
 
 { #category : #navigating }
@@ -591,11 +615,10 @@ RelationExpression >> rebuildOn: aBaseExpression startingFrom: anExpression with
 	expression := (leftChild rebuildOn: aBaseExpression startingFrom: anExpression withOuterScopeBase: ultimateBaseExpression)
 		get: relation
 		withArguments:
-			(Array
-				with:
-					(self rightChildToRebuild rebuildOn: aBaseExpression startingFrom: anExpression withOuterScopeBase: ultimateBaseExpression)).
-	self isOuterJoin ifTrue: [expression beOuterJoin].
-	^expression.
+			(Array with:
+				(self rightChildToRebuild rebuildOn: aBaseExpression startingFrom: anExpression withOuterScopeBase: ultimateBaseExpression)).
+	expression privateBeOuterJoin: outerJoin.
+	^expression
 ]
 
 { #category : #accessing }
@@ -610,7 +633,7 @@ RelationExpression >> relation: aSymbol [
 	relation := aSymbol.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #constants }
 RelationExpression >> relationsWithCollectionArguments [
 	^#(#IN #'NOT IN')
 ]
@@ -634,6 +657,13 @@ RelationExpression >> replaceJoinsWithInverse [
 RelationExpression >> rewriteEquality [
 	| keyEquality descriptor describedClass |
 	leftChild := leftChild rewriteBooleanEquality: relation.
+	(relation = #= or: [relation = #<> or: [relation = #IN]]) ifFalse: [^self].
+	leftChild class = ExpressionGroup ifTrue:
+		[^leftChild asMultipleExpressionRelationOf: self].
+	"This restrictive handling of conditionals will be developed later."
+	leftChild class = MappingExpression ifTrue:
+		[leftChild mapping class = ConditionalMapping ifTrue:
+			[^leftChild expandConditionalLeftChildOf: self]].
 	leftChild hasDescriptor ifFalse: [^self].
 	"A slightly convoluted way of checking if this is a pseudo-descriptor for a primitive type used in something like a DirectToManyMapping, in which case we can't rewrite. But if it's a pseudo-descriptor for a dictionary mapping where we actually use the mapping as the key rather than a class, then we're ok. It'd be nice if the code for this were more expressive."
 	descriptor := leftChild descriptor.
@@ -641,8 +671,7 @@ RelationExpression >> rewriteEquality [
 	(describedClass ~~ Association
 		and: [(descriptor session descriptorFor: describedClass) isNil])
 			ifTrue: [^self].
-	relation = #= | (relation = #<>) | (relation = #IN) ifFalse: [^self].
-	keyEquality := leftChild descriptor
+	keyEquality := descriptor
 		primaryKeyExpressionFor: rightChild
 		basedOn: leftChild
 		relation: relation.
@@ -680,27 +709,33 @@ RelationExpression >> rightChildToRebuild [
 RelationExpression >> shortCircuitOnNullComparison: parameters [
 	"Return true if we represent an expression that compares null to a non-nullable value, so we don't ever need to really evaluate it.This could be more sophisticated and test if any part of an ANDed and not NOTed clause does such a comparison. But this will do for the most important cases"
 
-	| value |
-	outerJoin ifTrue: [^false].
-	value := rightChild valueIn: parameters.
-	^(relation == #=
-		and: [value isNil and: [leftChild field isNullable not]])
+	^outerJoin isNil
+		and: [relation == #=
+		and: [(rightChild valueIn: parameters) isNil
+		and: [leftChild field isNullable not]]]
 ]
 
 { #category : #converting }
-RelationExpression >> sourceForTarget: aField [
-
-	| left |
-	relation = #= ifFalse: [
-		left := leftChild sourceForTarget: aField.
-		left isNil ifFalse: [^left].
-		^rightChild sourceForTarget: aField].
+RelationExpression >> sourceForTarget: aField ifNone: aBlock [
+	relation = #= ifFalse:
+		[^leftChild
+			sourceForTarget: aField
+			ifNone: [rightChild
+						sourceForTarget: aField
+						ifNone: aBlock]].
 	rightChild field == aField ifTrue: [^leftChild field].
 	leftChild field == aField ifTrue: [^rightChild field].
-	^nil.
+	^aBlock value
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #accessing }
+RelationExpression >> table [
+	^rightChild table isNil
+		ifTrue: [leftChild table]
+		ifFalse: [self halt: 'Join expression is relation whose RHS is not simple enough?']
+]
+
+{ #category : #joining }
 RelationExpression >> tableToJoinFrom: aTableCollection [
 	"Return a table we could legitimately use at this point to write as an ANSI join, meaning that all but one must be already used and thus available, with one that isn't, where aTableCollection lists the used ones."
 
@@ -710,12 +745,13 @@ RelationExpression >> tableToJoinFrom: aTableCollection [
 	^possibleTables size = 1 ifTrue: [possibleTables any]	"return nil otherwise"
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #joining }
 RelationExpression >> tablesForANSIJoin [
-	"Which tables will we join. Assumes this is a single-level join"
-	^self inject: Set new into: [:sum :each |
-		each tableForANSIJoin isNil ifFalse: [sum add: each tableForANSIJoin].
-		sum].
+	"Which tables will we join. Assumes this is a single-level join.  (More often than not, tableForANSIJoin will return nil, but adding nil to a set is a noop so we need not check for nil before adding; it is more efficient to let Set>>add: do that.)"
+
+	^self
+		inject: Set new
+		into: [:sum :each | sum add: each tableForANSIJoin. sum]
 ]
 
 { #category : #accessing }
@@ -749,4 +785,9 @@ RelationExpression >> useBindingFor: aValue to: aType in: aCommand [
 { #category : #mapping }
 RelationExpression >> valueInBuilder: anElementBuilder [
 	^self leftChild valueInBuilder: anElementBuilder as: self
+]
+
+{ #category : #mapping }
+RelationExpression >> valueInBuilder: anElementBuilder as: anExpression [
+	^self leftChild valueInBuilder: anElementBuilder as: anExpression
 ]

@@ -37,9 +37,10 @@ ToManyMapping >> buildGeneralQueryIn: anObjectBuilder [
 
 { #category : #mapping }
 ToManyMapping >> buildQuery [
-	query := super buildQuery.
-	orderBy isNil ifFalse: [orderBy do: [:each | query orderBy: each]].
-	^query.
+	| builtQuery |
+	builtQuery := super buildQuery.
+	orderBy isNil ifFalse: [orderBy do: [:each | builtQuery orderBy: each]].
+	^builtQuery
 ]
 
 { #category : #api }
@@ -50,6 +51,15 @@ ToManyMapping >> collectionType [
 { #category : #api }
 ToManyMapping >> collectionType: aClass [
 	self attribute collectionType: aClass.
+]
+
+{ #category : #mapping }
+ToManyMapping >> customRowMapKeyForSource: anObject target: anotherObject index: anInteger [
+	"Until 8.3.1, Glorp did not pass the 3rd parameter, so all rowMapKeyConstructorBlocks before then had twp parameters, not three.  Because rowMapKeyConstructorBlocks have been very rarely used till now, this change to using all three parameters for to-many mappings is not expected to cause backward-compatibility problems.  If it does, change this method to
+	^rowMapKeyConstructorBlock cull: realSource cull: realTarget cull: index
+to allow blocks with two parameters."
+
+	^rowMapKeyConstructorBlock value: anObject value: anotherObject value: anInteger
 ]
 
 { #category : #'initialize/release' }
@@ -84,6 +94,12 @@ ToManyMapping >> initializeAttribute [
 ToManyMapping >> keyForOrderingFrom: anObject to: target [
 	self usesLinkTable ifFalse: [^target].
 	^self orderField table == self linkTable ifTrue: [target] ifFalse: [anObject].
+]
+
+{ #category : #mapping }
+ToManyMapping >> knitFromBuilder: sourceBuilder toBuilder: targetBuilder [
+	self canRead ifFalse: [^self].
+	^self attribute knit: sourceBuilder instance to: targetBuilder instance
 ]
 
 { #category : #'private/expressions' }
@@ -147,14 +163,15 @@ ToManyMapping >> validate [
 
 { #category : #mapping }
 ToManyMapping >> writeExtraInformationInto: aRowMap atKey: rowMapKey forSourceObject: sourceObject targetObject: targetObject atIndex: index [
-	shouldWriteTheOrderField
-		ifTrue:
-			[| keyForOrdering |
-			keyForOrdering := self keyForOrderingFrom: sourceObject to: rowMapKey.
-			aRowMap
-				at: self orderField
-				key: keyForOrdering
-				put: index].
+	"If the collection I map to is sequenceable, we can write that order to the database so as to re-read elements in that same order."
+
+	shouldWriteTheOrderField ifTrue:
+		[aRowMap
+			at: self orderField
+			key: (self keyForOrderingFrom: sourceObject to: rowMapKey)
+			put: index].
+
+"Note that, even if the collection I map is _not_ sequenceable, Glorp does in fact increment the index in parallel with the #do: iteration, so the actual sequence of iteration through a set as we write rows for it is captured and would be written here if an orderField were specified."
 ]
 
 { #category : #api }

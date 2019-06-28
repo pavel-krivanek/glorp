@@ -113,11 +113,6 @@ FirebirdPlatform >> maximumLengthOfTableName [
 	^31
 ]
 
-{ #category : #testing }
-FirebirdPlatform >> measuresStringFieldWidthsInBytes [
-	^true
-]
-
 { #category : #'services tables' }
 FirebirdPlatform >> printSqlStatementToListTablesInSchema: schemaString on: aStream [
 	"Firebird uses the same table for tables, views and possibly other stuff.  It does not support schemas within a database "

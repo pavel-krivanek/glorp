@@ -1,5 +1,8 @@
 "
 This is a definition for MySQL databases. It's not done yet, just here as a placeholder.
+
+Instance Variables:
+	supportsGroupWritingValues	<Boolean>	can a single INSERT statement be followed by multiple VALUES
 "
 Class {
 	#name : #MySQLPlatform,
@@ -45,6 +48,22 @@ MySQLPlatform >> bindingsForGroupWritingFor: aCommand [
 MySQLPlatform >> blob [
 	"Return the MySQL type for long blob."
 	^self typeNamed: #blob ifAbsentPut: [GlorpBlobType new typeString: 'LONGBLOB'].
+]
+
+{ #category : #types }
+MySQLPlatform >> boolean [
+	^self typeNamed: #boolean ifAbsentPut: [GlorpBooleanType new typeString: 'integer']
+]
+
+{ #category : #'conversion-boolean' }
+MySQLPlatform >> booleanToBooleanConverter [
+	"MySQL uses integers to represent booleans in the database.  Therefore this conversion between Glorp boolean and database boolean actually converts between boolean and integer."
+
+	^DelegatingDatabaseConverter
+		named: #booleanToBoolean
+		hostedBy: self
+		fromStToDb: #convertBooleanToInteger:for:
+		fromDbToSt: #convertIntegerToBoolean:for:
 ]
 
 { #category : #testing }
@@ -97,6 +116,13 @@ MySQLPlatform >> endColumnQuote [
 	^'`'.
 ]
 
+{ #category : #'exdi specific' }
+MySQLPlatform >> exdiTypeForBoolean [
+	"MySQL has no boolean type.  MySQLEXDI maps booleans to in8s on writing, but not back on reading."
+
+	^#Integer
+]
+
 { #category : #types }
 MySQLPlatform >> float [
 	^self typeNamed: #float ifAbsentPut: [GlorpFloatType new typeString: 'float' ].
@@ -110,6 +136,14 @@ MySQLPlatform >> float4 [
 { #category : #types }
 MySQLPlatform >> float8 [
 	^self double.
+]
+
+{ #category : #'initialize-release' }
+MySQLPlatform >> initialize [
+	"MySQL has been supporting group writing with the VALUES clause at least since version 5.0.  For safety, we initialize to false, resetting in postLoginInitializeFromAccessor:."
+
+	super initialize.
+	supportsGroupWritingValues := false.
 ]
 
 { #category : #functions }
@@ -189,6 +223,11 @@ MySQLPlatform >> nameForPrimaryKeyConstraintsWhenDropping [
 MySQLPlatform >> number [
 
 	^self typeNamed: #number ifAbsentPut: [GlorpNumericType new typeString: 'decimal'].
+]
+
+{ #category : #types }
+MySQLPlatform >> nvarchar [
+	^self typeNamed: #nvarchar ifAbsentPut: [GlorpNVarCharType new typeString: 'nvarchar'].
 ]
 
 { #category : #login }
@@ -333,6 +372,13 @@ MySQLPlatform >> supportsDecimalsOnAllNumerics [
 ]
 
 { #category : #testing }
+MySQLPlatform >> supportsDuplicateFieldNamesInCompoundQueries [
+	"Absurdly, Oracle, SQLServer and MySQL will not tolerate two unaliased fields in different tables but of the same name in a compound query, so the second (and subsequent) such fields must be aliased."
+
+	^false
+]
+
+{ #category : #testing }
 MySQLPlatform >> supportsGroupWritingFor: aCommand [
 	"MySQL does not support batched statements, i.e. cannot do INSERT ...; INSERT ...; INSERT... , but since version 5.0 it does support value sequences, i.e. it can do INSERT INTO table (id, c) VALUES (1,'1'), (2,'2'), (3,'3')."
 
@@ -385,9 +431,11 @@ MySQLPlatform >> timestamp [
 
 { #category : #types }
 MySQLPlatform >> typeWithDatabaseName: aString characterWidth: aNumber extraInformation: extraValue [
-	"Return our type which matches the database name for the type. Assumes all variable width fields are strings right now."
+	"Return our type which matches the database name for the type. Assumes all variable width fields are strings right now.  If the type is integer, return integer type, not boolean for now."
+
 	extraValue = 'auto_increment' ifTrue: [^self serial].
-	^super typeWithDatabaseName: aString characterWidth: aNumber.
+	aString asLowercase = 'integer' ifTrue: [^self integer].
+	^super typeWithDatabaseName: aString characterWidth: aNumber
 ]
 
 { #category : #testing }

@@ -1,10 +1,12 @@
 "
-This is a to-many mapping where the class in the collection is a simple type, not a compound object. This requires fiddling with the descriptors, to allow each such mapping to define a different descriptor for the target class. This should be regarded as something of a prototype. It seems to work, at least for basic operations, but it may well have problems.
+This is a to-many mapping where the target class is a simple type, not a compound object. This was created as a prototype in early Glorp (it seemed to work, at least for basic operations, but was little tested or used, so could well have had problems).  It was developed further and more widely used in Glorp 8.3.1 and after.
+
+The ordinary way to map a simple type directly to a field that is not in a descriptor's main table is to give the owning descriptor a multipleTableJoin between its main table and the field's table.  A DirectMapping from an instar in the owning object to a field in the target table can then be defined, exactly as if it were to a field in the main table.  The join can be an outer join if not all instances of the describedClass.  However this is necessarily one-to-one;  the owning object is built from one row in each of the tables.  Thus we provide this class to map a collection (whose contents are of simple type) directly to a field, being written in zero, one or more rows of its table.
+
+When given its join, it creates a pseudoDescriptor, keyed by itself (it returns true to #glorpCanHaveDescriptorDirectly), that holds a single direct mapping (whose name #myValue is hardcoded) and a class model (also unique to this mapping) for its target class.  This allows each such mapping to define a different descriptor for its target class, since the target class, being simple, could well also be the target class of another such mapping in the same system, or they key or value of a dictionary mapping.
 
 Instance Variables:
-	resultField	<DatabaseField>	The field in the target table in which we have our results.
-
-
+	resultField	<DatabaseField>	The field in the target table to which we map.
 "
 Class {
 	#name : #DirectToManyMapping,
@@ -44,30 +46,47 @@ DirectToManyMapping >> attributeName: anAttributeName referenceClass: aClass [
 
 { #category : #accessing }
 DirectToManyMapping >> buildQuery [
-	query := super buildQuery.
-	query retrieve: [:x | x getField: resultField].
-	^query.
+	| builtQuery |
+	builtQuery := super buildQuery.
+	builtQuery retrieve: [:x | x getField: resultField].
+	^builtQuery
 ]
 
 { #category : #mapping }
 DirectToManyMapping >> buildRowMapKeyForSource: source target: target index: index [
-	"What should this do??? We want to distinguish the entries in e.g. # (1 2 3 3 4 3 5). Or do we? They aren't distinguishable in the DB. Does that mean we always want to write the order field? Or what? What if this is a set in memory. Then we really can't have two entries"
-	^MultipleRowMapKey
-		with: target yourSelf
-		with: source yourSelf
-		with: index.
+	"When comparing row maps, we want to distinguish the entries in e.g. #(1 2 3 3 4 3 5), so include the index in the key. They aren't distinguishable in the DB unless we write the order field, so we must write the order field or believe we have no duplicate entries."
+
+	^MultipleRowMapKey with: target with: source with: index
+
+"TO DO:  if we map to a Set, there are never duplicate entries and we need not write the order field, but needlessly including the index in the row map key could cause failure to match were a set and its memento to traverse the same elements in different orders, which is obviously possible.  Make the above omit the index if the collectionType is an unordered collection, or have a subclass, e.g. DirectToUnsequenceableManyMapping, substituted on setting the collection type to such a collection."
 ]
 
-{ #category : #converting }
-DirectToManyMapping >> convertedDbValueOf: anObject [
-	"It may be that we need to introduce a converter here, the same as with a regular direct mapping"
-	^anObject.
+{ #category : #'printing SQL' }
+DirectToManyMapping >> convertedDbValueOf: stValue [ 
+	^self myValueMapping convertedDbValueOf: stValue.
+]
+
+{ #category : #accessing }
+DirectToManyMapping >> converter: aConverter [
+	self myValueMapping converter: aConverter.
 ]
 
 { #category : #accessing }
 DirectToManyMapping >> descriptor: aDescriptor [
+	"If #myValue mapping has been set on an existing pseudoDescriptor, avoid losing it again.  This can happen if you create a DirectToManyMapping in a ConditionalMapping and set it up first (sending it #join:, which creates the #myValue submapping) and then use it (#if: [...] useMapping: myDirToManyMapping, which sends descriptor: to the mapping again."
+
+	| existingPseudoDescriptor |
 	super descriptor: aDescriptor.
-	aDescriptor system privateAndBasicAddDescriptorFor: self as: self pseudoDescriptor.
+	existingPseudoDescriptor := aDescriptor system
+		privateAndBasicDescriptorFor: self
+		ifAbsent: [^aDescriptor system privateAndBasicAddDescriptorFor: self as: self pseudoDescriptor].
+	^existingPseudoDescriptor system == aDescriptor system
+		ifFalse: [self error: self printString, ' had descriptor for another system']
+		ifTrue: [(existingPseudoDescriptor classModel notNil and:
+				[existingPseudoDescriptor classModel hasAttributeNamed: #myValue])
+					ifFalse: [aDescriptor system privateAndBasicAddDescriptorFor: self as: self pseudoDescriptor]
+					ifTrue: [existingPseudoDescriptor]].	"do nothing here - just assume everything is and/or will be fine - or should we warn?		
+							self error: self printString,' already has a valid-seeming pseudo-descriptor; if in a conditional, send it #join: after #if:useMapping:ing it)'"
 ]
 
 { #category : #accessing }
@@ -95,9 +114,32 @@ DirectToManyMapping >> join: aJoin [
 		from: #myValue to: resultField.
 ]
 
+{ #category : #mapping }
+DirectToManyMapping >> knitFromBuilder: sourceBuilder toBuilder: targetBuilder [
+	"We always have an orderField and always read it when alsoFetching (the only time we will reach this method).  Use it to guard against a false equality match in attribute knitting by ensuring the object at our index in the updated collection is what it should be.  If our collection is smaller than the index, it is just 1 smaller, because we mistakenly failed to add in the super call due to another object equalling us.  (We want to DNU and see the problem if that assumption is wrong.)"
+
+	self canRead ifFalse: [^self].
+	^self attribute
+		knit: sourceBuilder instance
+		to: targetBuilder instance
+		at: targetBuilder indexOfValue.
+]
+
 { #category : #testing }
 DirectToManyMapping >> mapsSimpleObject [
-	^true.
+	^true
+]
+
+{ #category : #accessing }
+DirectToManyMapping >> myValueMapping [
+	^self referenceDescriptor mappingForAttributeNamed: #myValue
+]
+
+{ #category : #accessing }
+DirectToManyMapping >> name [
+	"I answer true to #glorpCanHaveDescriptorDirectly (i.e. as if I were a class), so must be able to respond to this method which can appear in e.g. #printOn:, returning e.g. 'DirectToManyMapping of String'."
+
+	^self class name, ' of ', self attribute type name
 ]
 
 { #category : #testing }
@@ -105,6 +147,24 @@ DirectToManyMapping >> needsSpecialRowMapKey [
 	"Return true if we have to use a special key object for the row map, rather than just our target. We always do, because our target may not have identity."
 
 	^true.
+]
+
+{ #category : #accessing }
+DirectToManyMapping >> overflowAfter: anInteger intoMany: anotherInteger [
+	"Tell my attribute model to treat the SequenceableCollection that I map (probably a String or ByteArray) as an initial subsequence (of size anInteger or less) mapped inline by some other mapping, followed (if it is long enough) by one or more subsequences (of length anotherInteger or, in the case of the last one, less) mapped by me."
+
+	descriptor isNil ifTrue: [self error: 'We have no descriptor so cannot see our true classModel to reset its attribute'].
+	attribute := attribute beAttributeClass: GlorpSubsequenceModel.
+	attribute subsequencesStartAfter: anInteger stepping: anotherInteger.
+]
+
+{ #category : #accessing }
+DirectToManyMapping >> pseudoCollectionType: aClass [
+	"Tell my attribute model to treat the SequenceableCollection that I map (probably a String or ByteArray) as an initial subsequence (of size anInteger or less) mapped inline by some other mapping, followed (if it is long enough) by one or more subsequences (of length anotherInteger or, in the case of the last one, less) mapped by me.  Instances of the parameter class must understand #add: and #do: and (if sequenceable) must manage iteration state when they are called to preserve sequence order."
+
+	descriptor isNil ifTrue: [self error: 'We have no descriptor so cannot see our true classModel to reset its attribute'].
+	attribute := attribute beAttributeClass: GlorpPseudoCollectionModel.
+	attribute pseudoCollectionType: aClass.
 ]
 
 { #category : #mapping }
@@ -134,13 +194,14 @@ DirectToManyMapping >> resultField: aField [
 
 { #category : #validation }
 DirectToManyMapping >> validate [
-	super validate.
-	"We have to write the order field. Otherwise, we get confused e.g. on deletion, because we don't have a way of telling the rows in the rowmap apart when the indexes have changed"
-	(self readOnly not and: [shouldWriteTheOrderField not]) ifTrue: [self error: 'To-many mappings to simple types must write an order field so that we have some way to tell the rows apart'].
+	"If we are for a pseudo-variable, we're neither reading nor writing, so we don't need the order.  Otherwise, we have to write the order field;  without the order, we would get confused e.g. on deletion, because we would not have a way of telling the rows in the rowmap apart when the indexes have changed.  Therefore, we validate that we write the order if we write, and have an orderBy if we write and/or read."
 
-	"If we're for a pseudo-variable, we're neither reading nor writing, so we don''t need the order."
+	super validate.
 	self isForPseudoVariable ifTrue: [^self].
-	orderBy isNil ifTrue: [self error: 'To-many mappings to simple types must specify and write an order field so that we have some way to tell the rows apart'].
+	(self canWrite and: [shouldWriteTheOrderField not]) ifTrue:
+		[self error: 'To-many mappings to simple types must write an order field so that we have some way to tell the rows apart'].
+	orderBy isNil ifTrue:
+		[self error: 'To-many mappings to simple types must specify an order field so that we have some way to tell the rows apart'].
 ]
 
 { #category : #accessing }
@@ -154,5 +215,5 @@ DirectToManyMapping >> writeExtraInformationInto: aRowMap atKey: rowMapKey forSo
 	aRowMap
 		at: self resultField
 		key: rowMapKey
-		put: targetObject.
+		put: (self convertedDbValueOf: targetObject).
 ]

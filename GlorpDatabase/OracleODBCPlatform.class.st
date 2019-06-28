@@ -30,11 +30,12 @@ OracleODBCPlatform >> isODBCPlatform [
 
 { #category : #login }
 OracleODBCPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
-	"Oracle has been supporting group writing with the VALUES clause at least since version 9.0.  A typical version string is: 'Oracle Database 11g Express Edition Release 11.2.0.2.0 - Production'."
+	"Oracle has been supporting group writing with the VALUES clause at least since version 9.0 and recursion since 11.2.  A typical version string is: 'Oracle Database 11g Express Edition Release 11.2.0.2.0 - Production'."
 
 	| dbmsVersion |
 	dbmsVersion := aDatabaseAccessor connection dbmsVersion tokensBasedOn: $..
 	supportsGroupWritingValues := dbmsVersion first asNumber > 9.
+	canRecurse := self isVersion: #(11 2) notNewerThan: dbmsVersion.
 ]
 
 { #category : #testing }

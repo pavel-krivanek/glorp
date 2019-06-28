@@ -28,12 +28,12 @@ Class {
 
 { #category : #'instance creation' }
 RowBasedCommand class >> forRow: aDatabaseRow useBinding: aBoolean session: aSession [
-	"The caller knows there is only one row, thus #allRows: is not called and not set."
+	"The caller knows there is only one row, thus #allRows: is not called and not set.  We set row last in case subclasses use its (re)setting to configure in ways that require session and/or binding."
 
 	^self new
-		row: aDatabaseRow;
 		useBinding: aBoolean;
 		session: aSession;
+		row: aDatabaseRow;	
 		yourself.
 ]
 
@@ -41,11 +41,8 @@ RowBasedCommand class >> forRow: aDatabaseRow useBinding: aBoolean session: aSes
 RowBasedCommand class >> forRows: aCollectionOfDatabaseRows useBinding: aBoolean session: aSession [
 	"The calling path ensures there is more than one row."
 
-	^self new
-		row: aCollectionOfDatabaseRows first;
+	^(self forRow: aCollectionOfDatabaseRows first useBinding: aBoolean session: aSession)
 		allRows: aCollectionOfDatabaseRows;
-		useBinding: aBoolean;
-		session: aSession;
 		yourself
 ]
 
@@ -128,8 +125,9 @@ RowBasedCommand >> arrayBindings [
 
 { #category : #'bound values' }
 RowBasedCommand >> arrayBoundFields [
-	"Return the list of fields to be bound in the SQL string we will use for array binding. For array binding, we need to include all possible fields, rather than those that just have values in a particular row"
-	self subclassResponsibility.
+	"Return the list of fields to be bound in the SQL string we will use for array binding or (despite my name) for batch statement binding."
+
+	^self subclassResponsibility
 ]
 
 { #category : #'bound values' }
@@ -293,25 +291,9 @@ RowBasedCommand >> row [
 ]
 
 { #category : #accessing }
-RowBasedCommand >> row: anObject [
-	row := anObject.
+RowBasedCommand >> row: aDatabaseRow [
+	row := aDatabaseRow.
 	sqlString := nil.
-]
-
-{ #category : #'bound values' }
-RowBasedCommand >> rowAtATimeBindings [
-	"Return multiple sets of bindings in a form suitable for iterating over"
-	| allBindings fields rowTemplate |
-	fields := self arrayBoundFields.
-	rowTemplate := Array new: fields size.
-	allBindings := Array new: allRows size.
-	1 to: allBindings size do: [:i | | currentRow input |
-		currentRow := rowTemplate copy.
-		input := allRows at: i.
-		allBindings at: i put: currentRow.
-		1 to: fields size do: [:j |
-			currentRow at: j put: (input at: (fields at: j) ifAbsent: [nil])]].
-	^allBindings asArray.
 ]
 
 { #category : #accessing }

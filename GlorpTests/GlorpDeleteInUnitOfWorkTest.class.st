@@ -26,14 +26,14 @@ GlorpDeleteInUnitOfWorkTest >> setUp [
 	session system: (GlorpDemoDescriptorSystem forPlatform: GlorpDatabaseLoginResource defaultLogin database)
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #'system accessing' }
 GlorpDeleteInUnitOfWorkTest >> system [
-	^unitOfWork session system.
+	^unitOfWork session system
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #'system accessing' }
 GlorpDeleteInUnitOfWorkTest >> tableNamed: aString [ 
-	^self system tableNamed: aString.
+	^self system tableNamed: aString
 ]
 
 { #category : #support }

@@ -21,14 +21,15 @@ Class {
 
 { #category : #'instance creation' }
 DelegatingDatabaseConverter class >> hostedBy: anObject fromStToDb: stDbSelector fromDbToSt: dbStSelector [
-
-	^super new
-		hostedBy: anObject fromStToDb: stDbSelector fromDbToSt: dbStSelector
+	^self new
+		hostedBy: anObject
+		fromStToDb: stDbSelector
+		fromDbToSt: dbStSelector
 ]
 
 { #category : #'instance creation' }
 DelegatingDatabaseConverter class >> named: aSymbol hostedBy: anObject fromStToDb: stDbSelector fromDbToSt: dbStSelector [
-	^super new
+	^self new
 		named: aSymbol
 		hostedBy: anObject
 		fromStToDb: stDbSelector

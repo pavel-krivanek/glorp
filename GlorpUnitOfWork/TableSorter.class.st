@@ -85,7 +85,10 @@ TableSorter >> visit: aTable [
 ]
 
 { #category : #sorting }
-TableSorter >> visitDependentTablesFor: aTable [ 
-	aTable foreignKeyConstraints do: [:eachConstraint | 
-          self visit: eachConstraint targetTable.]
+TableSorter >> visitDependentTablesFor: aTable [
+	"If the foreign key is also in the database (the default), getting this write-order right may be essential to having the database accept it.  If not, but one of a table's fields (key or otherwise) is also an IdentityColumn (i.e. post-write-assigned) primary key of another table, then a Glorp-only foreign key may be of use in getting the post-write-assigned value for the other row before it is written."
+
+	aTable foreignKeyConstraints do:
+		[:eachConstraint |
+		self visit: eachConstraint targetTable].
 ]

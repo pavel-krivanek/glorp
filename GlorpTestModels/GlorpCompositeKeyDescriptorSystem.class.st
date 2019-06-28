@@ -1,5 +1,5 @@
 "
-This is a system designed to test the use of composite keys. Its model is an email message system, where we have users, folders, keyed by name and owning user, and messages, keyed by a message id, folder name, and owning user.
+This is a system designed to test the use of composite keys. Its model is an email message system, where we have users, folders, keyed by name and owning user, and messages, keyed by a message id, folder name, and owning user.  (A default message is keyed by user only, to test when no part of the key is local to the object being keyed.)
 "
 Class {
 	#name : #GlorpCompositeKeyDescriptorSystem,
@@ -19,7 +19,7 @@ GlorpCompositeKeyDescriptorSystem class >> visualWorksMetadata [
 
 { #category : #accessing }
 GlorpCompositeKeyDescriptorSystem >> allTableNames [
-	^#('GR_USER' 'GR_FOLDER' 'GR_MESSAGE').
+	^#('GR_USER' 'GR_FOLDER' 'GR_MESSAGE' 'GR_DEFAULT_MESSAGE' 'GR_DEFAULT_MESSAGE_LINK').
 ]
 
 { #category : #accessing }
@@ -28,7 +28,27 @@ GlorpCompositeKeyDescriptorSystem >> constructAllClasses [
 		add: GlorpUser;
 		add: GlorpFolder;
 		add: GlorpMessage;
+		add: GlorpDefaultMessage;
 		yourself
+]
+
+{ #category : #descriptors }
+GlorpCompositeKeyDescriptorSystem >> descriptorForGlorpDefaultMessage: aDescriptor [
+	"The (somewhat silly) default message is one-one with its pwning user (nominally a default message shown for that user or some such) and many-many with other users.  It tests having a table whose sole primaryKey is its one-one link to another table and (which is also important for the test) which has no other fields whatever."
+
+	| table linkTable |
+	table := self tableNamed: 'GR_DEFAULT_MESSAGE'.
+	aDescriptor table: table.
+	aDescriptor oneToOneMapping
+		attributeName: #user;
+		referenceClass: GlorpUser.
+	linkTable := self tableNamed: 'GR_DEFAULT_MESSAGE_LINK'.
+	aDescriptor toManyMapping
+		attributeName: #userRestrictions;
+		referenceClass: GlorpUser;
+		useLinkTable;
+		join: (Join from: (table fieldNamed: 'USER_ID')
+				to: (linkTable fieldNamed: 'MESSAGE_ID')).
 ]
 
 { #category : #descriptors }
@@ -129,6 +149,33 @@ GlorpCompositeKeyDescriptorSystem >> example1 [
 ]
 
 { #category : #tables }
+GlorpCompositeKeyDescriptorSystem >> tableForGR_DEFAULT_MESSAGE: aTable [
+	"To explore the case of a table whose sole primary key is also its link to another table, we create this table, supposedly for messages that are one-one with their users, being a default message template offered to the user or some such rationalisation."
+
+	| userId |
+	userId := aTable createFieldNamed: 'USER_ID' type: platform integer.
+	userId bePrimaryKey.
+	aTable
+		addForeignKeyFrom: userId
+		to: ((self tableNamed: 'GR_USER') fieldNamed: 'ID').
+]
+
+{ #category : #tables }
+GlorpCompositeKeyDescriptorSystem >> tableForGR_DEFAULT_MESSAGE_LINK: aTable [
+	"What users can see which defaults as templates."
+
+	| userId messageId |
+	messageId := aTable createFieldNamed: 'MESSAGE_ID' type: platform integer.
+	userId := aTable createFieldNamed: 'USER_ID' type: platform integer.
+	aTable
+		addForeignKeyFrom: messageId
+		to: ((self tableNamed: 'GR_DEFAULT_MESSAGE') fieldNamed: 'USER_ID').
+	aTable
+		addForeignKeyFrom: userId
+		to: ((self tableNamed: 'GR_USER') fieldNamed: 'ID').
+]
+
+{ #category : #tables }
 GlorpCompositeKeyDescriptorSystem >> tableForGR_FOLDER: aTable [ 
 	| userId |
 	userId := aTable createFieldNamed: 'USER_ID' type: platform integer.
@@ -159,9 +206,7 @@ GlorpCompositeKeyDescriptorSystem >> tableForGR_MESSAGE: aTable [
 ]
 
 { #category : #tables }
-GlorpCompositeKeyDescriptorSystem >> tableForGR_USER: aTable [ 
-	| |
-	(aTable createFieldNamed: 'ID' type: platform integer)
-		bePrimaryKey.
+GlorpCompositeKeyDescriptorSystem >> tableForGR_USER: aTable [
+	(aTable createFieldNamed: 'ID' type: platform integer) bePrimaryKey.
 	aTable createFieldNamed: 'NAME' type: (platform varChar: 50).
 ]

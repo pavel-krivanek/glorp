@@ -22,11 +22,6 @@ StandaloneFunction >> field [
 	^nil.
 ]
 
-{ #category : #mapping }
-StandaloneFunction >> mappedFields [
-	^Array with: self.
-]
-
 { #category : #printing }
 StandaloneFunction >> printSQLOn: aStream withParameters: aDictionary [
 	aStream nextPutAll: ' '; nextPutAll: function.

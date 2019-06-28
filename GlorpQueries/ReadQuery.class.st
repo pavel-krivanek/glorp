@@ -134,17 +134,18 @@ ReadQuery >> nullFieldFor: eachField [
 
 { #category : #executing }
 ReadQuery >> readFromDatabaseWithParameters: anArray [
+	"A query of a class in an inheritance hierarchy may be able to use a single query even if subclasses with distinct mappings are involved."
 
 	| subQueries |
-	subQueries := self descriptor classesRequiringIndependentQueries collect: 
-					[:eachClass |
-					self shouldUseSingleQuery
-						ifTrue: [self asQueryWithNullsForOtherClasses: eachClass]
-						ifFalse: 
-							[(self asSimpleQueryFor: eachClass)
-								setupTracing;
-								assignTableAliases;
-								yourself]].
+	subQueries := self descriptor classesRequiringIndependentQueries collect:
+		[:eachClass |
+		self shouldUseSingleQuery
+			ifTrue: [self asQueryWithNullsForOtherClasses: eachClass]
+			ifFalse:
+				[(self asSimpleQueryFor: eachClass)
+					setupTracing;
+					assignTableAliases;
+					yourself]].
 	^self executeSubQueries: subQueries withParameters: anArray
 ]
 

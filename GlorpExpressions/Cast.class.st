@@ -27,6 +27,24 @@ Cast class >> visualWorksMetadata [
 
 ]
 
+{ #category : #recursion }
+Cast >> createMappingToFieldInRecursionTable: aDatabaseTable [
+	"If we have cast our base to a type, that is the type we want for its field in the recursion table.  Glorp fails to generate brackets around an aliased constant value when printing SQL. e.g. in
+	CAST('(1)' AS path AS character varying(75))
+is invalid SQL as the distinct uses of AS are not parsable - it should probably be
+	CAST(('(1)' AS path) AS character varying(75))
+Until this is fixed, we cannot proceed to SQL generation with an aliased constant base.  We therefore nil it after using it."
+
+	| impliedGlorpType newMapping |
+	impliedGlorpType := arguments last value.
+	newMapping := DirectMapping new.
+	newMapping field:
+		(aDatabaseTable createFieldNamed: base alias type: impliedGlorpType).
+	base isConstantExpression
+		ifTrue: [base alias: nil].
+	^newMapping
+]
+
 { #category : #'initialize-release' }
 Cast >> initialize [
 	super initialize.

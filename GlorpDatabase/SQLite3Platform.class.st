@@ -1,5 +1,11 @@
 "
-I support Glorp's use of the SQLite database;  see http://www.sqlite.org.  Some notes on the implementation:
+I support Glorp's use of the SQLite database;  see http://www.sqlite.org.
+
+Instance Variables:
+	canRecurse	<Boolean>	is recursive SQL supported
+	supportsGroupWritingValues	<Boolean>	can a single INSERT statement be followed by multiple VALUES
+
+Some notes on the implementation:
 
 SQLite provides no specific support for time-related data other than column-default-value UTC functions:
 	CURRENT_DATE format YYYY-MM-DD
@@ -33,7 +39,8 @@ Class {
 	#name : #SQLite3Platform,
 	#superclass : #DatabasePlatform,
 	#instVars : [
-		'supportsGroupWritingValues'
+		'supportsGroupWritingValues',
+		'canRecurse'
 	],
 	#category : #GlorpDatabase
 }
@@ -72,6 +79,22 @@ SQLite3Platform >> bindingsForGroupWritingFor: aCommand [
 	^aCommand batchStatementBindings
 ]
 
+{ #category : #types }
+SQLite3Platform >> boolean [
+	^self typeNamed: #boolean ifAbsentPut: [GlorpBooleanType new typeString:  'integer']
+]
+
+{ #category : #'conversion-boolean' }
+SQLite3Platform >> booleanToBooleanConverter [
+	"SQLite uses integers to represent booleans in the database.  Therefore this conversion between Glorp boolean and database boolean actually converts between boolean and integer."
+
+	^DelegatingDatabaseConverter
+		named: #booleanToBoolean
+		hostedBy: self
+		fromStToDb: #convertBooleanToInteger:for:
+		fromDbToSt: #convertIntegerToBoolean:for:
+]
+
 { #category : #constants }
 SQLite3Platform >> canBind: aValue to: aType [
 	"See #supportsVariableSizedNumerics comment."
@@ -80,14 +103,17 @@ SQLite3Platform >> canBind: aValue to: aType [
 	^super canBind: aValue to: aType
 ]
 
+{ #category : #testing }
+SQLite3Platform >> canRecurse [
+	^canRecurse
+]
+
 { #category : #'conversion-boolean' }
 SQLite3Platform >> convertIntegerToBoolean: anInteger for: aType [
-	"This method accomodates an error in earlier SQLite 3 dlls. For the table_info() PRAGMA, 99 means True."
+	"This method accomodates an error in earlier SQLite 3 dlls. For the table_info() PRAGMA, 99 means True as well as 1."
 
 	anInteger isNil ifTrue: [^anInteger].
-	anInteger >= 1 ifTrue: [^true].
-	anInteger = 0 ifTrue: [^false].
-	self error: 'invalid boolean conversion'
+	^anInteger > 0
 ]
 
 { #category : #'services tables' }
@@ -143,6 +169,13 @@ SQLite3Platform >> double [
 	^self typeNamed: #double ifAbsentPut: [GlorpDoubleType new typeString: 'double' ].
 ]
 
+{ #category : #'exdi specific' }
+SQLite3Platform >> exdiTypeForBoolean [
+	"SQLite has no boolean type.  SQLite3EXDI has no support for it."
+
+	^#Integer
+]
+
 { #category : #types }
 SQLite3Platform >> float4 [
 	"The only kind of REAL that SQLite supports is an 8-byte IEEE floating point number, so we just map float4 to float8."
@@ -157,17 +190,21 @@ SQLite3Platform >> float8 [
 	^self double
 ]
 
+{ #category : #'initialize-release' }
+SQLite3Platform >> initialize [
+	"SQLite has been supporting group writing with the VALUES clause since version 3.7.11 inclusive.  It supports recursive queries in version 3.8.3 and after.  For safety, we initialize to false, resetting in postLoginInitializeFromAccessor:."
+
+	super initialize.
+	canRecurse := false.
+	supportsGroupWritingValues := false.
+]
+
 { #category : #functions }
 SQLite3Platform >> initializeFunctions [
 	"The REGEXP operator is a special syntax for the regexp() user function in SQLite. No regexp() user function is defined by default and so use of the REGEXP operator will normally result in an error message. If a application-defined SQL function named 'regexp' is added at run-time, that function will be called in order to implement the REGEXP operator.  (See sqlite.org/lang_expr.html#regexp for details.)"
 
 	super initializeFunctions.
 	functions at: #regexMatches: put: (InfixFunction named: 'REGEXP').
-]
-
-{ #category : #constants }
-SQLite3Platform >> initializeReservedWords [
-	super initializeReservedWords.
 ]
 
 { #category : #commands }
@@ -203,6 +240,27 @@ SQLite3Platform >> isSQLite3Platform [
 	^true
 ]
 
+{ #category : #types }
+SQLite3Platform >> maxInlineVarCharSize [
+	"SQLite ignores the assigned length of varchars:  all varchars can store strings up to the maximum size allowed.  Therefore there seems no reason why we should not just allow the maximum length possible."
+
+	^self maxVarCharSize
+]
+
+{ #category : #types }
+SQLite3Platform >> maxVarCharSize [
+	"SQLite will support a string length up to 2147483647 (2^31-1)."
+
+	^2147483647
+]
+
+{ #category : #constants }
+SQLite3Platform >> maximumLengthOfColumnName [
+	"It is the boast of SQLite that their limits are only for stability purposes:  if it fits in 32 bits then they will handle it.  Since the maximum length of an SQL statement is limited to SQLITE_MAX_LENGTH (defaults to 1000000, cannot be higher than 1073741824), column names had better be shorter and in normal use should be much shorter.  I chose the number below at random;  change it if it causes you any inconvenience."
+
+	^128
+]
+
 { #category : #constants }
 SQLite3Platform >> maximumLengthOfTableName [
 	"It is the boast of SQLite that their limits are only for stability purposes:  if it fits in 32 bits then they will handle it.  Since the maximum length of an SQL statement is limited to SQLITE_MAX_LENGTH (defaults to 1000000, cannot be higher than 1073741824), table names had better be shorter and in normal use should be much shorter.  I chose the number below at random;  change it if it causes you any inconvenience."
@@ -236,18 +294,16 @@ SQLite3Platform >> parenthesizeCommandsInCompoundQuery: aQuery [
 
 { #category : #login }
 SQLite3Platform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
-	"SQLite has been supporting group writing with the VALUES clause since version '3.7.11' inclusive."
+	"SQLite has been supporting group writing with the VALUES clause since version 3.7.11 inclusive.  It supports recursive queries in version 3.8.3 and after."
 
-	| strm major minor least |
-	strm := aDatabaseAccessor connection dbmsVersion readStream.
-	major := (strm upTo: $.) asNumber.
-	major = 3 ifFalse:
-		[^supportsGroupWritingValues := major > 3].
-	minor := (strm upTo: $.) asNumber.
-	minor = 7 ifFalse:
-		[^supportsGroupWritingValues := minor > 7].
-	least := (strm upTo: $.) asNumber.
-	supportsGroupWritingValues := least >= 11.
+	| dbmsVersion |
+	dbmsVersion := aDatabaseAccessor connection dbmsVersion tokensBasedOn: $..
+	supportsGroupWritingValues := self isVersion: #(3 7 11) notNewerThan: dbmsVersion.
+	canRecurse := self isVersion: #(3 8 3) notNewerThan: dbmsVersion.
+	characterEncoding := aDatabaseAccessor executeSQLString: 'PRAGMA encoding'.
+	characterEncoding := characterEncoding isEmpty ifFalse:
+		[characterEncoding first isEmpty ifFalse:
+			[characterEncoding first first asSymbol]].
 ]
 
 { #category : #'conversion-times' }
@@ -430,6 +486,11 @@ SQLite3Platform >> supportsOffset [
 ]
 
 { #category : #testing }
+SQLite3Platform >> supportsOrderedSubqueriesInCompoundQueries [
+	^false
+]
+
+{ #category : #testing }
 SQLite3Platform >> supportsSchemas [
 	^false
 ]
@@ -525,7 +586,7 @@ so our string conversions must agree with these formats."
 
 { #category : #types }
 SQLite3Platform >> typeWithDatabaseName: aString characterWidth: aNumber [
-	"Since this is SQLite, let the type names be more flexible."
+	"Since this is SQLite, let the type names be more flexible.  In addition, SQLite has no BOOLEAN type:  a particular integer column may in fact be used as a boolean column, storing just 1s and 0s, but we always return the platform's integer type, not its boolean type, when gererating the schema automatically. (The user can alter it later if it is desired that 1 and 0 in that column be mapped as true and false in the image.)"
 
 	| aTypeName total block |
 	block := [:sum :name | sum + (aString asLowercase findString: name startingAt: 1)].
@@ -545,6 +606,7 @@ SQLite3Platform >> typeWithDatabaseName: aString characterWidth: aNumber [
 							[total := #('blob') inject: 0 into: block.
 							total > 0 ifTrue: [aTypeName := 'blob']]]].
 	aString isEmpty ifTrue: [aTypeName := 'blob'].
+	aTypeName asLowercase = 'integer' ifTrue: [^self integer].
 	^super typeWithDatabaseName: aTypeName characterWidth: aNumber
 ]
 

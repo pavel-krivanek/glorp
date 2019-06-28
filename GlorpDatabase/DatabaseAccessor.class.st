@@ -295,6 +295,13 @@ DatabaseAccessor >> beginTransaction [
 	^self subclassResponsibility.
 ]
 
+{ #category : #accessing }
+DatabaseAccessor >> bindReturningVariableAt: index forStatement: statement [
+	"See accessors where this is defined for guidance in how to define it on others."
+
+	^self subclassResponsibility
+]
+
 { #category : #permissions }
 DatabaseAccessor >> checkPermissionFor: command [
 	deniedCommands isNil ifTrue: [^self].
@@ -432,12 +439,17 @@ DatabaseAccessor >> deniedCommands [
 DatabaseAccessor >> denyCommand: aCommand [
 	"Use this method, not alsoDenyCommand: when you want to override, not just add to, the current permissions state."
 
-	self denyCommands: aCommand withAllSubclasses.
+	deniedCommands := aCommand withAllSubclasses.
 ]
 
 { #category : #permissions }
-DatabaseAccessor >> denyCommands: aCollection [
-	deniedCommands := aCollection asArray.
+DatabaseAccessor >> denyCommands: databaseCommandClasses [
+	"It seems unlikely someone would deliberately with to deny a command but permit its subclass.  We can defer offering an accessor for that until the case arises."
+
+	deniedCommands := (databaseCommandClasses
+		inject: (OrderedCollection new: databaseCommandClasses size * 6)
+		into: [:all :each | all addAll: each withAllSubclasses. all])
+			asArray.
 ]
 
 { #category : #transactions }
@@ -451,13 +463,12 @@ DatabaseAccessor >> doDDLOperation: aBlock [
 
 { #category : #executing }
 DatabaseAccessor >> dropConstraint: aConstraint [
-	^self 
-		dropConstraint: aConstraint 
-		ifError: [ :ex || msg |
-				msg := ex messageText.
-				msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
-				self log: ('Drop constraint <1s> ERROR: (<2s>'  expandMacrosWith: aConstraint name with: msg).
-				ex return: nil].
+	^self dropConstraint: aConstraint ifError:
+		[:ex || msg | msg := ex messageText.
+		msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
+		self log: ('Drop constraint <1s> ERROR: <2s>'
+					expandMacrosWith: aConstraint name with: msg).
+		ex return: nil].
 ]
 
 { #category : #executing }
@@ -466,20 +477,19 @@ DatabaseAccessor >> dropConstraint: aConstraint ifError: aBlock [
 	dropString := self platform createConstraintDropStatement: aConstraint.
 	dropString isEmpty ifTrue: [^self].
 	self
-		executeInDDLOperation: [ self executeSQLStringNoResult: dropString ]
-		ifError:aBlock
+		executeInDDLOperation: [self executeSQLStringNoResult: dropString]
+		ifError: aBlock.
 ]
 
 { #category : #executing }
-DatabaseAccessor >> dropFields: aCollection [ 
-
-	self 
-		dropFields: aCollection 
-		ifError: [ :ex  | 	| msg |
-				msg := ex messageText.
-				msg isEmpty ifTrue: [msg := 'No error message provided for top level exception.'].
-				Transcript cr; show: ('Drop field ERROR: (<2s>) ' expandMacrosWith: msg).
-				ex return: nil]
+DatabaseAccessor >> dropFields: aCollection [
+	"DISCUSS WITH Tamara why this does not log like all the others."
+	self dropFields: aCollection ifError:
+		[:ex  || msg |
+		msg := ex messageText.
+		msg isEmpty ifTrue: [msg := 'No error message provided for top level exception.'].
+		Transcript cr; show: ('Drop field ERROR: <1s>' expandMacrosWith: msg).
+		ex return: nil].
 ]
 
 { #category : #executing }
@@ -494,26 +504,28 @@ DatabaseAccessor >> dropFields: aCollection ifError: aBlock [
 { #category : #executing }
 DatabaseAccessor >> dropForeignKeyConstraintsForTable: aTable ifError: aBlock [ 
 	aTable isImaginary ifTrue: [^self].
-	aTable foreignKeyConstraints do: [:each | self dropConstraint: each ifError: [ :ex | aBlock value: ex]].
+	aTable foreignKeyConstraints do: [:each | self dropConstraint: each ifError: aBlock].
 ]
 
 { #category : #executing }
-DatabaseAccessor >> dropSequence: aDatabaseSequence ifAbsent: aBlock [ 
+DatabaseAccessor >> dropSequence: aDatabaseSequence ifAbsent: aBlock [
+	"RENAME to ...:ifError:  aBlock will be executed on any error, not just because the sequence we are dropping is absent."
+
 	self
-		executeInDDLOperation: [ self executeSQLStringNoResult: aDatabaseSequence dropString ]
-		ifError: aBlock
+		executeInDDLOperation: [self executeSQLStringNoResult: aDatabaseSequence dropString]
+		ifError: aBlock.
 ]
 
 { #category : #executing }
 DatabaseAccessor >> dropSequences: anArray [
 	anArray do:
 		[:each |
-		self
-			dropSequence: each
-			ifAbsent:
-				[:ex | 
-				self log: (ex messageText ifNil: [ex printString]).
-				ex return: nil]].
+		self dropSequence: each ifAbsent:
+			[:ex || msg | msg := ex messageText.
+			msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
+			self log: ('Drop sequence <1s> ERROR: <2s>'
+					expandMacrosWith: each name with: msg).
+			ex return: nil]].
 ]
 
 { #category : #executing }
@@ -528,41 +540,60 @@ DatabaseAccessor >> dropTableDefinition: aTable ifError: aBlock [
 	"The dropping of the primary key constraints (a singular object not a collection, despite its name) is probably not needed before dropping the table by any database platform.  If 'platform supportsConstraints' is false then it will not be done, since dropConstraint:ifError: assumes it is called on a foreign key constraint (the case in all other callers) and does nothing if the platform does not support them."
 
 	aTable isImaginary ifTrue: [^self].
-	aTable hasPrimaryKeyConstraints ifTrue: [self dropConstraint: aTable  primaryKeyConstraints ifError: [:ex | aBlock value: ex]].
+	aTable hasPrimaryKeyConstraints ifTrue: [self dropConstraint: aTable  primaryKeyConstraints ifError: aBlock].
 	self dropTableNamed: aTable qualifiedName ifAbsent: aBlock.
 ]
 
 { #category : #executing }
 DatabaseAccessor >> dropTableNamed: aString [ 
-	self 
-		dropTableNamed: aString 
-		ifAbsent: [:ex | 	| msg|
-				msg := ex messageText.
-				msg isEmpty ifTrue: [msg := 'No error message provided for top level exception.'].
-				Transcript cr; show: ('Drop table <1s> ERROR: (<2s>) ' expandMacrosWith: aString with: msg).
-				ex return: nil]
+	self dropTableNamed: aString ifAbsent:
+		[:ex || msg | msg := ex messageText.
+		msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
+		self log: ('Drop table named <1s> ERROR: <2s>'
+					expandMacrosWith: aString with: msg).
+		ex return: nil].
 ]
 
 { #category : #executing }
-DatabaseAccessor >> dropTableNamed: aString ifAbsent: aBlock [ 
-	self doDDLOperation: [
-		self 
-			execute: [self executeSQLStringNoResult: (self platform createDropTableStatementFor: aString )]
+DatabaseAccessor >> dropTableNamed: aString ifAbsent: aBlock [
+	"RENAME to ...:ifError:  aBlock will be executed on any error, not just because the table we are dropping is absent."
+
+	self doDDLOperation:
+		[self 
+			execute: [self executeSQLStringNoResult: (self platform createDropTableStatementFor: aString)]
 			ifError: aBlock].
 ]
 
 { #category : #executing }
 DatabaseAccessor >> dropTables: anArray [
-	anArray do: [:eachTable |
-				eachTable foreignKeyConstraints
-					do: [:eachConstraint | self dropConstraint: eachConstraint]].
-	anArray do: [:each |
-				self dropTableDefinition: each
-					ifError: [ :ex || msg |
-							msg := ex messageText.
-							msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
-							self log: 'ERROR : (', msg, ' )'.
-							ex return: nil]].
+	"We are dropping many tables at once. so drop all the constraints and then all the tables, not the constraints and table for each one successively as #dropTable:ifError: does.  Especially when tearing down and recreating schemas for running tests, drop-table errors can often sensibly be just logged and ignored;  use #dropTables:ifError: instead of this method when that is not the case."
+
+	anArray do:
+		[:eachTable |
+		eachTable foreignKeyConstraints do:
+			[:eachConstraint | self dropConstraint: eachConstraint]].
+	anArray do:
+		[:eachTable |
+		self dropTableDefinition: eachTable ifError:
+			[:ex || msg | msg := ex messageText.
+			msg isEmpty ifTrue: [msg := 'no error message provided for top level exception'].
+			self log: ('Drop table <1s> ERROR: <2s>'
+					expandMacrosWith: eachTable name with: msg).
+			ex return: nil]].
+]
+
+{ #category : #executing }
+DatabaseAccessor >> dropTables: anArray ifError: aBlock [
+	"We are dropping many tables at once. so drop all the constraints and then all the tables, not the constraints and table for each one successively as #dropTable:ifError: does.  Especially when tearing down and recreating schemas for running tests, drop-table errors can often sensibly be just logged and ignored;  use this method instead of #dropTables: when that is not the case."
+
+	anArray do:
+		[:eachTable |
+		eachTable foreignKeyConstraints do:
+			[:eachConstraint |
+			self dropConstraint: eachConstraint ifError: aBlock]].
+	anArray do:
+		[:eachTable |
+		self dropTableDefinition: eachTable ifError: aBlock].
 ]
 
 { #category : #accessing }
@@ -574,7 +605,7 @@ DatabaseAccessor >> encoding [
 
 { #category : #accessing }
 DatabaseAccessor >> encoding: aSymbol [
-	"The platform is a Glorp databasePlatform, so its setter code is generic across all dialects.  The connection is specific to the dialect;  some dialects will need to override how its encoding is set.  In the hope that most dialects will find this works for them, and that coders porting to dialects in which it does not will benefit from seeing the walkback and knowing they have something to do, we attempt to set both at top level."
+	"The platform is a Glorp DatabasePlatform, so its setter code is generic across all dialects.  The connection is specific to the dialect;  some dialects will need to override how its encoding is set.  In the hope that most dialects will find this works for them, and that coders porting to dialects in which it does not will benefit from seeing the walkback and knowing they have something to do, we attempt to set both at top level."
 
 	self platform characterEncoding: aSymbol.
 	connection encoding: aSymbol.
@@ -702,6 +733,15 @@ DatabaseAccessor >> executeSQLStringNoResult: aString doing: aBlock forCommand: 
 			[block value.
 			0].
 	self logTime: time.
+]
+
+{ #category : #executing }
+DatabaseAccessor >> executeSQLStringsNoResult: aString [
+	"Executing an empty string returns an empty result, which then DNUs when sent #first, arguably a bug but while it exists we must avoid it.  We therefore check the supplied parameter size (to check for nil or empty) and exit quietly if so."
+
+	aString size = 0 ifTrue: [^self].
+	(aString tokensBasedOn: $;)
+		do: [:each | each notEmpty ifTrue: [self executeSQLStringNoResult: each]].
 ]
 
 { #category : #executing }

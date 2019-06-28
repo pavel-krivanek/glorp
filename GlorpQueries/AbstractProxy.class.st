@@ -80,6 +80,23 @@ AbstractProxy >> glorpPostFetch: aSession [
 AbstractProxy >> glorpPostFetchValidate: aSession [
 ]
 
+{ #category : #accessing }
+AbstractProxy >> glorpRealObject [
+	"Return my value.  Ensure instantiation of a proxy:  use #glorpRealObjectIfNone: to avoid forced instantiation.  (On compilers which inline #yourself, that method will not force instantiation despite having the same Smalltalk implementation  as this method;  see also #yourSelf.)
+	Functionally, this method need not be implemented here:  were it not, sending it would DNU and so do  'self getValue perform #glorpRealObject', getting Object's implementor.  This method skips that, speeding things trivially."
+
+	^self getValue
+]
+
+{ #category : #accessing }
+AbstractProxy >> glorpRealObjectIfNone: aBlock [
+	"Return the real object but do NOT force instantiation of a proxy; instead, evaluate the block on the uninstantiated proxy, returning the result."
+
+	^self isInstantiated
+		ifTrue: [value]
+		ifFalse: [aBlock value]
+]
+
 { #category : #overrides }
 AbstractProxy >> hash [
 	^self getValue hash.

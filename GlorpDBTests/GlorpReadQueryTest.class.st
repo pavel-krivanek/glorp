@@ -172,6 +172,42 @@ GlorpReadQueryTest >> testOrderingWithNonEmptyWhereClause [
 	self verifyOrderFor: result byAttribute: [:each | each address street].
 ]
 
+{ #category : #tests }
+GlorpReadQueryTest >> testPseudoColumnQuery [
+	"Does the alias function write its base in the select statement (only) as aliased."
+
+	| query result a logStream |
+	a := 5.
+	query := Query read: GlorpCitiesGraph where: [:each | each distance in: #()].
+	query alsoFetch: [:each| (each distance - a) alias: 'DefaultAlias'].
+	session accessor
+		logging: true;
+		logger: TextCollector new.
+	result := [session execute: query] ensure:
+		[logStream := session accessor logger value asString readStream.
+		session accessor endLogging].
+	self assert: result isEmpty.
+	self assert: ((logStream upToAll: 'FROM') indexOfSubCollection: ' AS DefaultAlias' startingAt: 1) > 0
+		description: 'We did not alias the expression in the select field''s list'.
+	self assert: (logStream upToEnd indexOfSubCollection: ' AS DefaultAlias' startingAt: 1) = 0
+		description: 'We wrote an alias in the wrong place'.
+	"now provide the alias string"
+	a := 3.
+	query := Query read: GlorpCitiesGraph where: [:each | each distance in: #()].
+	query alsoFetch: [:each| (each distance - a) alias: 'MyAlias'].
+	session accessor
+		logging: true;
+		logger: TextCollector new.
+	result := [session execute: query] ensure:
+		[logStream := session accessor logger value asString readStream.
+		session accessor endLogging].
+	self assert: result isEmpty.
+	self assert: ((logStream upToAll: 'FROM') indexOfSubCollection: ' AS MyAlias' startingAt: 1) > 0
+		description: 'We did not alias the expression to our chosen name in the select field''s list'.
+	self assert: (logStream upToEnd indexOfSubCollection: ' AS MyAlias' startingAt: 1) = 0
+		description: 'We wrote our chosen  alias name in the wrong place'.
+]
+
 { #category : #'tests-data reading' }
 GlorpReadQueryTest >> testReadDataItemsFromEmbeddedObject [
 
@@ -334,6 +370,26 @@ GlorpReadQueryTest >> testReadTwoObjects [
 	self assert: result size = 3.
 	self assert: (result first atIndex: 1) id = 86.
 	self assert: ((result first atIndex: 1) address yourSelf == result first last).
+]
+
+{ #category : #tests }
+GlorpReadQueryTest >> testReadWithConditionalInWhereClause [
+	"The frequentFlyerMiles is not an outer join.  It has an additional expression that is an outer join.  Thus this test would have passed in Glorp in 8.2 and earlier, since the outer join is an additional expression of the wheer clause, not the whereClause as such."
+
+	| passengerRow1 passengerRow2 frequentFlyerRow1 frequentFlyerRow2 passengerRow3 query |
+	passengerRow1 := session system examplePassengerRow.
+	session writeRow: passengerRow1.
+	frequentFlyerRow1 := session system exampleFrequentFlyerRow.
+	session writeRow: frequentFlyerRow1.
+	passengerRow2 := session system examplePassengerRow2.
+	session writeRow: passengerRow2.
+	frequentFlyerRow2 := session system exampleFrequentFlyerRow2.
+	session writeRow: frequentFlyerRow2.
+	passengerRow3 := session system examplePassengerRowInfrequent.
+	session writeRow: passengerRow3.
+	self assert: (session read: GlorpPassenger where: [:each | each frequentFlyerMiles notNil]) size = 2.
+	query := Query read: GlorpPassenger where: [:each | each frequentFlyerMiles isNil].
+	self assert: (session execute: query) size = 1.
 ]
 
 { #category : #tests }

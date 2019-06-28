@@ -51,8 +51,7 @@ GlorpObjectMappedToFunctionTest >> testCache [
 
 { #category : #tests }
 GlorpObjectMappedToFunctionTest >> testNoWriteValidation [
-	| |
-	(session system descriptorFor: GlorpBankBranch) mappings next readOnly: false.
+	(session system descriptorFor: GlorpBankBranch) mappings next canWrite: true.
 	self should: [session system validate] raise: Dialect error.
 ]
 

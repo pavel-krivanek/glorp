@@ -81,7 +81,7 @@ GlorpCursoredStream >> buildObjectsForRow: aRow [
 			[:each | 
 			each
 				sendPostFetchValidateIn: self session 
-				OnFailureDo: [each instance: nil]].
+				onFailureDo: [each instance: nil]].
 	builders
 		do: [:each | each instance == nil ifFalse: [each knitResultIn: self]].
 	builders do: [:each | self session sendPostFetchEventTo: each instance].
@@ -93,20 +93,21 @@ GlorpCursoredStream >> buildObjectsForRow: aRow [
 
 { #category : #'building objects' }
 GlorpCursoredStream >> buildersThatReturnResults [
-	buildersThatReturnResults isNil ifTrue: [
-		buildersThatReturnResults := OrderedCollection new.
-		builders
-			do: [:each | 	
-				| expression shouldBeRetrieved |
-				"For some bizarre reason, includes: fails on ObjectStudio for this"
-				expression := each expression.
-				shouldBeRetrieved := (self query tracing retrievalExpressions detect: [:foo |
-					foo == expression] ifNone: [nil]) notNil.
-				(shouldBeRetrieved and: [
-					(buildersThatReturnResults anySatisfy: [:eachBuilder | eachBuilder expression == expression]) not])
-						ifTrue: [buildersThatReturnResults add: each]].
+	"In late 2004, Alan Knight wrote here, 'For some bizarre reason, #includes: fails on ObjectStudio for this', to explain why he used #detect:ifNone: instead of #include. to find a builder's expression in the query's retrievalExpressions.  This is no longer the case:  tests on ObjectStudio 8.9 indicate #includes: is safe to use.  However, although the collection iterated over is a Set, not an IdentitySet, Alan uses ==, not = in both the #detect:ifNone: and the #anySatisfy:.  Currently, that makes no difference for GlorpExpression and subclasses, in which = is never overridden.  Nevetheless it would be inconsistent to check = in one statement and == in the next statement.  I have therefore kept the use of #detect:ifNone: for now.  If GlorpExpression>>= is ever overridden, this comment can guide changes."
+
+	buildersThatReturnResults isNil ifTrue:
+		[buildersThatReturnResults := OrderedCollection new.
+		builders do:
+			[:each || expression shouldNotBeRetrieved |
+			expression := each expression.
+			shouldNotBeRetrieved := (self query tracing retrievalExpressions
+				detect: [:foo | foo == expression] ifNone: [nil]) isNil.
+			(shouldNotBeRetrieved or:
+				[buildersThatReturnResults anySatisfy:
+					[:eachBuilder | eachBuilder expression == expression]])
+				ifFalse: [buildersThatReturnResults add: each]].
 		buildersThatReturnResults := buildersThatReturnResults asArray].
-	^buildersThatReturnResults.
+	^buildersThatReturnResults
 ]
 
 { #category : #iterating }
@@ -137,8 +138,7 @@ GlorpCursoredStream >> command: aDatabaseCommand [
 	aDatabaseCommand isNil ifTrue: [^self].
 	aDatabaseCommand query isNil ifTrue: [^self].
 	databaseAccessor := aDatabaseCommand query session accessor.
-	builders := self query copyOfBuilders.
-	builders do: [:each | each cursor: self].
+	builders := self query copyOfBuildersFor: self.
 ]
 
 { #category : #accessing }
@@ -198,11 +198,24 @@ GlorpCursoredStream >> flush [
 
 { #category : #'building objects' }
 GlorpCursoredStream >> hasCompleteAnswerFor: objects [
+	"If we are alsoFetching a toMany relationship, multiple rows can have the same data for the source of that relationship, differing only in their data for its targets.  If the source has primaryKey(s), these second and subsequent rows will obtain the identically same instance from the cache and an identity comparison suffices, because if a builder that returns a result has a primaryKey with which to fetch an instance out of the cache and its next answer is in fact the same object as its last answer, built from a row of the same data (with, presumably, differing alsoFetch data further along), it will have the same primaryKey(s) and so obtain the identically-same object.  In the absence of primaryKeys, it will merely be an equal but non-identical object, so we are obliged to require that such objects do compare equal (i.e. they'll need to define = and hash) and that genuinely different objects do _not_ compare equal.  Fortunately, it is rare that the base of an #alsoFetch:ing query does not have primaryKey(s)."
+
 	| nextAnswer |
 	self atEnd ifTrue: [^true].
 	self mightHaveDuplicateRows ifFalse: [^true].
 	nextAnswer := self peek.
-	^objects ~= nextAnswer
+	"Access instvar directly to avoid its lazy initialization accessor (obviously, for the first line)."
+	buildersThatReturnResults isNil ifTrue: [^objects ~= nextAnswer].
+	buildersThatReturnResults size = 1 ifTrue:
+		[^buildersThatReturnResults first hasSetPrimaryKey
+			ifTrue: [objects ~~ nextAnswer]
+			ifFalse: [objects ~= nextAnswer]].
+	1 to: buildersThatReturnResults size do:
+		[:index |
+		(buildersThatReturnResults at: index) hasSetPrimaryKey
+			ifTrue: [(objects at: index) ~~ (nextAnswer at: index) ifTrue: [^true]]
+			ifFalse: [(objects at: index) ~= (nextAnswer at: index) ifTrue: [^true]]].
+	^buildersThatReturnResults isEmpty	"probably needless in actual production to use this instead of false;  makes development safer"
 ]
 
 { #category : #initializing }
@@ -278,25 +291,20 @@ GlorpCursoredStream >> nextAnswerFromUnderlyingCursor [
 	^objects.
 ]
 
-{ #category : #'building objects' }
-GlorpCursoredStream >> nextObjectFrom: aRow [
-	| objects |
-	objects := self buildObjectsForRow: aRow.
-	self mightHaveDuplicateRows ifFalse: [
-		self registerInstances.
-		^objects].
-]
-
 { #category : #accessing }
 GlorpCursoredStream >> nextPut: anObject [
 	self shouldNotImplement.
 ]
 
 { #category : #'building objects' }
-GlorpCursoredStream >> objectBuilderFor: anExpression [ 
-	"Return the builder for this expression, but only those that directly build compound objects. Most importantly, exclude dictionary builders"
-	^builders detect: [:each | 
-		each buildsObjects and: [each expression == anExpression]] ifNone: [nil].
+GlorpCursoredStream >> objectBuilderFor: anExpression [
+	"No longer called - see #cacheBuilderRelationships: - but might be retained in case complicated coding requires changing the expression of a builder during querying, in which case this could be used to reset the related builder.  As that might be better handled by general recaching, I am depreacting this method.
+	Return the builder for this expression, but only those that directly build compound objects.  In 2003 Alan wrote, 'Most importantly, exclude dictionary builders' but in 2006 changes in DictionaryBuilder>>knitResultIn: ended the need for this (or so I conjecture) and I see no evidence that DictionaryBuilder is excluded."
+
+	self deprecated: #(#version '8.3.1' #use 'Look at #cacheBuilderRelationships: and its callers.').
+	^builders
+		detect: [:each | each buildsObjects and: [each expression == anExpression]]
+		ifNone: [nil]
 ]
 
 { #category : #accessing }
@@ -394,4 +402,11 @@ GlorpCursoredStream >> upToEndOfResultSet [
 	"If our statement has multiple result sets, we must use this call, not #upToEnd, to avoid the aggressive releasing of the cursor in #atEnd which would lose any remaining result sets.  This reads the current result set and advances the underlying cursor to the next result set.  (N.B. 'the next result set' does not necessarily mean the return of the next statement;  in a sequence of statements, some may return result sets while others return #noAnswerStream and these will be skipped.)  The cursor is released as part of reading the last result set."
 
 	^self accessor upToEndOfResultSet: self
+]
+
+{ #category : #accessing }
+GlorpCursoredStream >> upToEndOfReturningResultSet [
+	"If our statement has multiple result sets, we must use this call, not #upToEnd, to avoid the aggressive releasing of the cursor in #atEnd which would lose any remaining result sets.  This reads the current result set and advances the underlying cursor to the next result set.  (N.B. 'the next result set' does not necessarily mean the return of the next statement;  in a sequence of statements, some may return result sets while others return #noAnswerStream and these will be skipped.)  The cursor is released as part of reading the last result set."
+
+	^self accessor upToEndOfReturningResultSet: self
 ]

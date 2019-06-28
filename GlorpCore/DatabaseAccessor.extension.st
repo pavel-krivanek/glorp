@@ -17,7 +17,7 @@ DatabaseAccessor >> denyWrites [
 
 { #category : #'*GlorpCore-permissions' }
 DatabaseAccessor >> insertOnly [
-	deniedCommands := Array with: UpdateCommand with: DeleteCommand.
+	deniedCommands := Array with: UpdateCommand withAllSubclasses with: DeleteCommand.
 ]
 
 { #category : #'*GlorpCore-permissions' }

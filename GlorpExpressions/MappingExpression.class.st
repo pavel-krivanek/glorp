@@ -3,9 +3,11 @@ This represents an attribute of some other object. It's called a mapping express
 
 Instance Variables:
 	base	<BaseExpression | MappingExpression>	The expression we are built on, which is to say the expression describing the object of which we are an attribute.
+	impliedClauses	<RelationalExpression | nil>	An AdHocMapping computes its expression; cache it here to preserve identity and for speed
 	mapping	<Mapping>	The mapping we correspond to in the base. So if the base was [:each | each owner city] and we are #name, then we the mapping is for the attribute #name in the descriptor for City.
 	name	<Symbol>	The name of our attribute. We will use this to determine the mapping.
-	outerJoin	<Boolean>	Are we to interpret the join to our parent object's table as being an outer join or not?
+	outerJoin	<Boolean | nil>	If this is nil, we are an inner join.  If it is true we are a left outer join.  If it is false we are a right outer join.
+						ISSUE:  are we to interpret the join to our parent object's table as being an outer join or not?
 	phantom <Boolean> Is this a phantom mapping - one which is not defined in the descriptor explicitly, but is temporarily created to define a reverse relationship, an alsoFetch of subclasses, or some other transient usage.
 
 
@@ -18,7 +20,8 @@ Class {
 		'base',
 		'outerJoin',
 		'mapping',
-		'phantom'
+		'phantom',
+		'impliedClauses'
 	],
 	#category : #'GlorpExpressions-Glorp-Expressions'
 }
@@ -52,8 +55,11 @@ MappingExpression >> additionalExpressionsOn: anExpression [
 	| exp |
 	self mapping isNil ifTrue: [^#()].
 	exp := self mapping joinExpressionFor: anExpression.
-	outerJoin ifTrue: [exp beOuterJoin].
-	^(self multipleTableExpressionsOn: anExpression), (exp isNil ifTrue: [#()] ifFalse: [Array with: exp]).
+	^exp isNil
+		ifTrue: [self multipleTableExpressionsOn: anExpression]
+		ifFalse:
+			[exp privateBeOuterJoin: outerJoin.
+			(self multipleTableExpressionsOn: anExpression), (Array with: exp)]
 ]
 
 { #category : #fields }
@@ -87,7 +93,10 @@ MappingExpression >> allControlledTables [
 
 { #category : #internal }
 MappingExpression >> allRelationsFor: rootExpression [
-	^self mapping allRelationsFor: rootExpression.
+	"Cache our impliedClauses so we do not endlessly recompute them, both for speed and so that they will preserve identity (useful if any are bound expressions)."
+
+	impliedClauses isNil ifTrue: [impliedClauses := self mapping allRelationsFor: rootExpression].
+	^impliedClauses
 ]
 
 { #category : #preparing }
@@ -141,13 +150,15 @@ MappingExpression >> base [
 ]
 
 { #category : #accessing }
-MappingExpression >> beOuterJoin [
-	outerJoin := true.
+MappingExpression >> bePhantom [
+	"A phantom mapping is a mapping that is not defined in the descriptor system.  It is constructed temporarily, during Glorp processing of expressions in some query.  Therefore it cannot be found again by looking in the descriptor system under its name but must be preserved through all manipulations until the query completes."
+
+	phantom := true.
 ]
 
 { #category : #accessing }
-MappingExpression >> bePhantom [
-	phantom := true.
+MappingExpression >> beRightOuterJoin [
+	outerJoin := false.
 ]
 
 { #category : #testing }
@@ -194,6 +205,24 @@ MappingExpression >> convertedStValueOf: anObject [
 	^self mapping convertedStValueOf: anObject.
 ]
 
+{ #category : #recursion }
+MappingExpression >> createMappingToFieldInRecursionTable: aDatabaseTable [
+	"The commented-out code is trebly erroneous.  Firstly, it mismatches due to uppercase/lowercase clashes between original field and recursion table field.  Secondly, where the original field is a relationship, the recursion table concatenates the name, leaving potentially wrong set primaryKey fields if e.g. we have an ancestor primaryKey field which will have the same value in many rows.  Finally it is clear (on postgres at least) that recursion tables ignore primaryKey fields."
+
+	| newField newMapping |
+	newField := aDatabaseTable
+		createFieldNamed: self commonTableExpressionName
+		type: self mapping field type.
+	"(self mapping field name = newField name
+		and: [self mapping field isPrimaryKey])
+			ifTrue: [newField bePrimaryKey]."
+	newMapping := self mapping isRelationship
+		ifTrue: [DirectMapping new]
+		ifFalse: [self mapping copy].
+	newMapping field: newField.
+	^newMapping
+]
+
 { #category : #accessing }
 MappingExpression >> descriptor [
 	| system theMapping |
@@ -217,18 +246,36 @@ MappingExpression >> do: aBlock skipping: aSet [
 		ifTrue: [myField do: aBlock skipping: aSet].
 ]
 
+{ #category : #converting }
+MappingExpression >> expandConditionalLeftChildOf: aRelationExpression [ 
+	"We are the base (left child) of aRelationExpression.  Our mapping is a ConditionalMapping so we must be expanded to check all our cases.  This simple implementation - to be developed further - works for nil / notNil comparisons."
+
+	| expression rightChild |
+	rightChild := aRelationExpression rightChild.
+	(rightChild isConstantExpression and: [rightChild value isNil]) ifFalse: [^self error: 'Conditionals can only compare to nil as yet'].
+	self mapping casesDo:
+		[:eachCase || leftChild clause |
+		leftChild := self shallowCopy privateAndBasicResetMapping: eachCase.
+		clause := aRelationExpression shallowCopy leftChild: leftChild; rightChild: rightChild.
+		expression := leftChild mapping class == ConstantMapping
+			ifFalse: [aRelationExpression relation = #<> ifTrue: [clause OR: expression] ifFalse: [clause AND: expression]]
+			ifTrue: [expression]].
+	^expression
+]
+
 { #category : #accessing }
 MappingExpression >> field [
+	"If this expression has a descriptor then either its mapping is a DirectTo*Mapping or else it is a mapping to a full object, in which case it cannot answer this method."
 
-	self mapping isNil ifTrue: [self error: '"', name, '" is not a mapped property name in ', base descriptor describedClass name].
-	self hasDescriptor ifTrue: [
-		"If we have a descriptor, then either we're a mapping to a full object, in which case we can't answer this properly, or we're a direct to-many mapping, in which case we can."
-		self mapping mapsSimpleObject
+	self mapping isNil ifTrue:
+		[self error: '"', name, '" is not a mapped property name in ', base descriptor describedClass name].
+	self hasDescriptor ifTrue:
+		[self mapping mapsSimpleObject
 			ifTrue: [^self translateField: self mapping field]
-			ifFalse: [self error: '"',name, 
-				'" is not an attribute that resolves to a field in the mapped tables for ', 
-					base descriptor describedClass name]].
-	^base translateField: self mapping field.
+			ifFalse: [self error: '"', name,
+					'" is not an attribute that resolves to a field in the mapped tables for ',
+						base descriptor describedClass name]].
+	^base translateField: self mapping field
 ]
 
 { #category : #accessing }
@@ -250,7 +297,8 @@ MappingExpression >> fieldsForSelectStatement [
 
 { #category : #accessing }
 MappingExpression >> hasDescriptor [
-	"Does the object that we describe have its own descriptor"
+	"Does the object that we describe have its own descriptor.  N.B. the #isRelationship test below gives an unintuitive (wrong?) result if I am e.g. a ....#myValue result, where #myValue is the internal mapping of a DirectTo*Mapping.  However, since any such mapping must be to a different table and must reply 'true' to #mapsSimpleObject, it would appear that all current callers make that check anyway, and so the result is the same."
+
 	| myMapping |
 	myMapping := self mapping.
 	^myMapping notNil and: [myMapping isRelationship]
@@ -311,10 +359,12 @@ MappingExpression >> mappableSourceFieldsDo: aBlock [
 
 { #category : #accessing }
 MappingExpression >> mappedFields [
+	"Return the field(s) that this mapping will write into any of the containing object's rows."
 	
 	self mapping isNil ifTrue: [^#()].
-	self mapping isRelationship ifTrue: [self error: '"',name, '" is not an attribute that resolves to a field in the mapped tables for ', base descriptor describedClass name].
-	^self mapping mappedFields collect: [:each | base translateField: each].
+	(self mapping isRelationship and: [self mapping mapsSimpleObject not]) ifTrue:
+		[self error: '"', name, '" is not an attribute that resolves to a field in the mapped tables for ', base descriptor describedClass name].
+	^self mapping mappedFields collect: [:each | base translateField: each]
 ]
 
 { #category : #internal }
@@ -339,9 +389,10 @@ MappingExpression >> mappingFromMeOrSubclasses [
 	| subclassDescriptors |
 	self mapping isNil ifFalse: [^self mapping].
 	self sourceDescriptor isNil ifTrue: [^self mapping].
-	subclassDescriptors := (self sourceDescriptor typeResolver descriptorsRequiringIndependentQueriesFor: self sourceDescriptor describedClass).
-	subclassDescriptors do: [:each |
-		| subMapping |
+	subclassDescriptors := self sourceDescriptor typeResolver
+		descriptorsRequiringIndependentQueriesFor: self sourceDescriptor describedClass.
+	subclassDescriptors do:
+		[:each || subMapping |
 		subMapping := each mappingForAttributeNamed: name.
 		subMapping isNil ifFalse: [^subMapping]].
 	"If subclasses didn't work, just fall through to the normal error processing."
@@ -392,10 +443,8 @@ MappingExpression >> name [
 
 { #category : #'private/initialization' }
 MappingExpression >> named: aSymbol basedOn: anExpression [
-
 	name := aSymbol.
 	base := anExpression.
-	outerJoin := false.
 ]
 
 { #category : #api }
@@ -454,6 +503,20 @@ MappingExpression >> printUnqualifiedSQLOn: aStream withParameters: aDictionary 
 	self field asField printUnqualifiedSQLOn: aStream withParameters: aDictionary.
 ]
 
+{ #category : #'private/initialization' }
+MappingExpression >> privateAndBasicResetMapping: aMapping [
+	mapping := aMapping.
+	name := aMapping attributeName.
+]
+
+{ #category : #private }
+MappingExpression >> privateBeOuterJoin: anOuterJoin [
+	"NEVER use this method when defining joins in your descriptor systems;  always use paramaterless #beOuterJoin and similar API methods.  Before version 8.3.1, Glorp only supported inner joins and the setting was a boolean.  It then changed to a boolean or nil, and what false meant also changed.  It may evolve further."
+
+	anOuterJoin isNil ifTrue: [^self].
+	outerJoin := anOuterJoin.
+]
+
 { #category : #navigating }
 MappingExpression >> queryLevelBaseExpression [
 
@@ -472,7 +535,7 @@ MappingExpression >> rebuildOn: aBaseExpression startingFrom: anExpression withO
 	expression := (mapping isNil or: [self mustReGetMappingIfRebuildingOn: newBase])
 		ifTrue: [newBase get: name]
 		ifFalse: [newBase getMapping: self mapping named: name].
-	outerJoin ifTrue: [expression beOuterJoin].
+	expression privateBeOuterJoin: outerJoin.
 	expression phantom: self phantom.
 	^expression
 ]
@@ -496,7 +559,8 @@ MappingExpression >> requiresDistinct: aBoolean [
 
 { #category : #testing }
 MappingExpression >> returnsDictionary [
-	"Return true if we representa  ampping to a dictionary"
+	"Return true if we represent a mapping to a dictionary."
+
 	^self mapping isToManyRelationship and: [self mapping collectionType == Dictionary].
 ]
 
@@ -576,17 +640,9 @@ MappingExpression >> tablesToPrint [
 		self aliasedTableFor: each].
 ]
 
-{ #category : #preparing }
+{ #category : #fields }
 MappingExpression >> translateField: aDatabaseField [
-	| translatedField |
-	translatedField := (self mapping translateFields: (Array with: aDatabaseField)) first.
-	^super translateField: (translatedField isNil ifTrue: [aDatabaseField] ifFalse: [translatedField]).
-]
-
-{ #category : #preparing }
-MappingExpression >> translateFields: anOrderedCollection [ 
-	"Ugh. Unify these mechnisms"
-	^super translateFields: (self mapping translateFields: anOrderedCollection).
+	^super translateField: (self mapping translateField: aDatabaseField)
 ]
 
 { #category : #navigating }
@@ -597,7 +653,8 @@ MappingExpression >> ultimateBaseExpression [
 
 { #category : #preparing }
 MappingExpression >> validate [
-	self mappingFromMeOrSubclasses isNil ifTrue: [self error: 'no mapping for ', self printString].
+	self mappingFromMeOrSubclasses isNil ifTrue:
+		[ValidationError signal: 'No mapping for ', self printString].
 ]
 
 { #category : #converting }

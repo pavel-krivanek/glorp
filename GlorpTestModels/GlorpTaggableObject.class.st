@@ -2,7 +2,8 @@ Class {
 	#name : #GlorpTaggableObject,
 	#superclass : #Object,
 	#instVars : [
-		'tags'
+		'tags',
+		'id'
 	],
 	#category : #'GlorpTestModels-PolyTest'
 }

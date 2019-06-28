@@ -1,11 +1,18 @@
 "
-This is a platform for the Microsoft SQL Server database.
+This is a platform for the Microsoft SQL Server database.  SQLServer uses type Bit (values 0 and 1) to represent booleans in the database.
+
+Instance Variables:
+	canRecurse	<Boolean>	is recursive SQL supported
+	supportsGroupWritingValues	<Boolean>	can a single INSERT statement be followed by multiple VALUES
+	supportsUnboundRowCount	<Boolean>	can unbound SQL INSERT/UPDATE return the number of rows actually written/updated (this matters when using lock keys; to tell whether lock keys clashed, we must be able to tell that an update did not affect all the rows expected
 "
 Class {
 	#name : #SQLServerPlatform,
 	#superclass : #DatabasePlatform,
 	#instVars : [
-		'supportsGroupWritingValues'
+		'supportsGroupWritingValues',
+		'supportsUnboundRowCount',
+		'canRecurse'
 	],
 	#category : #'GlorpDatabase-Glorp'
 }
@@ -45,7 +52,9 @@ SQLServerPlatform >> bindingsForGroupWritingFor: aCommand [
 
 { #category : #types }
 SQLServerPlatform >> bit [
-	^self typeNamed: #bit ifAbsentPut: [GlorpBooleanType new typeString: 'bit'].
+	"An integer whose values can only be 1 or 0.  No case for this type unless something like INSERT 0 INTO bitcol can be parsed by SQLServer."
+
+	^self typeNamed: #bit ifAbsentPut: [GlorpIntegerType new typeString: 'bit']
 ]
 
 { #category : #types }
@@ -56,16 +65,14 @@ SQLServerPlatform >> blob [
 
 { #category : #types }
 SQLServerPlatform >> boolean [
-	^self bit.
+	"A boolean can be read from a type BIT column because ODBCEXDI knows the type of the column it reads _from_ and does the conversion.  But it cannot tell the type of the column it is writing _to_, unlike Glorp, so Glorp must do the conversion INSERT CONVERT(BIT, 0) INTO columnOfTypeBIT.  See my #printBoolean:for: and #booleanToBooleanConverter for details."
+
+	^self typeNamed: #boolean ifAbsentPut: [GlorpBooleanType new typeString: 'bit']
 ]
 
-{ #category : #'conversion-boolean' }
-SQLServerPlatform >> booleanToBooleanConverter [
-	^DelegatingDatabaseConverter
-		named: #booleanToBoolean
-		hostedBy: self
-		fromStToDb: #convertBooleanToInteger:for:
-		fromDbToSt: #convertDBBooleanToBoolean:for:.
+{ #category : #testing }
+SQLServerPlatform >> canRecurse [
+	^canRecurse
 ]
 
 { #category : #constants }
@@ -96,6 +103,24 @@ SQLServerPlatform >> compoundOperationFor: aSymbol [
 	aSymbol == #INTERSECT ifTrue: [^'WHERE EXISTS'].
 	aSymbol == #MINUS ifTrue: [^'WHERE NOT EXISTS'].
 	^aSymbol.
+]
+
+{ #category : #'conversion-boolean' }
+SQLServerPlatform >> convertBooleanToDBBoolean: aBoolean for: aType [
+	"I use the bivalued type BIT to hold booleans."
+
+	aBoolean isNil ifTrue: [^nil].	"Is this nil-check needed?  I believe yes it is."
+	^aBoolean ifTrue: [1] ifFalse: [0]
+
+"SQLServer also accepts TRUE' and 'FALSE' but it is simpler to use 1 and 0"
+]
+
+{ #category : #'conversion-boolean' }
+SQLServerPlatform >> convertDBBooleanToBoolean: aBit for: aType [
+	"I map database type BIT (values 1 and 0) to image type boolean (values true and false).  ODBCEXDI knows the source is a BIT column type, and has already converted to the bit to a Boolean."
+
+	aBit isNil ifTrue: [^nil].	
+	^aBit "= 1"
 ]
 
 { #category : #'services columns' }
@@ -286,8 +311,8 @@ SQLServerPlatform >> escapeFor: aCharacter [
 ]
 
 { #category : #'exdi specific' }
-SQLServerPlatform >> exdiTypeForDates [
-	^#Timestamp.
+SQLServerPlatform >> exdiTypeForDate [
+	^#Timestamp
 ]
 
 { #category : #types }
@@ -306,6 +331,15 @@ SQLServerPlatform >> float8 [
 	^self float.
 ]
 
+{ #category : #'initialize-release' }
+SQLServerPlatform >> initialize [
+	"SQL Server began supporting group writing with the VALUES clause in version 10.0, and recursion in version 10.5.  For safety, we initialize to false, resetting in postLoginInitializeFromAccessor:."
+
+	super initialize.
+	canRecurse := false.
+	supportsGroupWritingValues := false.
+]
+
 { #category : #functions }
 SQLServerPlatform >> initializeFunctions [
 	| baseExists dbSpecificExists selectList baseNotExists dbSpecificNotExists |
@@ -315,22 +349,24 @@ SQLServerPlatform >> initializeFunctions [
 		at: #copyFrom:to: put: (SubstringFunction named: 'SUBSTRING');
 		at: #objectId put: (PrefixFunction named: 'OBJECT_ID');
 		at: #columnPropertySchema:property: put: ((PrefixFunction named: 'COLUMNPROPERTY') type: self integer);
-		at: #convertTo: put: ((PrefixFunction named: 'CONVERT')). "CONVERT(toType, aThing)"
+		"SQLServer does not support TO_CHAR, but a cast to a large varchar has the same effect."
+		at: #toChar: put: ((Cast named: 'CAST') separator: 'AS'; arguments: (Array with: (self varchar: 2048)));
+		at: #convertTo: put: ((PrefixFunction named: 'CONVERT')); "CONVERT(toType, aThing)"
+		at: #prepend: put: (ReversingFunction named: '+').
 
-	"Like Oracle, SQL Server doesn't allow functions like EXISTS in a field list,
-	but will allow a select there as an argument to a function, such as CASE.
-	So print it that way if we're in the select list."
+	"Like Oracle, SQL Server doesn't allow functions like EXISTS in a field list, but will allow a select there as an argument to a function, such as CASE, so print it that way if we're in the select list."
 
 	baseExists := functions at: #exists:.
 	dbSpecificExists := DualRoleFunction new.
 	dbSpecificExists function: '#exists:'.
 	dbSpecificExists whereClauseVersion: baseExists.
-	selectList := Case new argumentTypes: (Array with: (self varchar: 1) with: self integer with: self integer).
-	selectList argumentModifierBlock: [:function :args | 
+	selectList := Case new argumentTypes: (Array with: (self varchar: 1) with: self boolean with: self boolean).
+	selectList argumentModifierBlock:	"the argument 'x' synchronises with 'x' at the end of #existenceCheck:as:"
+		[:function :args |
 		function base: args first.
-		Array with: 'x' asGlorpExpression with: 1 asGlorpExpression with: 0 asGlorpExpression].
+		Array with: 'x' with: true with: false].
 	dbSpecificExists selectListVersion: selectList.
-	dbSpecificExists type: self integer.
+	dbSpecificExists type: self boolean.
 	functions at: #exists: put: dbSpecificExists.
 
 	"And similarly NOT EXISTS"
@@ -338,12 +374,13 @@ SQLServerPlatform >> initializeFunctions [
 	dbSpecificNotExists := DualRoleFunction new.
 	dbSpecificNotExists function: '#notExists:'.
 	dbSpecificNotExists whereClauseVersion: baseNotExists.
-	selectList := Case new argumentTypes: (Array with: (self varchar: 1) with: self integer with: self integer).
-	selectList argumentModifierBlock: [:function :args | 
+	selectList := Case new argumentTypes: (Array with: (self varchar: 1) with: self boolean with: self boolean).
+	selectList argumentModifierBlock:	"the argument 'x' synchronises with 'x' at the end of #existenceCheck:as:"
+		[:function :args |
 		function base: args first.
-		Array with: 'x' asGlorpExpression with: 0 asGlorpExpression with: 1 asGlorpExpression].
+		Array with: 'x' with: false with: true].
 	dbSpecificNotExists selectListVersion: selectList.
-	dbSpecificNotExists type: self integer.
+	dbSpecificNotExists type: self boolean.
 	functions at: #notExists: put: dbSpecificNotExists.
 	"Overwrite existing LENGTH() function as LEN()."
 	functions at: #length put: ((PrefixFunction named: 'LEN') type: self integer).
@@ -412,6 +449,15 @@ SQLServerPlatform >> isSQLServerPlatform [
 	^true
 ]
 
+{ #category : #types }
+SQLServerPlatform >> maxVarCharSize [
+	"The maximum value of n allowed in an SQLServer declaration varchar(n) is 8000."
+
+	^8000
+
+"SQLServer also allows varchar(max), indicating that the maximum storage size is 2147483647 (2^31-1 bytes , i.e. 2 GB).  For now, we restrict to the numerical form used by Glorp;  support for varchar(max) will be added in Glorp 9.0."
+]
+
 { #category : #constants }
 SQLServerPlatform >> maximumLengthOfColumnName [
 	"^<Integer> I return the maximum length of a column name.  (I am not sent at present;  I am here so that if I and #maximumLengthOfTableName (which is sent) should ever differ on some database platform, I can be used in revised truncation logic.)"
@@ -454,16 +500,19 @@ SQLServerPlatform >> numeric [
 
 { #category : #types }
 SQLServerPlatform >> nvarchar [
-	^self typeNamed: #nvarchar ifAbsentPut: [GlorpVarCharType new typeString: 'nvarchar'].
+	^self typeNamed: #nvarchar ifAbsentPut: [GlorpNVarCharType new typeString: 'nvarchar'].
 ]
 
 { #category : #login }
 SQLServerPlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
-	"SQL Server began supporting group writing with the VALUES clause in version 10.0"
+	"SQL Server began supporting group writing with the VALUES clause in version 10.0, and recursion in version 10.5.  We began supporting ODBC 3.0 in VisualWorks 8.2.1."
 
-	| dbmsVersion |
-	dbmsVersion := aDatabaseAccessor connection dbmsVersion tokensBasedOn: $..
+	| dbmsVersion dbAccessorConnection |
+	dbAccessorConnection := aDatabaseAccessor connection.
+	dbmsVersion := dbAccessorConnection dbmsVersion tokensBasedOn: $..
 	supportsGroupWritingValues := dbmsVersion first asNumber > 9.
+	supportsUnboundRowCount := dbAccessorConnection odbcVersion > 2.
+	canRecurse := self isVersion: #(10 5) notNewerThan: dbmsVersion	"10.5 is 2008 R2"
 ]
 
 { #category : #'conversion-strings' }
@@ -476,7 +525,7 @@ SQLServerPlatform >> printBlob: aByteArray on: aStream for: aType [
 
 { #category : #'conversion-boolean' }
 SQLServerPlatform >> printBoolean: aBoolean for: aType [
-	"If the platform is MS SQL Server, a boolean object in a SELECT needs to be converted to  BIT type, since T, Y, or true make SQLServer complain. "
+	"If the platform is MS SQL Server, a boolean object in a SELECT needs to be converted to  BIT type, since T, Y, or true make SQLServer complain."
 	
 	| string |
 	aBoolean isNil ifTrue: [^'NULL'].
@@ -485,6 +534,8 @@ SQLServerPlatform >> printBoolean: aBoolean for: aType [
 		ifTrue: ['1'] 
 		ifFalse: ['0'].
 	^'CONVERT( BIT, ' , string , ' )'.
+
+"SQLServer also accepts CONVERT(BIT, 'TRUE')"
 ]
 
 { #category : #'conversion-times' }
@@ -507,6 +558,19 @@ SQLServerPlatform >> printPreLimit: anInteger on: aCommand [
 		nextPutAll: ' TOP '.
 	anInteger printOn: aCommand.
 	aCommand nextPutAll: ' '.
+]
+
+{ #category : #'database-specific' }
+SQLServerPlatform >> printReturningFieldsOn: aCommand [
+	"Return current field value from an UPDATE statement, e.g.
+		UPDATE my_able SET field = field + 10 OUTPUT INSERTED.field WHERE id=2
+returns the post-update (incremented by 10) value of field."
+
+	aCommand nextPutAll: ' OUTPUT '.
+	GlorpHelper
+		do: [:nextField | aCommand nextPutAll: 'INSERTED.', nextField name]
+		for: aCommand relativeFields
+		separatedBy: [aCommand nextPut: $,; space].
 ]
 
 { #category : #'services tables' }
@@ -602,6 +666,13 @@ SQLServerPlatform >> real [
 	^self float.
 ]
 
+{ #category : #commands }
+SQLServerPlatform >> relativeUpdateCommand [
+	"SQLServer inserts 'OUTPUT ...' before its WHERE clause to return the updated value, unlike the more common approach of RETURNING after rest of the update statement, so its relative-update-and-return command is not ReturningUpdateCommand."
+
+	^OutputUpdateCommand
+]
+
 { #category : #'conversion-strings' }
 SQLServerPlatform >> removeNestedParensFromString: aString [
 	"Return a Smalltalk instance of the type indicated by aGlorpType.  SQL-Server wraps aString in parentheses, so uwrap it first.  If aString is nil, ensure we return nil."
@@ -679,6 +750,13 @@ SQLServerPlatform >> supportsDecimalsOnAllNumerics [
 ]
 
 { #category : #testing }
+SQLServerPlatform >> supportsDuplicateFieldNamesInCompoundQueries [
+	"Absurdly, Oracle, SQLServer and MySQL will not tolerate two unaliased fields in different tables but of the same name in a compound query, so the second (and subsequent) such fields must be aliased."
+
+	^false
+]
+
+{ #category : #testing }
 SQLServerPlatform >> supportsGroupWritingFor: aCommand [
 	^aCommand supportsGroupWriting and:
 		[self useBinding or: [aCommand needsRowCount not]]
@@ -711,10 +789,13 @@ SQLServerPlatform >> supportsMultipleOpenCursors [
 
 { #category : #testing }
 SQLServerPlatform >> supportsRowCountFor: aRowBasedCommand [
-	"If SQLServer is not bound then it can send batched insert and update statements to te server but will only return the result set and rowCount of the last statement in the batch.  (Strangely, when it sends batched selects, it can recover the answer sets for each select and recover the rowCount of each _except_ the last select in the batch, for which rowCount returns zero.)  Thus its rowCount is unreliable when unbound if more than one batched statement is involved: a batch of several attempted UPDATEs wil return a rowCount of 0 or 1 for the last UPDATE only, and will return #noMoreAnswers if #answer is sent again."
+	"SQLServer can send batched or array-bound insert and update statements to the server but if it is not bound then ODBC 2.0 will only return the result set and rowCount of the last statement in the batch, whereas ODBC 3.0 will return multiple result sets and the session can be asked its rowCount after each, and the result used only for the relevant statement or summed as desired.
+	When it sends batched selects, both ODBC 2.0 and ODBC 3.0 can recover the answer sets for each select _but_ this rowCount is the total of rows read so far from the answer stream, not the total of rows found.  Only after the answer stream has been exhausted will the row count equal the number of matching rows that the select found to return.  Before any rows are read, the rowCount is -1, not zero;  it will be zero if the first attempt to read shows no rows were found.  (This typically showed as he last select in the batch having -1 rowCount, having been reached by Glorp processing and then the session queried for rowCount before that answer stream was read.)
+	Thus this platform's rowCount is unreliable when unbound if being accessed over ODBC 2.0 and more than one batched statement is involved: a batch of several attempted UPDATEs will return a rowCount of 0 or 1 for the last UPDATE only, and will return #noMoreAnswers if #answer is sent again.  In ODBC 3.0 it is reliable."
 
 	^(self useBinding and: [aRowBasedCommand useBinding])
-		or: [aRowBasedCommand expectedNumberOfModifiedRows < 2]
+		or: [self supportsUnboundRowCount
+			or: [aRowBasedCommand expectedNumberOfModifiedRows < 2]]
 ]
 
 { #category : #testing }
@@ -723,6 +804,13 @@ SQLServerPlatform >> supportsTableOwners [
 "Access, Firebird and PostGreSQL do not, Oracle does, others I know not."
 
 	^true
+]
+
+{ #category : #testing }
+SQLServerPlatform >> supportsUnboundRowCount [
+	"I support it in ODBC 3.0 and after."
+
+	^supportsUnboundRowCount ifNil: [false]
 ]
 
 { #category : #types }

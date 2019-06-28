@@ -2,7 +2,6 @@ Class {
 	#name : #GlorpImage,
 	#superclass : #GlorpTaggableObject,
 	#instVars : [
-		'id',
 		'location'
 	],
 	#category : #'GlorpTestModels-PolyTest'
@@ -23,12 +22,12 @@ GlorpImage class >> visualWorksMetadata [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpImage >> location [
 	^ location
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GlorpImage >> location: aLocation [
 	location := aLocation
 ]

@@ -1,8 +1,8 @@
 "
-This is the central class used for writing. We build up a collection of rows that are to be written, indexed by the objects that ""own"" them. While any object can contribute values to a row (for example, in a relationship, the value of a field that is a foreign key may come from the primary key of another object) it is a central assumption that each row is owned by a single object. Once we know all the rows, we can compute which ones have changed from their previous database values (see RowMapForMementos) and which fields within them have changed, and then we can write them out.
+This is the central class used for writing. We build up a collection of rows that are to be written, indexed by the objects that ""own"" them. While any object can contribute values to a row (for example, in a relationship, the value of a field that is a foreign key may come from the primary key of another object) it is a central assumption that each row is owned by a single object. Once we know all the rows, we can compute which ones have changed from their previous database values (see RowMapForMementos) and which fields within them have changed, and then we can write them out.  (We mark as #invisible those that have not changed.)
 
 Instance Variables:
-	hasDeletions	<Boolean>	Do we have any deletions. Deletions are marked by a flag in the row, but it's useful to know quickly if we have any or not.
+	hasDeletions	<Boolean>	Do we have any rows in status #invisible. Status is marked in each row, but it's useful to know quickly if we have any or not.
 	rowDictionary	<(Dictionary from: DatabaseTable to: (Dictionary from: Object to: DatabaseRow)>	The rows, indexed by their table, then by the owning object.
 
 
@@ -108,53 +108,57 @@ RowMap >> collapseMatchingInsertsAndDeletesFor: eachTablesRows [
 	(self isSuitableForCollapsing: eachTablesRows) ifFalse: [^#()].
 	deletions := Dictionary new: 50.
 	updates := OrderedCollection new.
-	eachTablesRows do: [:each | each forDeletion ifTrue: [
-		deletions at: (each primaryKey) put: each]].
+	eachTablesRows do: [:each | each forDeletion ifTrue:
+		[deletions at: each primaryKey put: each]].
 	deletions isEmpty ifTrue: [^#()].
 	matchedDeletions := IdentitySet new: deletions size.
 
 	eachTablesRows do:
-		[:each || pk |
-		pk := each primaryKey.
+		[:each || pk | pk := each primaryKey.
 		((deletions includesKey: pk) and: [each forDeletion not]) ifTrue:
 			[deletion := deletions at: pk.
-			(matchedDeletions includes: deletion) ifFalse:
-				["If we trusted the user always to delete the right object, or one with no field values accidentally matching a changed new row value, then we could do
-				each withAllFieldsIn: deletion. 
-then add
-				each fieldsNeedingUpdate isEmpty or:
-to the no-op check following.  Lacking this certainty, we do not set the deletion row to be the oldVersion of the 'each' row, thus ensuring the update command will update all the non-primaryKey fields whether they differ between deletion and each or not."
-				each table primaryKeyFields size = each fields size ifTrue:
+			(matchedDeletions includes: deletion) ifFalse:	"See NOTE at end of method"
+				[each table primaryKeyFields size = each fields size ifTrue:
 					["Now here's a very special case.  If there are no non-primary key fields, then we collapse this down to a no-op. We've deleted and re-inserted with exactly the same information.  However, we still leave it in the list of updated rows, because we want it to be put into the session cache if it's not already there at the end."
 					self privateDeleteRow: each].
-				"Make the row an update, with the deletion as its old value."
+				"Make the row an update."
 				updates add: each.
 				matchedDeletions add: deletion.
+				"The method below should be called privateHideRow: - the use of 'delete' to mean two different things can confuse"
 				self privateDeleteRow: deletion]]].
 	^updates
+
+"NOTE:  if we trusted the user always to delete the right object, or one with no field values accidentally matching a changed new row value, in the pattern of #testDelete*CopyInsertIsUpdate, then we could do
+				each withAllFieldsIn: deletion. 
+(thus setting the oldVersion of the row) and then add
+				each fieldsNeedingUpdate isEmpty or:
+to the no-op check.  If we lack this certainty and/or desire the scenario of #testDeleteShallowCopyInsertIsUpdate to pass, we do not set the deletion row to be the oldVersion of the 'each' row, thus ensuring the update command will update all the non-primaryKey fields whether they differ between deletion and each or not."
 ]
 
 { #category : #'private/mapping' }
-RowMap >> collectionMementoFor: aCollection [
+RowMap >> collectionMementoFor: mayBeCollection [
+	"My parameter does not need to be a collection;  unless it is a collection, all subimplementors return it, just as I do."
 
-	^aCollection.
+	^mayBeCollection
 ]
 
 { #category : #'private/deletion' }
 RowMap >> compress [
-	"Remove all deleted rows and rebuild"
+	"Remove all invisible rows by moving the rest into a fresh dictionary.  An invisible row is typically one that is the same at registration and at commitment, and whose status I therefore set to #invisible in a call of #subtractiveDifferencesFrom:into:.  Such a row will NOT generate an SQL delete command (or any other SQL) and is not the same as a row with 'forDeletion' set, which is not #invisible and does generate an SQL DELETE command."
+
 	| newDictionary |
 	hasDeletions ifFalse: [^self].
-	hasDeletions := false.
 	newDictionary := IdentityDictionary new: rowDictionary size.
-	rowDictionary keysAndValuesDo: [:eachTable :eachRowDict |
-		| newRowDict |
+	rowDictionary keysAndValuesDo:
+		[:eachTable :eachRowDict || newRowDict |
 		newRowDict := IdentityDictionary new: eachRowDict size.
-		eachRowDict keysAndValuesDo: [:eachObject :eachRow |
-			(self isDeleted: eachRow) ifFalse: [
-				newRowDict at: eachObject put: eachRow]].
+		eachRowDict keysAndValuesDo:
+			[:eachObject :eachRow |
+			(self isDeleted: eachRow) ifFalse:
+				[newRowDict at: eachObject put: eachRow]].
 		newDictionary at: eachTable put: newRowDict].
 	rowDictionary := newDictionary.
+	hasDeletions := false.
 ]
 
 { #category : #lookup }
@@ -178,9 +182,9 @@ RowMap >> dictionaryClassRequiredForKey: anObject [
 RowMap >> differenceFrom: aMementoRowMap [
 	| differencesMap |
 	differencesMap := RowMap new.
-	self	additiveDifferencesFrom: aMementoRowMap into: differencesMap.
-	self	subtractiveDifferencesFrom: aMementoRowMap into: differencesMap.
-	^differencesMap.
+	self additiveDifferencesFrom: aMementoRowMap into: differencesMap.
+	self subtractiveDifferencesFrom: aMementoRowMap into: differencesMap.
+	^differencesMap
 ]
 
 { #category : #api }
@@ -220,11 +224,15 @@ RowMap >> initialize: size [
 
 { #category : #'private/deletion' }
 RowMap >> isDeleted: row [
+	"This means the row is omitted from processing, NOT that the row is to be deleted from the database.  The use of the same word for rows whose status is #invisible and for rows whose 'forDelete' is true is confusing;  maybe change to isInvisible:."
+
 	^row status == #invisible.
 ]
 
 { #category : #testing }
 RowMap >> isEmpty [
+	"Why are we checking #isDeleted: in the second line when in the first line #compress has just removed all that could answer true to it."
+
 	self compress.
 	self rowsDo: [:each | (self isDeleted: each) ifFalse: [^false]].
 	^true.
@@ -316,6 +324,8 @@ RowMap >> objectsDo: aBlock [
 
 { #category : #'private/deletion' }
 RowMap >> privateDeleteRow: row [
+	"This should be called #privateHideRow:.  It does not mark the row for deletion from the database but for Glorp to ignore when deciding what rows to write."
+
 	row status: #invisible.
 	hasDeletions := true.
 ]

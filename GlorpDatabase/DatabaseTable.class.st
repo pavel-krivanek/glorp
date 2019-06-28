@@ -179,7 +179,7 @@ DatabaseTable >> addIndex: aDatabaseIndex [
 
 { #category : #indexes }
 DatabaseTable >> addIndexForField: aField [
-	^indexes add: (DatabaseIndex forField: aField).
+	^indexes add: (self indexClass forField: aField).
 ]
 
 { #category : #indexes }
@@ -194,7 +194,7 @@ DatabaseTable >> addIndexForField: aField and: anotherField and: thirdField [
 
 { #category : #indexes }
 DatabaseTable >> addIndexForFields: aFieldCollection [
-	^indexes add: (DatabaseIndex forFields: aFieldCollection).
+	^indexes add: (self indexClass forFields: aFieldCollection).
 ]
 
 { #category : #fields }
@@ -217,6 +217,14 @@ DatabaseTable >> allSequences [
  		eachField type hasSequence ifTrue:
 			[result at: eachField type sequence name put: eachField type sequence]].
 	^result.
+]
+
+{ #category : #testing }
+DatabaseTable >> constraintsToAnyOf: aCollectionOfTables [
+	^self foreignKeyConstraints select:
+		[:eachConstraint |
+		aCollectionOfTables anySatisfy:
+			[:eachTable | eachConstraint refersToTable: eachTable]]
 ]
 
 { #category : #fields }
@@ -421,6 +429,12 @@ DatabaseTable >> imaginaryReplacementName [
 	stream nextPutAll: (replacementSubSelect sqlWith: #()) sqlString.
 	stream nextPut: $); space.
 	^stream contents
+]
+
+{ #category : #accessing }
+DatabaseTable >> indexClass [
+
+	^DatabaseIndex
 ]
 
 { #category : #indexes }
@@ -659,9 +673,10 @@ DatabaseTable >> removeFieldNamed: aString [
 
 { #category : #fields }
 DatabaseTable >> removeFieldNamed: aString ifAbsent: aBlock [
-	
-	fields remove: (self fieldNamed: aString ifAbsent: aBlock).
+	| removedField |
+	removedField := fields remove: (self fieldNamed: aString ifAbsent: aBlock).
 	1 to: fields size do: [:i | (fields at: i) position: i].
+	^removedField
 ]
 
 { #category : #accessing }
@@ -741,6 +756,15 @@ DatabaseTable >> sqlTableName [
 				ifTrue: [self imaginaryReplacementName]
 				ifFalse: [self qualifiedName]]
 		ifFalse: [parent sqlTableName , ' ' , self qualifiedName].
+]
+
+{ #category : #printing }
+DatabaseTable >> unaliasedName [
+	"The name of the underlying table, whether we are an alias of it or not."
+
+	^parent isNil
+		ifTrue: [self name]
+		ifFalse: [parent name]
 ]
 
 { #category : #accessing }

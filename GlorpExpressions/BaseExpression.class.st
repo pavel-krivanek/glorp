@@ -110,6 +110,24 @@ BaseExpression >> fieldsForSelectStatement [
 ]
 
 { #category : #api }
+BaseExpression >> getMappings: aGlorpConstantExpression [
+	"We do not protect if aSymbolArray is of size 1 or size zero.  If the array is empty, let's see it for now - it may be a coding error.  If the array is of size 1, better to have sent the symbol as a method in the usual way, but converting to a size 1 expression group should cause no problems.  Note that the last line is safe as ExpressionGroup>>add: returns self."
+
+	| aSymbolOrBlockArray expressionBlock |
+	aSymbolOrBlockArray   := aGlorpConstantExpression value.
+	expressionBlock :=	"Alternatively, we could call Query basicNew expressionBlockFor:"
+		[:element |
+		element isSymbol
+			ifTrue: [self get: element withArguments: #()]
+			ifFalse: [element asGlorpExpressionOn: self]].
+	^(2 to: aSymbolOrBlockArray size)
+		inject: (expressionBlock value: aSymbolOrBlockArray first) asExpressionGroup
+		into: [:expressionGroup :index || mappingExpression |
+			mappingExpression := expressionBlock value: (aSymbolOrBlockArray at: index).
+			expressionGroup add: mappingExpression]
+]
+
+{ #category : #api }
 BaseExpression >> getParameter: aDatabaseField [ 
 	^ParameterExpression forField: aDatabaseField basedOn: self.
 ]
@@ -134,8 +152,10 @@ BaseExpression >> mappingSequenceName [
 
 { #category : #testing }
 BaseExpression >> mapsSimpleObject [
-	"Try to do a fast test for this, to look for the pseudo-descriptors that direct to-many mappings use."
-	^self descriptor mappings size = 1 and: [(self descriptor mappingForAttributeNamed: #myValue) notNil].
+	"Try to do a fast test for this, to look for the pseudo-descriptors that DirectTo*Mappings use."
+
+	^self descriptor mappings size = 1 and:
+		[(self descriptor mappingForAttributeNamed: #myValue) notNil]
 ]
 
 { #category : #accessing }
@@ -239,8 +259,13 @@ BaseExpression >> ultimateBaseExpression [
 
 { #category : #mapping }
 BaseExpression >> valueInBuilder: anElementBuilder [
-	"If we ever get here, this is because we're being used as the reverse of a direct to-many mapping, so we expect to have a descriptor with only one mapping, named #myValue"
+	"If we ever get here, this is because we're being used as the reverse of a DirectTo*Mapping, so we expect to have a descriptor with only one mapping, named #myValue."
+
 	| mapping |
 	mapping := self descriptor mappingForAttributeNamed: #myValue.
+	^mapping valueInBuilder: anElementBuilder as: (self translateField: mapping field).
+
+"If #myValue named some user-written mapping, the robust general coding for the last line would be
 	^mapping valueInBuilder: anElementBuilder as: (self get: #myValue) field.
+Because the DirectTo*Mapping generated #myValue, we know the relevant mapping is the same one we found in the line above, and its MappingExpression's base must be this BaseExpression, so we can inline and eliminate needless checks."
 ]

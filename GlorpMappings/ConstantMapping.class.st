@@ -67,6 +67,13 @@ ConstantMapping >> getValueFrom: anObject [
 	^constantValue.
 ]
 
+{ #category : #testing }
+ConstantMapping >> hasValueThatCanProvideField: aField from: anObject [
+	"A constant mapping cannot provide a field value since it knows its attribute but not its field."
+
+	^false
+]
+
 { #category : #'initialize/release' }
 ConstantMapping >> initialize [
 
@@ -89,7 +96,7 @@ ConstantMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
 	value := anElementBuilder isNil
 		ifTrue: [constantValue]
 		ifFalse: [self constantValueIn: anElementBuilder session].
-	self setValueIn: anObject to: value.
+	^self setValueIn: anObject to: value
 ]
 
 { #category : #accessing }

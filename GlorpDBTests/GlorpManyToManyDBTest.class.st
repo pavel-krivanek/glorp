@@ -207,21 +207,23 @@ GlorpManyToManyDBTest >> testReadCustomerAndReplaceAccountsWithRemoval [
 
 { #category : #'tests-read' }
 GlorpManyToManyDBTest >> testReadCustomerAndReplaceAccountsWithoutInstantiatingHolders [
-	"This works, but only fortuitously. If the accounts haven't been read into memory, we don't have to remove their object-level references to the account holder, because changing one side of the relationship in memory is enough to cause the link rows to be deleted"
-	self
-		inTransactionDo:
-			[self
-				inUnitOfWorkDo:
-					[| account |
-					account := GlorpBankAccount new id: 99999.
-					customer accounts: (Array with: account)]
-				initializeWith: [self writeCustomerWithAccounts].
-			self readCustomer.
-			accountId1 := 99999.
-			accountId2 := nil.
-			self checkAccounts.
-			self checkNumberOfLinkRows: 2.
-			self checkNumberOfAccounts: 4].
+	"This works, but only fortuitously. If the accounts haven't been read into memory, we don't have to remove their object-level references to the account holder, because changing one side of the relationship in memory is enough to cause the link rows to be deleted. (It)The comment therefore suggests that the test depends on the #accounts mapping proxying, but I observe that doing
+	((session system descriptorFor: GlorpCustomer) mappingForAttributeNamed: #accounts) shouldProxy: true.
+at the start of the test does not change how it fails if the run configures non-proxying."
+
+	self inTransactionDo:
+		[self
+			inUnitOfWorkDo:
+				[| account |
+				account := GlorpBankAccount new id: 99999.
+				customer accounts: (Array with: account)]
+			initializeWith: [self writeCustomerWithAccounts].
+		self readCustomer.
+		accountId1 := 99999.
+		accountId2 := nil.
+		self checkAccounts.
+		self checkNumberOfLinkRows: 2.
+		self checkNumberOfAccounts: 4].
 ]
 
 { #category : #'tests-read' }

@@ -14,7 +14,8 @@ ElementBuilder >> valueOfField: aField [
 
 { #category : #'*GlorpDatabase-translating fields' }
 ElementBuilder >> valueOfField: aField in: aRow [
-	"Since the elementBuilder now holds the row, #valueOfField: is preferred protocol, but some things (e.g. ad hoc mapping blocks) might still be using this, so left for compatibility"
+	"The elementBuilder holds the row, so #valueOfField: is the recommended protocol in all ordinary cases.  An AdHocProxy's readBlock could be set by an AdHocMapping at one point, then evaluated later, after the ElementBuilder had been assigned another row.  This protocol remains for that case -  see #testReadAdHocProxied."
+
 	(aField class == ConstantExpression) ifTrue: [^aField value].
 	^aRow atIndex: (self translateFieldPosition: aField).
 ]

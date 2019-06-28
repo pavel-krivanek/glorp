@@ -134,3 +134,10 @@ DatabaseIndex >> printStatementOn: aStream platform: aPlatform [
 	fields do: [ :f | aStream nextPutAll: (aPlatform nameForColumn: f name); nextPut: $, ].
 	aStream skip: -1; nextPut: $)
 ]
+
+{ #category : #accessing }
+DatabaseIndex >> qualifiedNameInSchema: schema [
+	"Distinguish indexes by including their table's schema in their name, thus avoid name clashes in multiple installations on the same platform."
+
+	^(schema isNil or: [schema isEmpty]) ifTrue: [self name] ifFalse: [schema, '.', self name]
+]

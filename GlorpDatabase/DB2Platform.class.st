@@ -1,12 +1,16 @@
 "
 This is a Glorp platform for DB2 databases.
 
+Instance Variables:
+	canRecurse	<Boolean>	is recursive SQL supported
+	supportsGroupWritingValues	<Boolean>	can a single INSERT statement be followed by multiple VALUES
 "
 Class {
 	#name : #DB2Platform,
 	#superclass : #DatabasePlatform,
 	#instVars : [
-		'supportsGroupWritingValues'
+		'supportsGroupWritingValues',
+		'canRecurse'
 	],
 	#category : #'GlorpDatabase-Glorp'
 }
@@ -48,13 +52,25 @@ DB2Platform >> blob [
 	^self typeNamed: #blob ifAbsentPut: [GlorpBlobType new typeString: 'BLOB'].
 ]
 
+{ #category : #types }
+DB2Platform >> boolean [
+	^self typeNamed: #boolean ifAbsentPut: [GlorpBooleanType new typeString: 'integer']
+]
+
 { #category : #'conversion-boolean' }
 DB2Platform >> booleanToBooleanConverter [
+	"DB2 doesn’t support a boolean type.  By default, we map a boolean (true, false) in the image to an integer (1, 0) in the database."
+
 	^DelegatingDatabaseConverter
 		named: #booleanToBoolean
 		hostedBy: self
 		fromStToDb: #convertBooleanToInteger:for:
-		fromDbToSt: #convertDBBooleanToBoolean:for:.
+		fromDbToSt: #convertIntegerToBoolean:for:
+]
+
+{ #category : #testing }
+DB2Platform >> canRecurse [
+	^canRecurse
 ]
 
 { #category : #testing }
@@ -170,6 +186,13 @@ DB2Platform >> escapeFor: aCharacter [
 "	^'\', (aCharacter asInteger printStringRadix: 16)."
 ]
 
+{ #category : #'exdi specific' }
+DB2Platform >> exdiTypeForBoolean [
+	"DB2 has no boolean type and DB2EXDI has no support for it."
+
+	^#Integer
+]
+
 { #category : #types }
 DB2Platform >> float [
 	^self typeNamed: #float ifAbsentPut: [GlorpFloatType new typeString: 'REAL' ].
@@ -185,6 +208,15 @@ DB2Platform >> float8 [
 	^self double.
 ]
 
+{ #category : #'initialize-release' }
+DB2Platform >> initialize [
+	"DB2 has been supporting group writing with the VALUES clause at least since version 8.0, and supporting recursion since version 7.0.  For safety, we initialize to false, resetting in postLoginInitializeFromAccessor:."
+
+	super initialize.
+	canRecurse := false.
+	supportsGroupWritingValues := false.
+]
+
 { #category : #functions }
 DB2Platform >> initializeFunctions [
 	"DB2 doesn't allow CAST(date AS timestamp), but it does have a TIMESTAMP function."
@@ -192,7 +224,7 @@ DB2Platform >> initializeFunctions [
 	| baseExists dbSpecificExists selectList baseNotExists dbSpecificNotExists |
 	super initializeFunctions.
 	functions
-		at: #, put: (InfixFunction named: '+');
+		at: #, put: (InfixFunction named: '||');	"can use || or CONCAT"
 		at: #timestamp: put: ((PrefixFunction named: 'TIMESTAMP') type: self timestamp); "TIMESTAMP(date, time)"
 		at: #time0 put: ((StandaloneFunction named: 'TIME(''00:00:00'')') type: self time);
 		at: #castTo: put: ((PrefixFunction named: 'CAST') separator: ' AS '). "CAST(aThing AS aType)"
@@ -208,9 +240,10 @@ DB2Platform >> initializeFunctions [
 	dbSpecificExists function: '#exists:'.
 	dbSpecificExists whereClauseVersion: baseExists.
 	selectList := Case new argumentTypes: (Array with: (self varchar: 1) with: self integer with: self integer).
-	selectList argumentModifierBlock: [:function :args | 
+	selectList argumentModifierBlock:
+		[:function :args | 
 		function base: args first.
-		Array with: 'x' asGlorpExpression with: 1 asGlorpExpression with: 0 asGlorpExpression].
+		Array with: 'x' with: 1 with: 0].	 "the argument 'x' synchronises with 'x' at the end of #existenceCheck:as:"
 	dbSpecificExists selectListVersion: selectList.
 	dbSpecificExists type: self integer.
 	functions at: #exists: put: dbSpecificExists.
@@ -221,9 +254,10 @@ DB2Platform >> initializeFunctions [
 	dbSpecificNotExists function: '#notExists:'.
 	dbSpecificNotExists whereClauseVersion: baseNotExists.
 	selectList := Case new argumentTypes: (Array with: (self varchar: 1) with: self integer with: self integer).
-	selectList argumentModifierBlock: [:function :args | 
+	selectList argumentModifierBlock:
+		[:function :args | 
 		function base: args first.
-		Array with: 'x' asGlorpExpression with: 0 asGlorpExpression with: 1 asGlorpExpression].
+		Array with: 'x' with: 0 with: 1].	 "the argument 'x' synchronises with 'x' at the end of #existenceCheck:as:"
 	dbSpecificNotExists selectListVersion: selectList.
 	dbSpecificNotExists type: self integer.
 	functions at: #notExists: put: dbSpecificNotExists.
@@ -243,18 +277,13 @@ would return rows where the difference exceeded three years."
 	each startDate + each daysToBonus days < Date today
 would return rows where elapsed time from start exceeded the bonus duration."
 	functions
-		at: #microseconds put: ((PostfixFunction named: 'MICROSECONDS') type: (self date));
+		at: #microseconds put: ((PostfixFunction named: 'MICROSECONDS') type: self date);
 		at: #seconds put: ((PostfixFunction named: 'SECONDS') type: self date);
 		at: #minutes put: ((PostfixFunction named: 'MINUTES') type: self date);
 		at: #hours put: ((PostfixFunction named: 'HOURS') type: self date);
 		at: #days put: ((PostfixFunction named: 'DAYS') type: self date);
 		at: #months put: ((PostfixFunction named: 'MONTHS') type: self date);
 		at: #years put: ((PostfixFunction named: 'YEARS') type: self date).
-]
-
-{ #category : #constants }
-DB2Platform >> initializeReservedWords [
-	super initializeReservedWords.
 ]
 
 { #category : #commands }
@@ -296,6 +325,25 @@ DB2Platform >> int8 [
 DB2Platform >> isDB2Platform [
 
 	^true
+]
+
+{ #category : #types }
+DB2Platform >> maxVarCharSize [
+	"DB2 says it allows maximum varchar length 32704.  However setting a column to that length can raise an error if the pagesize is not also at its maximum of 32768 (i.e. 64 larger).  Ensure the page size you set when creating your database is compatible with the maximum length your system uses.  There may also be issues if your system uses OUTER JOIN;  possibly this can restrict the size to which you can safely OUTER JOIN to, say, 4000."
+
+	^32704
+
+"The PAGESIZE constrains the maximum varchar size to 64 bytes less (32768 - 64 = 32704), not the tablespace size as such, that matters - see possible DB creation script
+	CREATE DATABASE MyDBName
+	USING CODESET UTF-8 
+	TERRITORY US
+	COLLATE USING SYSTEM
+	PAGESIZE 32768;
+Typical page sizes are 4096 8192 16384 and 32768 (the maximum IIUC).  If the size is not adequate for the declared field, error
+	[IBM][CLI Driver][DB2/NT64]  SQL0286N  A default table space could not be found
+	with a size of at least '32768' that authorisation id 'BERN' is authorized to use.
+	SQLSTATE=42727
+may be raised."
 ]
 
 { #category : #constants }
@@ -364,16 +412,17 @@ DB2Platform >> number [
 
 { #category : #types }
 DB2Platform >> nvarchar [
-	^self typeNamed: #nvarchar ifAbsentPut: [GlorpVarCharType new typeString: 'nvarchar'].
+	^self typeNamed: #nvarchar ifAbsentPut: [GlorpNVarCharType new typeString: 'nvarchar'].
 ]
 
 { #category : #login }
 DB2Platform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
-	"DB2 has been supporting group writing with the VALUES clause at least since version 8.0"
+	"DB2 has been supporting group writing with the VALUES clause at least since version 8.0, and supporting recursion since version 7.0."
 
 	| dbmsVersion |
 	dbmsVersion := aDatabaseAccessor connection dbmsVersion tokensBasedOn: $..
 	supportsGroupWritingValues := dbmsVersion first asNumber > 7.
+	canRecurse := dbmsVersion first asNumber > 6.
 ]
 
 { #category : #'conversion-strings' }
@@ -387,19 +436,6 @@ DB2Platform >> printBlob: aByteArray on: aStream for: aType [
 	aByteArray do: [:each |
 		each printOn: aStream paddedWith: $0 to: 2 base: 16].
 	aStream nextPutAll: ''' AS BLOB) '."
-]
-
-{ #category : #'conversion-boolean' }
-DB2Platform >> printBoolean: aBoolean for: aType [
-	"If the platform is MS SQL Server, a boolean object in a SELECT needs to be converted to  BIT type, since T, Y, or true make SQLServer complain. "
-	
-	| string |
-	aBoolean isNil ifTrue: [^'NULL'].
-	"We may be getting passed something that's already 1 or 0, or something else instead of a boolean. That probably shouldn't be happening, but let's handle it gracefully. We define gracefully to mean 1 is true, and everything else is false"
-	string := (aBoolean == 1 or: [aBoolean = true]) 
-		ifTrue: ['1'] 
-		ifFalse: ['0'].
-	^'CONVERT( BIT, ' , string , ' )'.
 ]
 
 { #category : #'conversion-times' }
@@ -457,22 +493,22 @@ DB2Platform >> printSqlStatementToRenameTable: aDatabaseTable to: newTableName o
 DB2Platform >> printSqlStatementToTestExistenceOfTable: tableName inSchema: schemaString on: aStream [
 	" This query will test only for tables that the logged on user has access to... "
 
-	| lowerTableName lowerSchema |
-	lowerTableName := tableName asLowercase.
-	lowerSchema := schemaString isNil
+	| upperTableName upperSchema |
+	upperTableName := tableName asUppercase.
+	upperSchema := schemaString isNil
 		ifTrue: [schemaString]
-		ifFalse: [schemaString asLowercase].
+		ifFalse: [schemaString asUppercase].
 	aStream
 		nextPutAll: 'SELECT count(*) FROM sysibm.tables ';
-		nextPutAll: 'WHERE lower(table_name) = ';
+		nextPutAll: 'WHERE table_name = ';
 		nextPut: $';
-		nextPutAll: lowerTableName;
+		nextPutAll: upperTableName;
 		nextPut: $'.
-	(lowerSchema notNil and: [lowerSchema notEmpty]) ifTrue:
+	(upperSchema notNil and: [upperSchema notEmpty]) ifTrue:
 		[aStream
-			nextPutAll: ' AND lower(table_schema) = ';
+			nextPutAll: ' AND table_schema = ';
 			nextPut: $';
-			nextPutAll: lowerSchema;
+			nextPutAll: upperSchema;
 			nextPut: $']
 ]
 
@@ -562,6 +598,11 @@ DB2Platform >> supportsANSIJoins [
 ]
 
 { #category : #testing }
+DB2Platform >> supportsANSIJoinsWithRecursion [
+	^false
+]
+
+{ #category : #testing }
 DB2Platform >> supportsBinding [
 	"Binding works only with VW EXDI so far"
 	^Dialect isVisualWorks.
@@ -610,7 +651,7 @@ DB2Platform >> supportsGroupWritingFor: aCommand [
 DB2Platform >> supportsGroupWritingValues [
 	"I support it in version 8 and after."
 
-	^supportsGroupWritingValues ifNil: [false]
+	^supportsGroupWritingValues
 ]
 
 { #category : #testing }
@@ -661,15 +702,15 @@ DB2Platform >> tinyint [
 
 { #category : #testing }
 DB2Platform >> typeWithDatabaseName: aString characterWidth: aNumber extraInformation: extraValue [
-	"Return our type which matches the database name for the type. Assumes all variable width fields are strings right now."
+	"Return our type which matches the database name for the type. Assumes all variable width fields are strings right now.  If the type is integer, return integer type, not boolean for now."
+
 	extraValue = 'IDENTITY' ifTrue: [^self serialIdentity].
+	aString asLowercase = 'integer' ifTrue: [^self integer].
 	^super typeWithDatabaseName: aString characterWidth: aNumber.
 ]
 
 { #category : #'type helpers' }
 DB2Platform >> typesWithValues [
-	"Return our types list, but makes sure it has at least basic types in it"
-
 	self date.
 	self double.
 	self int8.
@@ -693,6 +734,8 @@ DB2Platform >> usesArrayBindingToGroupWrite [
 
 { #category : #testing }
 DB2Platform >> usesIdentityColumns [
+	"In fact, DB2 supports identity columns but DB2 sequences were implemented early and used instead, so we never implemented it.  The two ways to handle this are (1) SQLServerPlatform, or (2) MySQLPlatform and SQLitePlatform - look at their implementations of #insertCommandForRows:binding:session: to see the two approaches."
+
 	^false
 ]
 

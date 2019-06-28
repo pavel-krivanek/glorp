@@ -204,6 +204,48 @@ GlorpHorizontalInheritanceTest >> testReadRelationshipSingleQuery [
 	self assert: (warehouse items collect: [:each | each name]) asSortedCollection asArray = #('apples' 'bicycle' 'fridge').
 ]
 
+{ #category : #'tests - reviews' }
+GlorpHorizontalInheritanceTest >> testReadReviews [
+	"Just read the class and verify we got the numbers the test hardness wrote."
+
+	| reviews |
+	self writeTestHarnessForPictureReviews.
+	reviews := session read: GlorpPictureReview.
+	self assert: reviews size = 4.
+	(reviews glorpGroupedBy: [:each | each picture yourself class]) do:
+		[:each | self assert: each size = 2].
+]
+
+{ #category : #'tests - reviews' }
+GlorpHorizontalInheritanceTest >> testReadReviewsOfOnePortrait [
+	"Just read a portrait and verify we got the numbers the test hardness wrote."
+
+	| reviews portrait query |
+	self writeTestHarnessForPictureReviews.
+	portrait := session
+		readOneOf: GlorpPortrait
+		where: [:e | e subjectFullName = 'TestSomeone'].
+	query := Query
+		read: GlorpPictureReview
+		where: [:each | each picture = portrait].
+	query useANSIJoins: false.
+	reviews := session execute: query.
+	self assert: reviews size = 2.
+
+"This fails and should be looked at.  The LHS thinks it is a GlorpTaggableObject, so complains it has no primaryKey.  The right side knows it is a GlorpPortrait subclass with primary key.
+session read: GlorpPictureReview where:
+		[:each || q |
+		q := Query readOneOf: GlorpPortrait where:
+			[:e | e subjectFullName = 'TestSomeone'].
+		each picture = q].
+
+The Schema is
+	GlorpTaggableObject -* PictureReview
+		Portrait
+		Image
+Either the ID's sequence must be shared across all subclasses of GlorpTaggableObject or PictureReview must hold the taggable objects subclass-specific key as well as its ID if it is to link to the taggable object subclass."
+]
+
 { #category : #'tests - tags' }
 GlorpHorizontalInheritanceTest >> testReverseLookup [
 	| image |
@@ -249,6 +291,27 @@ GlorpHorizontalInheritanceTest >> writeTestHarness [
 	warehouse currentItem: squash.
 	warehouse items: (Array with: apples with: fridge with: bicycle).
 	session register: warehouse].
+	session reset.
+]
+
+{ #category : #support }
+GlorpHorizontalInheritanceTest >> writeTestHarnessForPictureReviews [
+	| image1 portrait2 rev1 rev2 rev3 rev4 |
+	session inUnitOfWorkDo:
+		[image1 := GlorpImage new location: 'testlocation'.
+		session register: image1.
+		portrait2 := GlorpPortrait new id: -1; subjectFullName: 'TestSomeone'.
+		session register: portrait2.
+
+		rev1 := GlorpPictureReview new sequence: 1; picture: image1.
+		rev2 := GlorpPictureReview new sequence: 2; picture: image1.
+		rev3 := GlorpPictureReview new sequence: 1; picture: portrait2.
+		rev4 := GlorpPictureReview new sequence: 2; picture: portrait2.
+
+		session register: rev1.
+		session register: rev2.
+		session register: rev3.
+		session register: rev4].
 	session reset.
 ]
 

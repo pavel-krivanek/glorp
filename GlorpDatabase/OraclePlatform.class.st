@@ -1,11 +1,16 @@
 "
 This is a platform for Oracle databases. Currently there's only one, but it might be better for some purposes to separate out by versions, as some older versions don't support all features.
+
+Instance Variables:
+	canRecurse	<Boolean>	is recursive SQL supported
+	supportsGroupWritingValues	<Boolean>	can a single INSERT statement be followed by multiple VALUES
 "
 Class {
 	#name : #OraclePlatform,
 	#superclass : #DatabasePlatform,
 	#instVars : [
-		'supportsGroupWritingValues'
+		'supportsGroupWritingValues',
+		'canRecurse'
 	],
 	#category : #'GlorpDatabase-Glorp'
 }
@@ -43,7 +48,23 @@ OraclePlatform >> bindingsForGroupWritingFor: aCommand [
 
 { #category : #types }
 OraclePlatform >> boolean [
-	^self int2.
+	^self typeNamed: #boolean ifAbsentPut: [GlorpBooleanType new typeString: 'integer']
+]
+
+{ #category : #'conversion-boolean' }
+OraclePlatform >> booleanToBooleanConverter [
+	"Oracle doesn’t support a boolean type.  By default, we map a boolean (true, false) in the image to an integer (1, 0) in the database."
+
+	^DelegatingDatabaseConverter
+		named: #booleanToBoolean
+		hostedBy: self
+		fromStToDb: #convertBooleanToInteger:for:
+		fromDbToSt: #convertIntegerToBoolean:for:
+]
+
+{ #category : #testing }
+OraclePlatform >> canRecurse [
+	^canRecurse
 ]
 
 { #category : #testing }
@@ -199,6 +220,13 @@ OraclePlatform >> endColumnAddString [
 	^' ) '.
 ]
 
+{ #category : #'exdi specific' }
+OraclePlatform >> exdiTypeForBoolean [
+	"Oracle has no boolean type.  OracleEXDI has no support for it."
+
+	^#Integer
+]
+
 { #category : #types }
 OraclePlatform >> float [
 	^self typeNamed: #float ifAbsentPut: [GlorpFloatType new typeString: 'FLOAT']
@@ -226,6 +254,15 @@ OraclePlatform >> float8 [
 			[self supportsGroupWritingValues
 				ifTrue: [GlorpFloatType new typeString: 'BINARY_DOUBLE']
 				ifFalse: [GlorpFloatType new typeString: 'double precision']]
+]
+
+{ #category : #'initialize-release' }
+OraclePlatform >> initialize [
+	"Oracle has been supporting group writing with the VALUES clause at least since version 9.0 and recursion since 11.2.  For safety, we initialize to false, resetting in postLoginInitializeFromAccessor:."
+
+	super initialize.
+	canRecurse := false.
+	supportsGroupWritingValues := false.
 ]
 
 { #category : #functions }
@@ -313,6 +350,18 @@ OraclePlatform >> isOraclePlatform [
 	^true
 ]
 
+{ #category : #types }
+OraclePlatform >> longRaw [
+	^self typeNamed: #longRaw ifAbsentPut: [GlorpBlobType new typeString: 'Long Raw'].
+]
+
+{ #category : #types }
+OraclePlatform >> maxVarCharSize [
+	"Only extended Oracle can support lengths of 32000.  Until mechanisms for detecting that do not require administrative privileges, use the length that all Oracle databases can support."
+
+	^4000
+]
+
 { #category : #constants }
 OraclePlatform >> maximumLengthOfColumnName [
 	"^<Integer> I return the maximum length of a column name.  (I am not sent at present;  I am here so that if I and #maximumLengthOfTableName (which is sent) should ever differ on some database platform, I can be used in revised truncation logic.)"
@@ -333,26 +382,27 @@ OraclePlatform >> maximumQueryValueSize [
 	^4001
 ]
 
-{ #category : #testing }
-OraclePlatform >> measuresStringFieldWidthsInBytes [
-	"Return true if we measure the width of a string in bytes rather than characters. So, a 255-character field can hold 255 bytes worth of string, not 255 characters. This is important with encodings."
-
-	^true
-]
-
 { #category : #types }
 OraclePlatform >> number [
 
 	^self typeNamed: #number ifAbsentPut: [GlorpNumericType new typeString: 'number'].
 ]
 
+{ #category : #types }
+OraclePlatform >> nvarchar [
+	^self typeNamed: #nvarchar ifAbsentPut: [GlorpNVarCharType new typeName: 'nvarchar2'].
+]
+
 { #category : #login }
 OraclePlatform >> postLoginInitializeFromAccessor: aDatabaseAccessor [
 	"Oracle has been supporting group writing with the VALUES clause at least since version 9.0.  A typical version string is: 'Oracle Database 11g Express Edition Release 11.2.0.2.0 - Production'."
 
-	| dbmsMajorVersion |
-	dbmsMajorVersion := ((aDatabaseAccessor connection getServerVersion readStream upTo: $.) reverse readStream upTo: $  ) reverse asNumber.
-	supportsGroupWritingValues := dbmsMajorVersion > 9.
+	| dbmsVersionIntegerArray |
+	dbmsVersionIntegerArray := Array
+		with: ((aDatabaseAccessor connection getServerVersion readStream upTo: $.) reverse readStream upTo: $ ) reverse asNumber	"dbmsMajorVersion"
+		with: ((aDatabaseAccessor connection getServerVersion readStream upTo: $.; upTo: $.) reverse readStream upTo: $.) reverse asNumber.	"dbmsMinorVersion"
+	supportsGroupWritingValues := dbmsVersionIntegerArray first > 9.
+	canRecurse := self isVersion: #(11 2) notNewerThan: dbmsVersionIntegerArray.	"11.2.0.1 is 11g"
 ]
 
 { #category : #constants }
@@ -369,6 +419,16 @@ OraclePlatform >> printBlob: aByteArray on: aStream for: aType [
 	aByteArray do: [:each |
 		each printOn: aStream paddedWith: $0 to: 2 base: 16].
 	aStream nextPutAll: ''')'.
+]
+
+{ #category : #'services tables' }
+OraclePlatform >> printDDLIndexNameFor: aGlorpDatabaseIndex inSchema: schemaName on: sqlStatementStream [
+	"Create repository indexes that include the schema name to support multiple databases using the same schema on the same Oracle server (e.g. multiple Store repositories;  when creating a second Store repository on an Oracle server using a DBA account, duplicate index names cause errors)."
+	
+	sqlStatementStream nextPutAll:
+		(self capitalWritingOfTableName
+			ifTrue: [(aGlorpDatabaseIndex qualifiedNameInSchema: schemaName) asUppercase]
+			ifFalse: [aGlorpDatabaseIndex qualifiedNameInSchema: schemaName]).
 ]
 
 { #category : #'conversion-times' }
@@ -393,6 +453,26 @@ OraclePlatform >> printNumericFieldOfSize: anInteger on: aStream [
 		nextPutAll: 'number('.
 	anInteger printOn: aStream.
 	aStream nextPutAll: ')'.
+]
+
+{ #category : #'database-specific' }
+OraclePlatform >> printReturningFieldsOn: aCommand [
+	"Return current field value from an UPDATE statement, bound as a PLSQL output parameter, e.g.
+		UPDATE my_table SET field = field + ? WHERE id=? RETURNING field INTO ?
+	returns the post-update value of 'field' (i.e. incremented by the value bound) in the output parameter :field."
+
+	"The first part is just as for Postgres ..."
+	aCommand nextPutAll: ' RETURNING '.
+	GlorpHelper
+		do: [:nextField | aCommand nextPutAll: nextField name]
+		for: aCommand relativeFields
+		separatedBy: [aCommand nextPut: $,; space].
+	"... but we need to add the bound parameters to accommodate Oracle."
+	aCommand nextPutAll: ' INTO '.
+	GlorpHelper
+		do: [:nextField | aCommand nextPutBindMarkerIn: nil]
+		for: aCommand relativeFields
+		separatedBy: [aCommand nextPut: $,; space].
 ]
 
 { #category : #'services tables' }
@@ -481,6 +561,13 @@ OraclePlatform >> raw [
 	^self typeNamed: #raw ifAbsentPut: [GlorpBlobType new typeString: 'raw'].
 ]
 
+{ #category : #commands }
+OraclePlatform >> relativeUpdateCommand [
+	"When binding, I can append to an update expression such that the post-update value will be returned in the same unit of work.  I use this ability when updating relative fields."
+
+	^BoundParametersUpdateCommand
+]
+
 { #category : #constants }
 OraclePlatform >> requiresTransactionForTableOperations [
 	"Return true if we need a transaction in order to do table creation, deletion, and so forth. Some databases require it. Others don't like it"
@@ -512,12 +599,6 @@ OraclePlatform >> startColumnAddString [
 ]
 
 { #category : #testing }
-OraclePlatform >> supportsANSIJoins [
-	"Do we support the JOIN <tableName> USING <criteria> syntax. Currently hard-coded, but may also vary by database version"
-	^false.
-]
-
-{ #category : #testing }
 OraclePlatform >> supportsBinding [
 	"Binding works only with VW EXDI so far"
 	^Dialect isVisualWorks.
@@ -530,6 +611,13 @@ OraclePlatform >> supportsCompositeKeyArgsForOperand: aSymbol [
 but we take it for granted that we are never called on aSymbol that is not one of these values;  see the guard in #rewriteEquality.."
 
 	^true
+]
+
+{ #category : #testing }
+OraclePlatform >> supportsDuplicateFieldNamesInCompoundQueries [
+	"Absurdly, Oracle, SQLServer and MySQL will not tolerate two unaliased fields in different tables but of the same name in a compound query, so the second (and subsequent) such fields must be aliased."
+
+	^false
 ]
 
 { #category : #testing }
@@ -586,6 +674,13 @@ OraclePlatform >> timestampConverter [
 		hostedBy: self
 		fromStToDb: #asTimestamp:for:
 		fromDbToSt: #readTimestamp:for:.
+]
+
+{ #category : #'type helpers' }
+OraclePlatform >> typesWithValues [
+	self raw.
+	self longRaw.
+	^super typesWithValues
 ]
 
 { #category : #testing }

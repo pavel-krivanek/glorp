@@ -3,9 +3,13 @@ AdHocMapping is a configurable sort of mapping, done via two blocks. It's not ea
 
 Instance Variables:
 	fromDbMappingBlock	<BlockClosure>	The block we invoke when reading from the database. It's given arguments of the ""row"" we got from the database (note that this doesn't necessarily correspond to a single row, but is all the fields we selected in the query) , the elementBuilder associated with our containing object, and the ""context"", the expression from the query for what we're reading from the database. Typical usage is to use the context to translate a field into the appropriate aliased field from the query, and use the element builder to get the value of that field. e.g. elementBuilder valueOfField: (context translateField: someField) in: row
-	mappedFields	<SequenceableCollection of: DatabaseField>	The list of fields we work with. We need to specify this so that Glorp knows that it needs to e.g. includes these fields in the list of those selected.
+	mappedFields	<SequenceableCollection of: DatabaseField>	The list of fields we work with. We need to specify this so that Glorp knows that it needs to e.g. includes these fields in the list of those selected.  The list also limits which descriptor tables this mapping will find or add rows to, to provide to the toDbMappingBlock.
 	shouldProxy	<Boolean>	Should we create a proxy for our target objects when we read an object containing this mapping.
-	toDbMappingBlock	<BlockClosure>	The block we invoke when writing to the database. It takes as arguments the rowmap being created, the target object we are writing, and a dictionary of the rows we already have associated with this object. The block is expected to update the rowmap with the new information.
+	toDbMappingBlock	<BlockClosure>	The block we invoke when writing to the database. It takes as arguments
+			- any source object rows that include our mapped fields
+			- the target object we are writing
+			- any target object rows that include our mapped fields
+ 		(of course, there will be no target rows if our target is a simple object and so has no descriptor).  The block is expected to update the rowmap with the new information.
 
 
 "
@@ -42,7 +46,8 @@ AdHocMapping class >> visualWorksMetadata [
 
 { #category : #'printing SQL' }
 AdHocMapping >> allRelationsFor: rootExpression [
-	"We may have multiple relationships."
+	"Create a dummy row for each table and construct the relationship expression(s) that would exist if this were a regular mapping.  The returned result is necessarily a RelationExpression or subclass."
+
 	| tables rows result rightChild rightHandSide |
 	tables := self mappedTables.
 	rows := Dictionary new.
@@ -51,13 +56,14 @@ AdHocMapping >> allRelationsFor: rootExpression [
 	rightHandSide := rightChild isConstantExpression ifTrue: [rightChild value] ifFalse: [rightChild].
 	toDbMappingBlock value: rows value: rightHandSide value: Dictionary new. 
 	result := nil.
-	rows do: [:eachRow |
-		| table |
+	rows do:
+		[:eachRow || table |
 		table := rootExpression leftChild base getTable: eachRow table.
-		eachRow fieldsAndValidValuesDo: [:eachField :eachValue |  | newExp |
+		eachRow fieldsAndValidValuesDo:
+			[:eachField :eachValue || newExp |
 			newExp := (table getField: eachField) get: rootExpression relation withArguments: (Array with: eachValue).
-			result := newExp AND: result.]].
-	^result.
+			result := newExp AND: result]].
+	^result
 ]
 
 { #category : #testing }
@@ -84,7 +90,7 @@ AdHocMapping >> field [
 	^fields first.
 ]
 
-{ #category : #'initialize/release' }
+{ #category : #'initialize-release' }
 AdHocMapping >> forAttribute: aSymbol fromDb: fromBlock toDb: toBlock mappingFields: aFieldCollection [
 	self
 		setAttribute: aSymbol
@@ -99,11 +105,12 @@ AdHocMapping >> hasImpliedClauses [
 	^true
 ]
 
-{ #category : #'initialize/release' }
+{ #category : #'initialize-release' }
 AdHocMapping >> initialize [
+	"Proxying requires the user to think about any possible state changes in the element builder or context between the creation and the evaluation of the AdHocProxy block."
 
 	super initialize.
-	self shouldProxy: false.
+	shouldProxy := false.
 ]
 
 { #category : #testing }
@@ -120,32 +127,35 @@ AdHocMapping >> isStoredInSameTable [
 
 { #category : #public }
 AdHocMapping >> mapFromObject: anObject intoRowsIn: aRowMap [
+	"To avoid creating needless rows for tables that are uninvolved in this mapping and that may not be written for anObject (e.g. if related to via outer joins or ConditionalMappings), assume that we will have at least one mapped field in each table whose rows we write to (or even merely read-from in the toDbMappingBlock, e.g. to compute what to write in other fields or to unify from it)."
 
-	| target sourceRows targetRows valueDescriptor |
+	| target sourceRows targetRows valueDescriptor myMappedTables |
 	self canWrite ifFalse: [^self].
 	target := self getValueFrom: anObject.
 	target := self session realObjectFor: target.
 	target := aRowMap mementoFor: target.
 	sourceRows := Dictionary new: 3.
 	targetRows := Dictionary new: 3.
-	descriptor tables do: [:each |
-		sourceRows at: each put: (aRowMap findOrAddRowForTable: each withKey: anObject)].
+	myMappedTables := self mappedTables.
+	(myMappedTables select: [:each | descriptor tables includes: each]) do:
+		[:each | sourceRows at: each put: (aRowMap findOrAddRowForTable: each withKey: anObject)].
 	valueDescriptor := self system descriptorFor: target.
-	valueDescriptor isNil ifFalse: [
-		valueDescriptor tables do: [:each |
-			targetRows at: each put: (aRowMap findOrAddRowForTable: each withKey: target)]].
+	valueDescriptor isNil ifFalse:
+		[(myMappedTables select: [:each | valueDescriptor tables includes: each]) do:
+			[:each | targetRows at: each put: (aRowMap findOrAddRowForTable: each withKey: target)]].
 	toDbMappingBlock value: sourceRows value: target value: targetRows.
 ]
 
 { #category : #public }
 AdHocMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
+	"Because anElementBuilder could be assigned another row between the setting of my proxy's block and the evaluation of that block, we extract the row here and pass it into the block separately, even though anElementBuilder (which we also pass in) knows the row at the moment.  Code in the fromDbMappingBlock may find it prudent to call protocol that uses the supplied row instead of obtaining it from anElementBuilder - see #descriptorForGlorpTransformedTime: and #testReadAdHocProxied for an example.  (Of course, if we are not proxying, it makes no difference.)"
 
-	| readBlock row |
+	| row |
 	row := anElementBuilder row.
-	readBlock := [fromDbMappingBlock value: row value: anElementBuilder value: BaseExpression new].
-	self shouldProxy 
-		ifTrue: [self setValueIn: anObject to: (AdHocProxy readBlock: readBlock)]
-		ifFalse: [self setValueIn: anObject to: readBlock value]
+	^self setValueIn: anObject to:
+		(self shouldProxy
+			ifFalse: [fromDbMappingBlock value: row value: anElementBuilder value: BaseExpression new]
+			ifTrue: [AdHocProxy readBlock: [fromDbMappingBlock value: row value: anElementBuilder value: BaseExpression new]])
 ]
 
 { #category : #mapping }
@@ -164,7 +174,7 @@ AdHocMapping >> referencedIndependentObjectsFrom: anObject [
 	^otherDescriptor isNil ifTrue: [#()] ifFalse: [Array with: object].
 ]
 
-{ #category : #'initialize/release' }
+{ #category : #'initialize-release' }
 AdHocMapping >> setAttribute: aSymbol fromDb: fromBlock toDb: toBlock mappingFields: aFieldCollection [
  
 	self attributeName: aSymbol.

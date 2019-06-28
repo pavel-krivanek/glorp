@@ -83,7 +83,7 @@ FieldExpression >> canHaveBase [
 	^true.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #converting }
 FieldExpression >> convertedDbValueOf: anObject [
 	"We don't do any conversion"
 	^anObject
@@ -200,12 +200,6 @@ FieldExpression >> rebuildOn: aBaseExpression startingFrom: anExpression withOut
 	result := (base rebuildOn: aBaseExpression startingFrom: anExpression withOuterScopeBase: ultimateBaseExpression) getField: field.
 	result alias: self alias.
 	^result.
-]
-
-{ #category : #copying }
-FieldExpression >> setTable: aTable [
-	"Modify (do not copy) ourselves to use aTable. Presumably aTable is an aliased version of our table"
-	field := field withTable: aTable.
 ]
 
 { #category : #accessing }

@@ -1,5 +1,5 @@
 "
-This exercises the EmbeddedValueOneToOneMapping.
+This exercises the EmbeddedValueOneToOneMapping in the case that it is being used as if it were a many-to-one mapping but does not have primary key(s) to fully support this.  Although each embeddedly-defined TravelAgency has many TravelAgents, each of its TravelAgents, when read, generates a separate equal-but-not-identical instance of the TravelAgency that they all belong to (see the comment in #descriptorForGlorpTravelAgency: for more detail).  These tests verify this behaviour (until such time as we might wish to alter it).
 "
 Class {
 	#name : #GlorpEmbeddedMappingDBTest,
@@ -33,6 +33,8 @@ GlorpEmbeddedMappingDBTest >> tearDown [
 
 { #category : #tests }
 GlorpEmbeddedMappingDBTest >> testModifyAgents [
+	"If the mapping from GlorpTravelAgent to GlorpTravelAgency does not proxy then this test never ends:  see the comment in #descriptorForGlorpTravelAgency:."
+
 	| agents |
 	agents := session read: GlorpTravelAgent orderBy: #id.
 	session modify: agents in: [
@@ -54,7 +56,24 @@ GlorpEmbeddedMappingDBTest >> testModifyAgentsReadOnlyAgency [
 
 	(session system descriptorFor: GlorpTravelAgency) mappings do: [:each | each beReadOnly].
 	[self testModifyAgents] ensure: [
-		(session system descriptorFor: GlorpTravelAgency) mappings do: [:each | each readOnly: false]].
+		(session system descriptorFor: GlorpTravelAgency) mappings do: [:each | each canWrite: true]].
+]
+
+{ #category : #tests }
+GlorpEmbeddedMappingDBTest >> testReadAgency [
+	"See my class comment for why we are reading equal-but-not-identical agencies."
+
+	| agencies agents agency |
+	agencies := session read: GlorpTravelAgency orderBy: #name.
+	agents := session read: GlorpTravelAgent orderBy: #id.
+	self deny: agencies size = (agents collect: [:each | each agency name]) asSet size.
+	self assert: agencies size = agents size.
+	agency := agencies first.
+	self assert: agency agents size = 2.
+	self assert: agency agents first agency = agency.
+	self deny: agency agents first agency == agency.
+	self assert: agency agents last agency = agency.
+	self deny: agency agents last agency == agency.
 ]
 
 { #category : #tests }

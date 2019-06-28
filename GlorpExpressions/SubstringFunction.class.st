@@ -86,10 +86,13 @@ SubstringFunction >> rewriteFunctionArgumentsWith: mainArgument [
     (someObject blob copyFrom: 1 to: 3) = 'abc'
 when in fact, the length of that string in the blob will be 4."
 
-	| platform |
+	| platform fieldType |
 	platform := base ultimateBaseExpression system platform.
 	(platform isPostgreSQLPlatform and: [self field type = platform blob]) ifTrue: [^self rewriteForPostgresqlBase64BlobsWith: mainArgument].
-	(platform isOraclePlatform and: [self field type = platform blob]) ifTrue: [^self rewriteForOracleBlobsWith: mainArgument].
+	platform isOraclePlatform ifFalse: [^self].
+	fieldType := self field type.
+	fieldType = platform longRaw ifTrue: [^self rewriteForOracleBlobsWith: mainArgument].
+	fieldType = platform blob ifTrue: [^self rewriteForOracleBlobsWith: mainArgument].
 ]
 
 { #category : #accessing }

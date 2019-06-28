@@ -151,15 +151,15 @@ AbstractReadQuery class >> visualWorksMetadata [
 
 { #category : #'boolean operations' }
 AbstractReadQuery >> AND: anExpression [
-	"Allow you to send AND: or OR: directly to a query to build up a query dynamically without needing to mess with the criteria explicitly"
+	"Allows you to send OR: directly to a query to build up a query dynamically without needing to mess with the criteria explicitly.  If anExpression is a block calling platform-specific functions, or aggregation functions such as #sqlCount or #isEmpty, you must set up the base (by sending #setUpBaseFromSession:) before calling this, but usually this will not be needed."
 
-	whereClause := (anExpression
-		asGlorpExpressionOn: base) AND: ((whereClause asGlorpExpressionOn: base) asGeneralGlorpExpression).
+	whereClause := (anExpression asGlorpExpressionOn: base)
+		AND: ((whereClause asGlorpExpressionOn: base) asGeneralGlorpExpression).
 ]
 
 { #category : #'boolean operations' }
 AbstractReadQuery >> OR: anExpression [
-	"Allow you to send AND: or OR: directly to a query to build up a query dynamically without needing to mess with the criteria explicitly"
+	"Allows you to send OR: directly to a query to build up a query dynamically without needing to mess with the criteria explicitly.  If anExpression is a block calling platform-specific functions, or aggregation functions such as #sqlCount or #isEmpty, you must set up the base (by sending #setUpBaseFromSession:) before calling this, but usually this will not be needed."
 
 	whereClause := (anExpression asGlorpExpressionOn: base)
 		OR: (whereClause asGlorpExpressionOn: base) asGeneralGlorpExpression.
@@ -175,6 +175,52 @@ AbstractReadQuery >> alsoFetch: anExpression [
 	self tracing alsoFetch: (self expressionBlockFor: anExpression).
 ]
 
+{ #category : #recursing }
+AbstractReadQuery >> alsoFetchRecursively: aBlock retrieveAll: anArray defineThenFollow: aSymbol recursivelyRetrievingAll: anotherArray [
+	"Make me the final query of a recursive read in which resultClass is not the base of recursion but something that alsoFetches that base.  (For now, this coding assumes that the most recent retrieve or alsoFetch call was the command to alsoFetch this base;  it just gets my last tracing as the recursionBase.)  Compute my initialQuery usng my resultClass and whereClause (but not my alsoFetch or retrieve).  The retrieve... array parameters will likely both contain a direct reference to that base' ancestral primaryKey(s), to allow syncronising returned rows with ancestral owning objects.  Likewise I will likely have a command ordering returned rows by that value and by their depth."
+
+	| initialQuery recursionBase |
+	initialQuery := self class read: self resultClass where: (self whereClause asGlorpExpressionOn: BaseExpression new).
+	self copyAttributesTo: initialQuery.
+	recursionBase := self tracing allTracings last.
+	self alsoFetch: aBlock.
+	^self asRecursiveQuery
+		fetchBaseExpression: recursionBase;
+		mappingDefiner: aSymbol;
+		retrievalMappingExpressions: anArray;
+		unionQuery:
+			(CompoundQuery newUnionAll
+				requiresDistinct: false;
+				addQuery: (initialQuery retrieveAll: anArray);
+				addQuery: ((initialQuery class read: self resultClass)
+							retrieveAll: anotherArray;
+							yourself));
+		yourself
+]
+
+{ #category : #recursing }
+AbstractReadQuery >> alsoFetchRecursively: aBlock retrieveAll: anArray thenFollow: aSymbol recursivelyRetrievingAll: anotherArray [
+	"Make me the final query of a recursive read in which resultClass is not the base of recursion but something that alsoFetches that base.  (For now, this coding assumes that the most recent retrieve or alsoFetch call was the command to alsoFetch this base;  it just gets my last tracing as the recursionBase.)  Compute my initialQuery usng my resultClass and whereClause (but not my alsoFetch or retrieve).  The retrieve... array parameters will likely both contain a direct reference to that base' ancestral primaryKey(s), to allow syncronising returned rows with ancestral owning objects.  Likewise I will likely have a command ordering returned rows by that value and by their depth."
+
+	| initialQuery recursionBase |
+	initialQuery := self class read: self resultClass where: (self whereClause asGlorpExpressionOn: BaseExpression new).
+	self copyAttributesTo: initialQuery.
+	recursionBase := self tracing allTracings last.
+	self alsoFetch: aBlock.
+	^self asRecursiveQuery
+		fetchBaseExpression: recursionBase;
+		mappingToCloseOver: aSymbol;
+		retrievalMappingExpressions: anArray;
+		unionQuery:
+			(CompoundQuery newUnionAll
+				requiresDistinct: false;
+				addQuery: (initialQuery retrieveAll: anArray);
+				addQuery: ((initialQuery class read: self resultClass)
+							retrieveAll: anotherArray;
+							yourself));
+		yourself
+]
+
 { #category : #converting }
 AbstractReadQuery >> asFullQuery [
 	^self.
@@ -185,15 +231,9 @@ AbstractReadQuery >> asRecursiveQuery [
 	"Return a RecursiveQuery with my values.  Only call within a larger method that provides the additional values I will then need."
 
 	| newQuery |
-	newQuery := RecursiveQuery new
-		initResultClass: self resultClass
-		whereClause: self whereClause
-		singleObject: self readsOneObject.
-	self copyAttributesTo: newQuery.
-	newQuery session: session.
-	newQuery setOrdering: ordering.
-	newQuery setGrouping: grouping.
-	tracing isNil ifFalse: [newQuery tracing: tracing copy].
+	newQuery := RecursiveQuery new.
+	newQuery requiresDistinct: false.
+	newQuery addQuery: self.
 	^newQuery
 ]
 
@@ -259,7 +299,7 @@ AbstractReadQuery >> defaultTracing [
 	| defaultTracing |
 	defaultTracing := Tracing new.
 	defaultTracing base: base.
-	^defaultTracing.
+	^defaultTracing
 ]
 
 { #category : #executing }
@@ -467,13 +507,72 @@ AbstractReadQuery >> retrieve: anExpression [
 	self tracing retrieve: (self expressionBlockFor: anExpression).
 ]
 
+{ #category : #recursing }
+AbstractReadQuery >> retrieve: aSymbolOrBlock defineThenFollow: aSymbol recursivelyRetrieving: anotherSymbolOrBlock intersect: aQuery [
+	"Convenience protocol - just a singular version of retrieveAll:...recursivelyRetrievingAll:..."
+
+	^self
+		retrieveAll: (Array with: aSymbolOrBlock)
+		defineThenFollow: aSymbol
+		recursivelyRetrievingAll: (Array with: anotherSymbolOrBlock)
+		intersect: aQuery
+]
+
+{ #category : #recursing }
+AbstractReadQuery >> retrieve: aSymbolOrBlock thenFollow: aSymbol recursivelyRetrieving: anotherSymbolOrBlock intersect: aQuery [
+	"Convenience protocol - just a singular version of retrieveAll:...recursivelyRetrievingAll:..."
+
+	^aQuery asRecursiveQuery
+		mappingToCloseOver: aSymbol;
+		retrievalMappingExpressions: (Array with: aSymbolOrBlock);
+		unionQuery: (CompoundQuery newUnionAll
+					requiresDistinct: false;
+					addQuery: (self retrieve: aSymbolOrBlock);
+					addQuery: ((self class read: self resultClass)
+								retrieve: anotherSymbolOrBlock;
+								yourself));
+		yourself
+]
+
 { #category : #'specifying retrievals' }
 AbstractReadQuery >> retrieveAll: someExpressions [
 	someExpressions do: [:each | self retrieve: each].
 ]
 
 { #category : #recursing }
-AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursiveQuery: aRecursionQuery retrievingAll: anotherArray where: aWhereClause intersect: aQuery [
+AbstractReadQuery >> retrieveAll: anArray defineThenFollow: aSymbol recursiveQuery: aRecursionQuery retrievingAll: anotherArray intersect: aQuery [
+	"As for retrieveAll:thenFollow:recursivelyRetrievingAll:where:intersect. but allowing a more detailed management of the recursion step, e.g. using the recurse mapping in the whereClause."
+
+	^aQuery asRecursiveQuery
+		mappingDefiner: aSymbol;
+		retrievalMappingExpressions: anArray;
+		unionQuery:
+			(CompoundQuery newUnionAll
+				requiresDistinct: false;
+				addQuery: (self retrieveAll: anArray);
+				addQuery: (aRecursionQuery retrieveAll: anotherArray));
+		yourself
+]
+
+{ #category : #recursing }
+AbstractReadQuery >> retrieveAll: anArray defineThenFollow: aSymbol recursivelyRetrievingAll: anotherArray intersect: aQuery [
+	"Define the mapping in the recursive system, otherwise as for #retrieveAll:thenFollow:..."
+
+	^aQuery asRecursiveQuery
+		mappingDefiner: aSymbol;
+		retrievalMappingExpressions: anArray;
+		unionQuery:
+			(CompoundQuery newUnionAll
+				requiresDistinct: false;
+				addQuery: (self retrieveAll: anArray);
+				addQuery: ((self class read: self resultClass)
+							retrieveAll: anotherArray;
+							yourself));
+		yourself
+]
+
+{ #category : #recursing }
+AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursiveQuery: aRecursionQuery retrievingAll: anotherArray intersect: aQuery [
 	"As for retrieveAll:thenFollow:recursivelyRetrievingAll:where:intersect. but allowing a more detailed management of the recursion step, e.g. using the recurse mapping in the whereClause."
 
 	^aQuery asRecursiveQuery
@@ -483,7 +582,7 @@ AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursiveQuery: aR
 			(CompoundQuery newUnionAll
 				requiresDistinct: false;
 				addQuery: (self retrieveAll: anArray);
-				addQuery: (aRecursionQuery retrieveAll: anArray));
+				addQuery: (aRecursionQuery retrieveAll: anotherArray));
 		yourself
 ]
 
@@ -498,23 +597,6 @@ AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursivelyRetriev
 			(CompoundQuery newUnionAll
 				requiresDistinct: false;
 				addQuery: (self retrieveAll: anArray);
-				addQuery: ((self class read: self resultClass)
-							retrieveAll: anotherArray;
-							yourself));
-		yourself
-]
-
-{ #category : #recursing }
-AbstractReadQuery >> retrieveAll: anArray thenFollow: aSymbol recursivelyRetrievingAll: anotherArray start: aQuery [
-	"Make me the final query of a recursive read.  The retrieveAll array is an array of mapping names, all direct.  The thenRecurseOn symbol is a self mapping that uses (all or some of) these direct mappings: it is the mapping whose closure we seek.  The retrieve arrays holds symbols or blocks (usually the latter) selecting what the iterative step will retrieve from the recursion table and/or, via the recurse mapping, from the main table(s).  Since both retrievals populate the same table, the two arrays must correspond in size and in ability to populate the same fields."
-
-	^self asRecursiveQuery
-		mappingToCloseOver: aSymbol;
-		retrievalMappingExpressions: anArray;
-		unionQuery:
-			(CompoundQuery newUnionAll
-				requiresDistinct: false;
-				addQuery: (aQuery retrieveAll: anArray);
 				addQuery: ((self class read: self resultClass)
 							retrieveAll: anotherArray;
 							yourself));
@@ -565,7 +647,20 @@ AbstractReadQuery >> rowsFromDatabaseWithParameters: anArray [
 
 { #category : #accessing }
 AbstractReadQuery >> setUpBase [
-	whereClause isGlorpExpression ifTrue: [base := whereClause queryLevelBaseExpression] ifFalse: [base := BaseExpression new].
+	base := whereClause isGlorpExpression
+		ifTrue: [whereClause queryLevelBaseExpression]
+		ifFalse: [BaseExpression new].
+]
+
+{ #category : #initialize }
+AbstractReadQuery >> setUpBaseFromSession: aSession [
+	"The parameter session should at least have the identical descriptor system instance as the session later supplied in the #execute: call, and this system should have its platform set.  Obviously, it is prudent simply to use the same session instance whenever possible.
+	The usual reason for calling this method will be to let the query be sent #retrieve: blocks and/or AND:/OR: blocks that contain aggregation functions (essential) and/or functions with platform-specific expansions (essential if the platform's expansion is not the default one)."
+
+    self session: aSession.
+    self setUpBase.
+    base descriptor:
+        (aSession system descriptorFor: self resultClass).
 ]
 
 { #category : #executing }
@@ -616,15 +711,13 @@ AbstractReadQuery >> shortCircuitEmptyReturn [
 
 { #category : #testing }
 AbstractReadQuery >> shortCircuitEmptyReturn: parameters [
-	"If we have a literal false for criteria, we never need to go to the database.
-	We also don't need to go to database if limit doesnt make sense in terms of knowing beforehand that no results will be returned"
+	"We  need not go to the database if we can deduce beforehand that no results will be returned.  This is so if we have a literal false for criteria, or if we have a row limit and it is zero or negative;  obviously these are only ever likely to apply to queries being constructed programmatically.
+	We will also get no results if we are asking whether the value of a non-NULLable field is NULL.  To check this third case, we must prepare the query, which can cause us to prepare a query earlier than we would expect."
 
-	(whereClause class == EmptyExpression and: [whereClause isFalse])
-		ifTrue: [^true].
+	(whereClause class == EmptyExpression and: [whereClause isFalse]) ifTrue: [^true].
 	self limitMakesSense ifFalse: [^true].
 	self prepare.
-	(whereClause shortCircuitOnNullComparison: parameters) ifTrue: [^true].
-	^false.
+	^whereClause shortCircuitOnNullComparison: parameters
 ]
 
 { #category : #preparing }

@@ -145,15 +145,6 @@ DatabaseRow >> doesNotUnderstand: aMessage [
 	^self atFieldNamed: aMessage selector asString ifAbsent: [super doesNotUnderstand: aMessage].
 ]
 
-{ #category : #printing }
-DatabaseRow >> equalityStringForField: aDatabaseField [
-
-	| stream |
-	stream := WriteStream on: (String new: 50).
-	self printEqualityStringForField: aDatabaseField on: stream.
-	^stream contents.
-]
-
 { #category : #testing }
 DatabaseRow >> equals: aRow [ 
 	self forDeletion = aRow forDeletion ifFalse: [^false].
@@ -389,34 +380,19 @@ DatabaseRow >> preWriteAssignSequencesUsing: aSession [
 
 { #category : #accessing }
 DatabaseRow >> primaryKey [
-
-	| |
 	self table primaryKeyFields isEmpty ifTrue: [^nil].
 	^self table hasCompositePrimaryKey 
-		ifTrue: [
-			self table primaryKeyFields 
-				collect: [:each | 	self at: each]]
-		ifFalse: [self at: self table primaryKeyFields first ifAbsent: [nil]].
-]
-
-{ #category : #printing }
-DatabaseRow >> printEqualityStringForField: aDatabaseField on: aCommand [ 
-	"Get around PostgreSQL bug.  Qualified names cannot appear in SET expression."
-	aCommand nextPutAll: (aDatabaseField platform nameForColumn: aDatabaseField name).
-	aCommand nextPutAll: ' = '.
-	self printValueOfField: aDatabaseField on: aCommand
+		ifTrue: [self table primaryKeyFields collect: [:each | self at: each]]
+		ifFalse: [self at: self table primaryKeyFields first ifAbsent: [nil]]
 ]
 
 { #category : #printing }
 DatabaseRow >> printEqualityTemplateForField: aDatabaseField on: aCommand [
-	"Get around PostgreSQL bug.  Qualified names cannot appear in SET expression."
-	| bind |
+	"This is used by the UpdateCommand and DeleteCommand hierarchies.  We ask the platform for a field's column name to get capitalisation, avoid reserved words, etc., and to avoid a PostgreSQL bug that a qualified name cannot appear in a SET expression."
+
 	aCommand nextPutAll: (aDatabaseField platform nameForColumn: aDatabaseField name).
 	aCommand nextPutAll: ' = '.
-	bind := aCommand canBind: (self at: aDatabaseField ifAbsent: [nil]) to: aDatabaseField type.
-	bind
-		ifTrue: [aCommand nextPutBindMarkerIn: nil]
-		ifFalse: [self printValueOfField: aDatabaseField on: aCommand].
+	aDatabaseField type printValueForField: aDatabaseField inRow: self on: aCommand.
 ]
 
 { #category : #printing }
@@ -449,20 +425,6 @@ DatabaseRow >> printOn: aStream [
 ]
 
 { #category : #printing }
-DatabaseRow >> printPrimaryKeyStringOn: aStream [ 
-	"If there is no primary key (i.e. this is a link table) use all the values that we have"
-	| fields |
-	fields := table primaryKeyFields isEmpty 
-		ifTrue: [self fields]
-		ifFalse: [table primaryKeyFields].
-	GlorpHelper
-		do:  [:eachField |
-			self printEqualityStringForField: eachField on: aStream]
-		for: fields
-		separatedBy: [aStream nextPutAll: ' AND '].
-]
-
-{ #category : #printing }
 DatabaseRow >> printPrimaryKeyTemplateOn: aStream [
 	"If there is no primary key (i.e. this is a link table) use all the values that we have"
 	| fields |
@@ -477,18 +439,33 @@ DatabaseRow >> printPrimaryKeyTemplateOn: aStream [
 ]
 
 { #category : #printing }
-DatabaseRow >> printValueOfField: aDatabaseField on: aWriteStream [ 
-	aDatabaseField type print: (self at: aDatabaseField ifAbsent: [nil]) on: aWriteStream.
+DatabaseRow >> printValueOfField: aDatabaseField on: aCommand [
+	"This is used by the InsertCommand hierarchy."
+
+	aDatabaseField type print: (self at: aDatabaseField ifAbsent: [nil]) on: aCommand.
 ]
 
 { #category : #relationships }
 DatabaseRow >> relatedRowsIn: aRowMap [
+	"This sorting of the rows backs up the sorting that has already occurred in #tablesInCommitOrder.  Although it works via the 'containedBy' of the wrappers, note that it depends on the foreign key constraints.  If a wrapper's 'containedBy' points to another row (e.g. the Smalltalk line
+	employee1 manager: managerA.
+causes the 'ManagerID' field's  value in a row for employee1 to be containedBy the 'ID' field's value of a row for managerA, be aware that unless a foreign key relation (in Glorp - it does not have to be also in the database, though that is the default) connects 'ManagerID' and 'ID', this method will not enter rowsRelatedTo: and find that wrapper relation.  This is logical:  if the database has the foreign key constraint, misordering the rows might block the write, otherwise it should not matter.  However if one of a table's fields (key or otherwise) is also an IdentityColumn (i.e. post-write-assigned) primary key of another table, then a Glorp-only foreign key may be of use in getting the post-write-assigned value for the related row(s)."
+
 	| relatedRows |
 	relatedRows := OrderedCollection new.
-	self table foreignKeyConstraints
-		do:
-			[:eachConstraint | relatedRows addAll: (eachConstraint rowsRelatedTo: self)].
-	^relatedRows.
+	self table foreignKeyConstraints do:
+		[:eachConstraint | relatedRows addAll: (eachConstraint rowsRelatedTo: self)].
+	^relatedRows
+]
+
+{ #category : #printing }
+DatabaseRow >> revertLockKeyFields [
+	"We are inly updating relative key fields so will revert the updating of lockKeyFields.  What to do if no oldValue - self class missingFieldIndicator ?"
+
+	"oldVersion isNil ifTrue: [self halt: 'think about this'].	to be thought about - do we nil them or not?  Can it happen/matter?"
+	self lockKeyFields do:
+		[:each | self at: each forcePut: (oldVersion at: each ifAbsent: [self halt: 'think about this'])].
+	"^self"
 ]
 
 { #category : #querying }

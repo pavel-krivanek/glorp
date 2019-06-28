@@ -68,6 +68,13 @@ GlorpAbstractStringType >> impliedSmalltalkType [
 ]
 
 { #category : #testing }
+GlorpAbstractStringType >> isNEncoded [
+	"Return true if this is an NVARCHAR or NCHAR (or, later, an NTEXT, NCLOB, etc.) type."
+
+	^false
+]
+
+{ #category : #testing }
 GlorpAbstractStringType >> isStringType [
 	^true.
 ]
@@ -75,6 +82,13 @@ GlorpAbstractStringType >> isStringType [
 { #category : #testing }
 GlorpAbstractStringType >> isVariableWidth [
 	self subclassResponsibility.
+]
+
+{ #category : #testing }
+GlorpAbstractStringType >> measuresStringFieldWidthsInBytes [
+	"Return true if we measure the width of a char or varchar string in bytes rather than characters, i.e. if a 255-character field can hold 255 bytes worth of string, not 255 characters when some of them and non-ascii and encode to two bytes (UTF16 and UTF8) or three or four bytes(UTF8).  This is important when using a converter to trim a string to fit within a field's length.  (See GlorpN{Var}CharType>>measuresStringFieldWidthsInBytes for n{var}char lengths.)"
+
+	^true
 ]
 
 { #category : #accessing }

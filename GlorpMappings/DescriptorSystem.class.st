@@ -19,7 +19,11 @@ Instance Variables:
 	useDirectAccessForMapping	<Boolean>	By default, should we use direct instance variable access (instVarAt:) or send get/set messages. Individual attributes can override this.
 	useJoinsForAnySatisfy	<Boolean>	By default, should we use joins for anySatisfy and similar queries, or should we use EXISTS subselects.
 
-
+Class Instance Variables:
+	validateDescriptorSystem	<Symbol> Every time a system is set on a session:
+								- the system will be validated if the value is #always (the default; override #defaultValidateValue to change);
+								- the system will only be sent initializeRuntimeMappings if the value is #never (or anything else but #always).
+								Introduce more values for specific systems if wanted.
 "
 Class {
 	#name : #DescriptorSystem,
@@ -45,13 +49,13 @@ Class {
 
 { #category : #utility }
 DescriptorSystem class >> createTablesFor: aLogin [
-	"Create the tables for this descriptor system in the given database. This will fail if the tables already exist. Use recreateTables for that."
+	"Create the tables for this descriptor system in the given database. This will fail if the tables already exist. Use recreateTables for that.  Return the (logged-out) session in case a caller wishes to inspect or reuse it."
 
 	| session |
 	session := self sessionForLogin: aLogin.
 	session login.
-	[session createTables] ensure: 
-		[session logout].
+	^[session createTables]
+		ensure: [session logout]
 ]
 
 { #category : #'class defaults' }
@@ -253,6 +257,21 @@ DescriptorSystem >> classModelFor: aClass [
 		ifAbsentPut: [self newClassModelFor: aClass]
 ]
 
+{ #category : #recursion }
+DescriptorSystem >> cloneDescriptorOfClass: aGlorpCanHaveDescriptorDirectly for: anotherGlorpCanHaveDescriptorDirectly [
+	| newDescriptor |
+	newDescriptor := (session system descriptorFor: aGlorpCanHaveDescriptorDirectly) copy.
+	newDescriptor system: self.
+	newDescriptor classModel: newDescriptor classModel copy.
+	newDescriptor classModel system: self.
+	newDescriptor classModel
+		privateAndBasicSetDescribedClass: anotherGlorpCanHaveDescriptorDirectly.
+	self
+		privateAndBasicAddDescriptorFor: anotherGlorpCanHaveDescriptorDirectly
+		as: newDescriptor.
+	^newDescriptor
+]
+
 { #category : #initialization }
 DescriptorSystem >> constructAllClasses [
 	"Subclasses can override this method to add classes. But by default we also look for all descriptor methods in our system, and add them to the class list, so if the methods are written there, then we don't need to do anything further. If the descriptor methods are defined on the classes themselves, then we'll still have to construct the class list manually."
@@ -272,6 +291,8 @@ DescriptorSystem >> constructAllTables [
 
 { #category : #initialization }
 DescriptorSystem >> constructClassesFromDescriptorMethods [
+	"This might be better done in reverse - more general then more specific - but of couse we must not add what will then be overridden.  In Store, we get all classes here then list them in subclasses - so the effect is to puplicate all classes, triplicating or quadruplicating if there are subsubclasses with specific overrides."
+
 	self withAllSuperclassesDo: [:aClass | self addClassesFromDescriptorMethodsFor: aClass].
 
 	self class includeAllClassesWithDescriptorMethods
@@ -352,12 +373,6 @@ DescriptorSystem >> databaseSequenceNamed: aString ifAbsentPut: aBlock [
 DescriptorSystem >> databaseTableClass [
 
 	^self class databaseTableClass
-]
-
-{ #category : #accessing }
-DescriptorSystem >> defaultTracing [
-
-	^Tracing new
 ]
 
 { #category : #private }
@@ -481,7 +496,7 @@ DescriptorSystem >> initializeRuntimeMappings [
 { #category : #private }
 DescriptorSystem >> initializeTable: newTable [
 	| initializerName |
-	initializerName := ('tableFor' , (newTable name asUppercase) , ':') asSymbol.
+	initializerName := ('tableFor', newTable name asUppercase, ':') asSymbol.
 	(self respondsTo: initializerName)
 		ifTrue: [self perform: initializerName with: newTable]
 		ifFalse: [self noTableInitializerFound: newTable].
@@ -583,9 +598,16 @@ DescriptorSystem >> postCopyForRecursion [
 
 { #category : #private }
 DescriptorSystem >> privateAndBasicAddDescriptorFor: anObject as: aDescriptor [
-	"Just add the descriptor and don't try to validate. anObject may not actually even be a class. Assume the descriptor is already properly initialized"
+	"Just add the descriptor and don't try to validate (anObject may not be a class, just something that replies true to #glorpCanHaveDescriptorDirectly). Assume the descriptor is already properly initialized or is about to be."
+
 	descriptors at: anObject put: aDescriptor.
 	aDescriptor system: self.
+	^aDescriptor
+]
+
+{ #category : #private }
+DescriptorSystem >> privateAndBasicDescriptorFor: anObject ifAbsent: aBlock [
+	^descriptors at: anObject ifAbsent: aBlock
 ]
 
 { #category : #sequences }
@@ -657,24 +679,28 @@ this could be restored at release, after the new default above has caused suffic
 
 { #category : #api }
 DescriptorSystem >> tableNamed: aString [
+	"If the table has no initializer in the system, an error is raised (unless the descriptor system subclass overrides that behaviour, e.g. ActiveRecordDescriptorSystem).  If it has an initializer but that method defines no fields, raise a different error."
 
-	^self tableNamed: aString ifNone: [NoTableFound new parameter: aString; raiseRequest].
+	^self
+		tableNamed: aString
+		ifNone: [NoTableFound new parameter: aString; raiseRequest].
 ]
 
 { #category : #api }
 DescriptorSystem >> tableNamed: aString ifNone: aBlock [
+	"BE AWARE:  I will be renamed in a later version because my name invites misunderstanding of my purpose.  If there is no table and no #tableFor<aString>: initializer method for it, calling me will raise an error (by default:  subclasses can override, e.g. ActiveRecordDescriptorSystem) and so not reach the ifNone: block, therefore 'ifNone:' does not mean what it usually does.  Only if the table has an initializer method, but has no fields after that is called, will I call aBlock and return its result."
 
-	^tables at: aString asString asUppercase
-		ifAbsent: 
+	^tables
+		at: aString asString asUppercase
+		ifAbsent:	"add table before initializing it in case that triggers other initializations that use it"
 			[| newTable |
 			newTable := self databaseTableClass new.
 			newTable name: aString.
 			tables at: aString asUppercase put: newTable.
 			self initializeTable: newTable.
-			newTable isEmpty
-				ifTrue: 
-					[tables removeKey: aString asUppercase.
-					^aBlock value].
+			newTable isEmpty ifTrue:
+				[tables removeKey: aString asUppercase.
+				^aBlock value].
 			newTable]
 ]
 
