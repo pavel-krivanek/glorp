@@ -272,6 +272,7 @@ Dialect class >> newDateWithYears: years months: months days: days [
 	self isGNU ifTrue: [^ Date newDay: days monthIndex: months year: years].
 	self isVisualAge ifTrue: [^Date newDay: days monthIndex: months year: years].
 	self isObjectStudio ifTrue: [^Date newDay: days imonth: months year: years].
+	self isPharo ifTrue: [^Date newDay: days month: months year: years].
 	self error: 'not implemented'.
 	^ self
 ]
@@ -286,6 +287,7 @@ Dialect class >> newTimeWithHours: hours minutes: minutes seconds: seconds milli
 			^ Time fromMilliseconds: ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000 + milliseconds
 		].
 	self isObjectStudio ifTrue: [^Time hour: hours minute: minutes second: seconds millisecond: milliseconds].
+	self isPharo ifTrue: [^ Time fromSeconds: hours * 60 * 60 + (minutes * 60) + (milliseconds / 10000)].
 	self error: 'Not implemented yet'.
 	^ self
 ]
@@ -330,6 +332,15 @@ Dialect class >> newTimestampWithYears: years
 	self isVisualAge
 		ifTrue: [^(Dialect smalltalkAt: #AbtTimestamp) date: date time: time].
 	self isObjectStudio ifTrue: [^self timestampClass newDate: date time: time].
+	self isPharo ifTrue: [^self timestampClass 
+			year: years
+			month: months
+			day: days
+			hour: hours
+			minute: minutes
+			second: seconds
+			nanoSecond: millis * 1000000
+			offset: (Duration seconds: offset)].
 	self error: 'not implemented'.
 	^ self
 ]

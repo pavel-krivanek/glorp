@@ -1650,7 +1650,7 @@ DatabasePlatform >> readTimestampFromStream: aStream for: aType [
 				millisecondAccumulator nextPut: aStream next].
 			milliseconds := millisecondAccumulator contents asNumber]
 		ifFalse: [milliseconds := 0].
-	timeZoneOffset := aStream upToEnd asNumber.
+	timeZoneOffset := Number readFrom: aStream upToEnd ifFail: [ 0 ].
 	timeZoneOffset isNil ifTrue: [timeZoneOffset := 0].
 	timeZoneOffset := timeZoneOffset * 60 * 60.
 	^Dialect 
