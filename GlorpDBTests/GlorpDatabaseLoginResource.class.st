@@ -6,7 +6,7 @@ Class {
 		'login'
 	],
 	#classVars : [
-		'GlorpDatabaseLoginResource'
+		'DefaultLogin'
 	],
 	#category : #'GlorpDBTests-GlorpTest'
 }
