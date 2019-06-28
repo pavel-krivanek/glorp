@@ -524,7 +524,7 @@ from v$sesstat a, v$statname b, v$session s
 where a.statistic# = b.statistic#  and s.sid=a.sid
 and b.name = 'opened cursors current'
 "
-
+	self timeLimit: 60 seconds.
 	
 	10000 timesRepeat:
 		[1 to: 10 do:

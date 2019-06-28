@@ -37,6 +37,7 @@ PostgreSQLPlatform >> printBlob: aByteArray on: aStream for: aType [
 	| encoderStream base64String |
 	aByteArray isNil ifTrue: [^aStream nextPutAll: 'NULL'].
 	Dialect isSqueak ifTrue: [^self squeakPrintBlob: aByteArray on: aStream for: aType].
+	Dialect isPharo ifTrue: [^self squeakPrintBlob: aByteArray on: aStream for: aType].
 
 	base64String := String new: (aByteArray size * 3/2) rounded.
 	encoderStream := Dialect	"briefly set the encoderStream to its class"
@@ -54,6 +55,16 @@ PostgreSQLPlatform >> printBlob: aByteArray on: aStream for: aType [
 			encoderStream nextPutAll: aByteArray.
 			encoderStream close.
 			aStream nextPutAll: encoderStream contents printString].
+]
+
+{ #category : #'conversion-strings' }
+PostgreSQLPlatform >> stringToSQLStringConverter [
+
+	^DelegatingDatabaseConverter
+		named: #stringToSQLString
+		hostedBy: self
+		fromStToDb: #convertByteArrayToSQLString:for:
+		fromDbToSt: #convertSQLStringToString:for:.
 ]
 
 { #category : #accessing }
