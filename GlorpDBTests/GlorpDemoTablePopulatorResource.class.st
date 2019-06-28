@@ -5,7 +5,7 @@ Class {
 		'login'
 	],
 	#classVars : [
-		'GlorpDemoTablePopulatorResource'
+		'NeedsSetup'
 	],
 	#category : #'GlorpDBTests-GlorpTest'
 }

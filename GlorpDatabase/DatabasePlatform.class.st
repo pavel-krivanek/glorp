@@ -43,7 +43,7 @@ Class {
 		'characterEncoding'
 	],
 	#classVars : [
-		'DatabasePlatform'
+		'UseBindingIfSupported'
 	],
 	#classInstVars : [
 		'converterRepository'
