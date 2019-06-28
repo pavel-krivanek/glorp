@@ -28,6 +28,8 @@ GlorpTravelAgency class >> visualWorksMetadata [
 
 { #category : #comparing }
 GlorpTravelAgency >> = aGlorpTravelAgency [
+
+	self class = aGlorpTravelAgency class ifFalse: [ ^ false ].
 	^self name = aGlorpTravelAgency name.
 ]
 

@@ -7,7 +7,7 @@ Dialect class >> addSeconds: seconds to: aTime [
 	self isDolphin ifTrue: [^ self addTimeForDolphin: aTime seconds: seconds].
 	self isGNU ifTrue: [^ aTime addSeconds: seconds].
 	self isVisualAge ifTrue: [^Time fromSeconds: aTime asSeconds + seconds].
-	self error: 'not implemented'.
+	self isPharo ifTrue: [^aTime addSeconds: seconds].
 	^ self
 ]
 
@@ -152,6 +152,7 @@ Dialect class >> garbageCollect [
 	Dialect isGNU ifTrue: [^ ObjectMemory globalGarbageCollect].
 	Dialect isVisualAge ifTrue: [^ (self smalltalkAt: #System) globalGarbageCollect].
 	Dialect isSqueak ifTrue: [^Smalltalk garbageCollect].
+	Dialect isPharo ifTrue: [^Smalltalk garbageCollect].
 	self error: 'not implemented yet'.
 	^ self
 ]
@@ -548,5 +549,6 @@ Dialect class >> weakValueDictionaryClass [
 
 	Dialect isVisualWorks ifTrue: [^self smalltalkAt: #EphemeralValueDictionary].
 	Dialect isSqueak ifTrue: [^self smalltalkAt: #WeakValueDictionary].
+	Dialect isPharo ifTrue: [^self smalltalkAt: #WeakValueDictionary].
 	self error: 'Not yet implemented for this dialect'.
 ]
