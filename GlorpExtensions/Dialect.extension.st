@@ -507,6 +507,7 @@ Dialect class >> timestampNow [
 	Dialect isDolphin ifTrue: [^ self timestampClass current].
 	Dialect isVisualAge ifTrue: [^ self timestampClass now].
 	Dialect isObjectStudio ifTrue: [^self timestampClass now].
+	Dialect isPharo ifTrue: [^self timestampClass current].
 	self error: 'Not yet implemented'.
 	^ self
 ]
