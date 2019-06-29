@@ -83,11 +83,6 @@ GeneralSubSelectExpression >> descriptor [
 	^base system descriptorFor: query resultClass.
 ]
 
-{ #category : #accessing }
-GeneralSubSelectExpression >> field [
-	^nil.
-]
-
 { #category : #api }
 GeneralSubSelectExpression >> get: aSymbol withArguments: anArray [ 
 
@@ -120,8 +115,11 @@ GeneralSubSelectExpression >> isMappable [
 
 { #category : #accessing }
 GeneralSubSelectExpression >> mappedFields [
-	"Let's try this and see if it works returning empty"
-	^#().
+	"Ensure the subselect query is prepared;  its fields are the mapped fields."
+
+	query session: base descriptor session.
+	query prepare.
+	^query fields
 ]
 
 { #category : #printing }
@@ -185,4 +183,16 @@ GeneralSubSelectExpression >> type [
 { #category : #navigating }
 GeneralSubSelectExpression >> ultimateBaseExpression [
 	^base ultimateBaseExpression.
+]
+
+{ #category : #'As yet unclassified' }
+GeneralSubSelectExpression >> valueInBuilder: aGlorpDataElementBuilder [ 
+	"If we get here, it means we're being used in a #retrieve: or similar clause, which is only going to work if we have a single field, so assume that."
+
+	^self valueInBuilder: aGlorpDataElementBuilder as: query fields first
+]
+
+{ #category : #'As yet unclassified' }
+GeneralSubSelectExpression >> valueInBuilder: anElementBuilder as: anExpression [
+	^anElementBuilder valueOfField: anExpression
 ]

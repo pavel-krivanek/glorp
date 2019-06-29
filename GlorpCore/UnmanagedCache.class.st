@@ -59,8 +59,8 @@ UnmanagedCache >> at: key put: anObject [
 ]
 
 { #category : #private }
-UnmanagedCache >> basicAt: anObject ifAbsent: aBlock [
-	^items at: anObject ifAbsent: aBlock
+UnmanagedCache >> basicAt: key ifAbsent: aBlock [
+	^items at: key ifAbsent: aBlock
 ]
 
 { #category : #accessing }

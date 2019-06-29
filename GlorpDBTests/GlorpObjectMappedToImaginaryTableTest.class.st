@@ -95,6 +95,7 @@ GlorpObjectMappedToImaginaryTableTest >> setUp [
 	example := system exampleStore1.
 	example2 := system exampleStore2.
 	session inUnitOfWorkDo: [session register: example. session register: example2.].
+	session accessor executeSQLStringsNoResult: 'INSERT INTO RENTAL_PROMOTION (RENTAL_ID, NAME) VALUES (1001, ''SD'')'.
 	session reset.
 ]
 
@@ -151,15 +152,112 @@ GlorpObjectMappedToImaginaryTableTest >> testReadCustomerWhereWithJoin [
 ]
 
 { #category : #tests }
+GlorpObjectMappedToImaginaryTableTest >> testReadDirectToOneAlsoFetch [
+	"Read rentals, alsoFetch:ing one of its DirectToOneMappings."
+
+	| alsoFetchQuery resultsWithoutProxies |	
+	alsoFetchQuery := Query read: GlorpVideoRentalPromotion.
+	alsoFetchQuery alsoFetch: [:each| each storePromotionalName].
+	resultsWithoutProxies := session execute: alsoFetchQuery.
+	self deny: resultsWithoutProxies isEmpty.
+	resultsWithoutProxies do:
+		[:each || name |
+		self assert: each rentalPromotion isGlorpProxy
+			description: 'The DirectToOneMapping that we did NOT alsoFetch is NOT a proxy'.
+		self deny: (name := each storePromotionalName) isGlorpProxy
+			description: 'The DirectToOneMapping that we DID alsoFetch IS a proxy'.
+		self assert: name isString.
+		name do: [:char | self assert: (char isUppercase or: [char isAlphabetic not])]].
+]
+
+{ #category : #tests }
+GlorpObjectMappedToImaginaryTableTest >> testReadDirectToOneAlsoFetchMany [
+	"Read rentals, alsoFetching both its readable DirectToOneMappings and another mapping."
+
+	| alsoFetchQuery results |	
+	alsoFetchQuery := Query read: GlorpVideoRentalPromotion.
+	alsoFetchQuery alsoFetch: [:each| each storePromotionalName].
+	alsoFetchQuery alsoFetch: [:each| each rentalPromotion].
+	alsoFetchQuery alsoFetch: [:each| each customer].
+	results := session execute: alsoFetchQuery.
+	self deny: results isEmpty.
+	results do:
+		[:each || name promotion |
+		self deny: each customer isGlorpProxy.
+		self deny: (promotion := each rentalPromotion) isGlorpProxy.
+		self assert: promotion isString.
+		self deny: (name := each storePromotionalName) isGlorpProxy.
+		self assert: name isString.
+		name do: [:char | self assert: (char isUppercase or: [char isAlphabetic not])]].
+]
+
+{ #category : #tests }
+GlorpObjectMappedToImaginaryTableTest >> testReadDirectToOneToSoleTable [
+	"This test exercises the ability of a DirectToOneMapping to update the target table when its mapped value is updated."
+
+	| list list1 list2 rentals list3 myRental |
+	list := session accessor executeSQLString: 'SELECT * FROM RENTAL_PROMOTION'.
+	self assert: list size = 1.
+	self assert: list first = #(1001 'SD').
+	list1:= session accessor executeSQLString: 'SELECT * FROM VIDEO_RENTAL'.
+	self deny: list1 isEmpty.
+
+	list2 := session read: GlorpVideoRentalPromotion.
+	self deny: list2 isEmpty.
+	session inUnitOfWorkDo:
+		[rentals := session read: GlorpVideoRentalPromotion where: [:each| each rentalPromotion = 'Standard'].
+		self deny: rentals isEmpty.
+		myRental := rentals
+			detect: [:each | each id = 1001]
+			ifNone: [self assert: false].
+		self assert: myRental rentalPromotion = 'Standard'.
+		myRental rentalPromotion: 'DisneyDiscount'].
+
+	list3 := session accessor executeSQLString: 'SELECT * FROM RENTAL_PROMOTION'.
+	self assert: list3 size = 1.
+	self assert: list3 first = #(1001 'DD').
+]
+
+{ #category : #tests }
+GlorpObjectMappedToImaginaryTableTest >> testReadDirectToOneWithConversion [
+	"This test exercises DirectToOneMappings.  We subclass GlorpVideoRental to GlorpVideoRentalPromotion, adding ivars 'storePromotionalName' and 'rentalPromotion' (the latter is unused in this test):  the table, VIDEO_RENTAL remains unchanged.  The new subclass has a DirectToOneMapping to 'storePromotionalName' with a specialised type converter and another to a pseudoVariable that does not convert."
+
+	| rentals |
+	rentals := session
+		read: GlorpVideoRentalPromotion
+		where: [:each| each storeNamePseudo = 'Als Video'].
+	self deny: rentals isEmpty
+		description: 'pseudoVariable mapping did not find unconverted text in DB'.
+	rentals do:
+		[:each |
+		self assert: (each instVarNamed: 'store') name = 'Als Video'.
+		self assert: each storePromotionalName = 'ALS_VIDEO'].
+	session reset.
+	"Test again with whereClause using the mapping."
+	rentals := session
+		read: GlorpVideoRentalPromotion
+		where: [:each | each storePromotionalName = 'ALS_VIDEO'].
+	self deny: rentals isEmpty.
+	rentals do:
+		[:each |
+		self assert: (each instVarNamed: 'store') name = 'Als Video'.
+		self assert: each storePromotionalName = 'ALS_VIDEO'].
+	"Use a query string that actually matches what's in the database.  Since our converter expects to see an underscore instead of spaces, it should _not_ find, demonstrating that the converter does its job."
+	rentals := session
+		read: GlorpVideoRentalPromotion
+		where: [:each | each storePromotionalName = 'Als Video'].
+	self assert: rentals isEmpty.
+]
+
+{ #category : #tests }
 GlorpObjectMappedToImaginaryTableTest >> testReadWithDateArithmeticInWhereClause [
-	"Test date arithmetic using constant expressions and field expressions.  Trivially, we use the id field to get a positive integer - aim is just to verify the expression runs and returns the rows).
-	The rental data is set up and torn down each time the test is run so (ignoring cross-midnight runs) their dates will always be today's date."
+	"Test date arithmetic using constant expressions and field expressions.  Trivially, we use the id field to get a positive integer - aim is just to verify the expression runs and returns the rows.  The rental data is set up and torn down each time the test is run so (ignoring cross-midnight runs) their dates will always be today's date.
+	This test does not pass on SQLite."
 
 	| rentals |
 	"Check date +/- integer expressions;  DB2 will not accept this unlabelled, so is tested separately."
-	"session platform class == DB2Platform ifTrue:
-		[^self db2testReadWithDateArithmeticInWhereClause]."
-	session platform supportsArithmeticOperatorsOnDates ifFalse: [ self skip ].
+	session platform class == DB2Platform ifTrue:
+		[^self db2testReadWithDateArithmeticInWhereClause].
 	rentals := session read: GlorpVideoRental where:
 		[:each | each dueDate + 1 > Date today].
 	self deny: rentals isEmpty.

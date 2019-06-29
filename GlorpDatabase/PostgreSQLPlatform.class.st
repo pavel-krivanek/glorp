@@ -57,16 +57,6 @@ PostgreSQLPlatform >> printBlob: aByteArray on: aStream for: aType [
 			aStream nextPutAll: encoderStream contents printString].
 ]
 
-{ #category : #'conversion-strings' }
-PostgreSQLPlatform >> stringToSQLStringConverter [
-
-	^DelegatingDatabaseConverter
-		named: #stringToSQLString
-		hostedBy: self
-		fromStToDb: #convertByteArrayToSQLString:for:
-		fromDbToSt: #convertSQLStringToString:for:.
-]
-
 { #category : #accessing }
 PostgreSQLPlatform >> vwEXDIConnectionClass [
 	^'PostgreSQLEXDIConnection' asQualifiedReference valueIfUndefinedLoadFrom: 'PostgreSQLEXDI'

@@ -48,3 +48,13 @@ GlorpTravelFile >> name: anObject [
 
 	name := anObject
 ]
+
+{ #category : #accessing }
+GlorpTravelFile >> nameChunks [
+	^name
+]
+
+{ #category : #accessing }
+GlorpTravelFile >> nameChunks: someStrings [
+	"Having this method exist is the easiest way to prevent validation complaining about the mapping named #namedChunks being readable as well as writable.  However it is not clear it needs to do anything.  (Later, evolve GlorpSubsequenceMappings not to need this.)"
+]

@@ -24,24 +24,6 @@ CompoundSelectCommand class >> visualWorksMetadata [
 ]
 
 { #category : #accessing }
-CompoundSelectCommand >> arrayBoundFields [
-	" *** This method was defined by Glorp.DatabaseCommand as a subclass responsibility.
-	Replace its body with a proper implementation. *** "
-
-	self error: 'Subclass responsibility stub not reimplemented'
-]
-
-{ #category : #accessing }
-CompoundSelectCommand >> bindingTypes [
-	^self commands inject: #() into: [:sum :each | sum, each bindingTypes].
-]
-
-{ #category : #accessing }
-CompoundSelectCommand >> bindings [
-	^commands inject: #() into: [:sum :each | sum, each bindings].
-]
-
-{ #category : #accessing }
 CompoundSelectCommand >> commands [
 	commands isNil ifTrue: [commands := query queries collect: [:each | each sqlWith: parameters]].
 	^commands.
@@ -66,7 +48,7 @@ CompoundSelectCommand >> parameters: aDictionary [
 
 { #category : #executing }
 CompoundSelectCommand >> printSQL [
-	"Access doesn't like parenthesies around the first in a group of compound commands."
+	"Access doesn't like parentheses around the first in a group of compound commands.  A CompoundQuery can have a single command (usually only arises with recursive queries), which likewise allows (though it does not require) dropping the outer parentheses."
 
 	| skipFirst printParentheses |
 	self requiresWrapperQuery
@@ -76,7 +58,7 @@ CompoundSelectCommand >> printSQL [
 				ifTrue:  [ self nextPutAll: 'DISTINCT '].
 			self nextPutAll: '* FROM '.
 			self platform supportsAliasInCompoundQuery ifTrue: [self nextPut: $( ]].
-	skipFirst := self platform parenthesizeAllButFirstCommandInCompoundQuery.
+	skipFirst := self commands size < 2 or: [self platform parenthesizeAllButFirstCommandInCompoundQuery].
 	printParentheses := self platform parenthesizeCommandsInCompoundQuery: query.
 	self findBoundExpressions.
 	GlorpHelper
@@ -92,11 +74,12 @@ CompoundSelectCommand >> printSQL [
 		for: self commands
 		separatedBy: [query printOperationOn: self].
 	(self requiresWrapperQuery and: [self platform supportsAliasInCompoundQuery])
+		ifFalse:
+			[query printOrderingOn: self.
+			query printGroupingOn: self]
 		ifTrue: 
 			[self nextPut: $).
 			query printCompoundSelectAliasesOn: self].
-	query printOrderingOn: self.
-	query printGroupingOn: self
 ]
 
 { #category : #testing }

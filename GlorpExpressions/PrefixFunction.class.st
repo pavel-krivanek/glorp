@@ -56,6 +56,11 @@ PrefixFunction >> convertedStValueOf: anObject [
 	^base convertedStValueOf: anObject.
 ]
 
+{ #category : #recursion }
+PrefixFunction >> createMappingToFieldInRecursionTable: aDatabaseTable [
+	^base createMappingToFieldInRecursionTable: aDatabaseTable
+]
+
 { #category : #iterating }
 PrefixFunction >> do: aBlock skipping: aSet [
 	"Iterate over the expression tree. Keep track of who has already been visited, so we don't get trapped in cycles or visit nodes twice."
@@ -74,6 +79,18 @@ PrefixFunction >> initialize [
 	separator := ','.
 ]
 
+{ #category : #accessing }
+PrefixFunction >> mappingSequenceName [
+	"This could be confusing if we also use the original field.  Should we add some text for ourselves to distinguish.  Can we use the name or must we use the symbol - nextPsuedoBlobnegated (symbol) versus nextPsuedoBlob- (name) as field names in recursion table?  Or even check and choose whichever of the two had no bad characters.  For now, we use the symbol, guessing it is the safer bet."
+
+	^base mappingSequenceName, symbol
+]
+
+{ #category : #navigating }
+PrefixFunction >> penultimateBaseExpression [
+	^base penultimateBaseExpression
+]
+
 { #category : #printing }
 PrefixFunction >> printBasicSQLOn: aStream withParameters: aDictionary forSelect: aBoolean [
 	aStream
@@ -82,20 +99,18 @@ PrefixFunction >> printBasicSQLOn: aStream withParameters: aDictionary forSelect
 	aBoolean
 		ifTrue: [base printSelectSQLOn: aStream withParameters: aDictionary]
 		ifFalse: [base printSQLOn: aStream withParameters: aDictionary].
-	arguments
-		do:
-			[:each | 
-			"It's possible there needs to be type conversion here similar to InfixFunction>>printSQLOn:withParameters:, but it's not clear how common that case is, or how best to do it, so leaving it until it becomes a problem."
-			aStream nextPutAll: separator.
-			aBoolean 
-				ifTrue: [each printSelectSQLOn: aStream withParameters: aDictionary]
-				ifFalse: [each printSQLOn: aStream withParameters: aDictionary]].
+	arguments do:
+		[:each |
+		"It's possible there needs to be type conversion here similar to InfixFunction>>printSQLOn:withParameters:, but it's not clear how common that case is, or how best to do it, so leaving it until it becomes a problem."
+		aStream nextPutAll: separator.
+		aBoolean 
+			ifTrue: [each printSelectSQLOn: aStream withParameters: aDictionary]
+			ifFalse: [each printSQLOn: aStream withParameters: aDictionary]].
 	aStream nextPut: $).
-	alias notNil
-		ifTrue:
-			[aStream
-				nextPutAll: ' AS ';
-				nextPutAll: alias].
+	aBoolean & alias notNil ifTrue:
+		[aStream
+			nextPutAll: ' AS ';
+			nextPutAll: alias].
 ]
 
 { #category : #printing }

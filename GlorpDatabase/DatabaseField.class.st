@@ -118,7 +118,7 @@ DatabaseField >> basicMatchesField: aField [
 
 { #category : #configuring }
 DatabaseField >> beIndexed [
-	self table addIndex: (DatabaseIndex forField: self).
+	self table addIndex: (self table indexClass forField: self).
 ]
 
 { #category : #configuring }
@@ -141,6 +141,21 @@ DatabaseField >> bePrimaryKey [
 	isPrimaryKey := true.
 	isNullable := false.
 	self table isNil ifFalse: [self table addAsPrimaryKeyField: self]
+]
+
+{ #category : #configuring }
+DatabaseField >> beRelative [
+	"Since NULL + VALUE is NULL in SQL, relatively updates could be lost if it were possible to NULL the field without our knowing it.  Therefore use this method to make a not-null relative field, with a default value set in the database if a row with no entry for the field is written."
+
+	isNullable := false.
+	type := type beRelative.
+	dbDefaultValue isNil ifTrue:
+		[dbDefaultValue := type nilOldValueEquivalent].
+
+"If a nullable field is wanted, send #beRelative directly to the type, not to the field, e.g.
+	(aTable createFieldNamed: 'QTY' type: platform int4 beRelative)
+		dbDefaultValue: whatever - a db default value is optional
+The field can then be NULLed by setting NULL as the relative update value, since field = field + NULL;  obviously, the user who does this must be aware it will lose later relative updates.  Likewise, inserted rows must be given values for the field, or a dbDefaultValue must be set for it."
 ]
 
 { #category : #converting }
@@ -244,7 +259,7 @@ DatabaseField >> isPrimaryKey [
 	^isPrimaryKey yourSelf.
 ]
 
-{ #category : #copying }
+{ #category : #comparing }
 DatabaseField >> isSameAliasedFieldAs: aField [
 	"Return true if we are the same as another aliased field. For non-aliased fields, identity is assured, so this is redundant. Note that we == the string. This will work because we know these must both be shallow copies of the same thing"
 	self class == aField class ifFalse: [^false].
@@ -318,6 +333,15 @@ DatabaseField >> name: aString [
 	"Private - Set the value of the receiver's ''name'' instance variable to the argument, anObject."
 
 	name := aString asString.
+]
+
+{ #category : #converting }
+DatabaseField >> parentTableField [
+	| parentTable |
+	parentTable := self table parent.
+	^parentTable isNil
+		ifTrue: [self]
+		ifFalse: [parentTable fieldNamed: self name]
 ]
 
 { #category : #accessing }
@@ -429,9 +453,12 @@ DatabaseField >> type [
 
 { #category : #configuring }
 DatabaseField >> type: aDatabaseType [
+	"There is very little chance of someone needing a serial column that is not part of the primary key, so we ensure its being a primaryKey here as the default."
 
 	type := aDatabaseType.
 	(type notNil and: [type isSerial]) ifTrue: [self bePrimaryKey].
+
+"If a user wanted to a serial type not to be a primaryKey, e.g. during a migration, then we would need a method to revert that state here in the field and to nil the primaryKeyFields instvar in its table.  Alternatively, we could defer the above assignment of primaryKey status to serial-type fields until table>>postInitializeIn: (for example), whereupon, if there were no other primaryKey columns, any serial column would be made the primaryKey (see AR 56006)."
 ]
 
 { #category : #database }

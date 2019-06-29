@@ -1,9 +1,11 @@
 "
-testThis is an abstract superclass for proxy objects. It inherits from ProtoObject, which is part of the platform specific layer, but implements most of the proxy functionality.
+This is an abstract superclass for proxy objects. It inherits from ProtoObject, which is part of the platform specific layer, but implements most of the proxy functionality.
 
 Instance Variables:
 	isInstantiated	<Boolean>	Has this proxy been instantiated or not.
 	value	<Object>	What we are proxying for.
+
+
 "
 Class {
 	#name : #AbstractProxy,
@@ -58,12 +60,6 @@ AbstractProxy >> basicSize [
 	^self getValue basicSize.
 ]
 
-{ #category : #'dnu handling' }
-AbstractProxy >> doesNotUnderstand: sel args: args [ 
-	"This is the variant for ObjectStudio"
-	^self getValue perform: sel withArguments: args
-]
-
 { #category : #api }
 AbstractProxy >> getValue [
 
@@ -76,6 +72,23 @@ AbstractProxy >> glorpPostFetch: aSession [
 
 { #category : #notification }
 AbstractProxy >> glorpPostFetchValidate: aSession [
+]
+
+{ #category : #accessing }
+AbstractProxy >> glorpRealObject [
+	"Return my value.  Ensure instantiation of a proxy:  use #glorpRealObjectIfNone: to avoid forced instantiation.  (On compilers which inline #yourself, that method will not force instantiation despite having the same Smalltalk implementation  as this method;  see also #yourSelf.)
+	Functionally, this method need not be implemented here:  were it not, sending it would DNU and so do  'self getValue perform #glorpRealObject', getting Object's implementor.  This method skips that, speeding things trivially."
+
+	^self getValue
+]
+
+{ #category : #accessing }
+AbstractProxy >> glorpRealObjectIfNone: aBlock [
+	"Return the real object but do NOT force instantiation of a proxy; instead, evaluate the block on the uninstantiated proxy, returning the result."
+
+	^self isInstantiated
+		ifTrue: [value]
+		ifFalse: [aBlock value]
 ]
 
 { #category : #overrides }

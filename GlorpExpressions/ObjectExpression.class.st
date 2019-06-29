@@ -110,26 +110,31 @@ ObjectExpression >> asTimestamp [
 ]
 
 { #category : #preparing }
-ObjectExpression >> assignTableAliasesStartingAt: anInteger prefix: aString [
-	"Very rarely, my tableAliases' instance may be shared with another expression that has already populated it with tables, but not necessarily with all of mine.  I therefore iterate over my tables, ensuring all are aliased, regardless of whether I already have some aliases."
+ObjectExpression >> assignTableAliasesStartingAt: aSet prefix: aString [
+	"Very rarely, my tableAliases' instance may be shared with another expression that has already populated it with tables, but not necessarily with all of mine.  I therefore iterate over my tables, ensuring all are aliased, regardless of whether I already have some aliases.  Even more rarely, some populated expression (e.g. the fetchBaseExpression of a RecursiveQuery) may already be populated with tables in another query, so have a name this query will try to reuse.)"
 
 	| myTables tableNumber prefix |
-	self controlsTables ifFalse: [^anInteger].
-	(myTables := self tables) isEmpty ifTrue: [^anInteger].
-	tableNumber := anInteger.
+	self controlsTables ifFalse: [^aSet].
+	(myTables := self tables) isEmpty ifTrue: [^aSet].
 	prefix := aString isNil ifTrue: ['t'] ifFalse: [aString].
-	tableAliases isNil ifTrue:
-		[tableAliases := IdentityDictionary new: myTables size].
+	tableAliases isNil
+		ifTrue: [tableAliases := IdentityDictionary new: myTables size]
+		ifFalse: [tableAliases do:	"if we already use the name, rename the table"
+				[:each |	"let 'dt' stand for database table or duplicate table (name) or ..."
+				[aSet includes: each name] whileTrue: [each name: 'd', each name].
+				aSet add: each name]].
+	tableNumber := aSet size + 1.
 	myTables do:
 		[:each |
 		tableAliases at: each ifAbsentPut:
 			[| newTable | newTable := each copy.
 			newTable parent: each.
 			newTable schema: ''.
-			newTable name: prefix , tableNumber printString.
+			[newTable name: prefix , tableNumber printString.
 			tableNumber := tableNumber + 1.
+			aSet includes: newTable name] whileTrue.
+			aSet add: newTable name.
 			newTable]].
-	^tableNumber		"incremented if any tables were aliased, still equal to anInteger if not"
 ]
 
 { #category : #'api-aggregates' }
@@ -184,14 +189,15 @@ ObjectExpression >> findFieldNamed: aString [
 ]
 
 { #category : #api }
-ObjectExpression >> get: aSymbol [ 
-	"Return the mapping expression corresponding to the named attribute"
+ObjectExpression >> get: aSymbol [
+	"Return the mapping expression corresponding to the named attribute."
 
 	| reallyASymbol functionExpression |
 	reallyASymbol := aSymbol asSymbol.
 	functionExpression := self getFunction: aSymbol withArguments: #().
 	functionExpression isNil ifFalse: [^functionExpression].
-	^self mappingExpressions at: reallyASymbol
+	^self mappingExpressions
+		at: reallyASymbol
 		ifAbsentPut: [MappingExpression named: reallyASymbol basedOn: self]
 ]
 
@@ -219,6 +225,15 @@ but since the subselect part might be very verbose, I might prefer to put the co
 because then the left-hand side expression doesn't refer back to the block argument, and we can't build the expression correctly. So I can write
    [:each | (each getConstant: 5) = (each count: subQuery)]"
 	^anObject asGlorpExpressionOn: self.
+]
+
+{ #category : #api }
+ObjectExpression >> getConstant: anObject alias: aSymbol [
+	"This utility method makes it easier to set the name (i.e. alias) for a field in a recursion table when it is initialized to a constant value, not some field or mapping that already has a name."
+
+	^(anObject asGlorpExpressionOn: self)
+		alias: aSymbol value;
+		yourself
 ]
 
 { #category : #api }
@@ -335,8 +350,8 @@ ObjectExpression >> mappingExpressions [
 ]
 
 { #category : #accessing }
-ObjectExpression >> mappingExpressions: anObject [
-	mappingExpressions := anObject
+ObjectExpression >> mappingExpressions: anIdentityDictionary [
+	mappingExpressions := anIdentityDictionary.
 ]
 
 { #category : #'api-aggregates' }
@@ -377,7 +392,7 @@ ObjectExpression >> noneSatisfyExists: anExpression [
 
 { #category : #internal }
 ObjectExpression >> oneArgumentSpecialSelectors [
-	^#(#anySatisfyDefault: #anySatisfyJoin: #anySatisfyExists: #getTable: #getField: #fieldNamed: #parameter: #noneSatisfy: #noneSatisfyExists: #getConstant: #count: #sum: #min: #max: #average: #sqlSelect: #includes:)
+	^#(#anySatisfyDefault: #anySatisfyJoin: #anySatisfyExists: #getTable: #getField: #getMappings: #fieldNamed: #parameter: #noneSatisfy: #noneSatisfyExists: #getConstant: #count: #sum: #min: #max: #average: #sqlSelect: #includes:)
 ]
 
 { #category : #internal }
@@ -520,18 +535,20 @@ ObjectExpression >> translateField: aDatabaseField [
 ]
 
 { #category : #fields }
-ObjectExpression >> translateFields: anOrderedCollection [ 
+ObjectExpression >> translateFields: anOrderedCollection [
+	"DO NOT override in subclasses (or not without care).  This is now the sole plural implementor and exists solely for convenience.  All specific subclass and delegate behaviour is in the singular #translateField: implementors."
+
 	^anOrderedCollection collect: [:each | self translateField: each]
 ]
 
 { #category : #internal }
 ObjectExpression >> twoArgumentSpecialSelectors [
-	^#(#aggregate:as:)
+	^#(#aggregate:as: #getConstant:alias:)
 ]
 
 { #category : #internal }
 ObjectExpression >> zeroArgumentSpecialSelectors [
 	"In 8.2, #asOuterJoin is deprecated;  when it is removed in 9.0, remove its symbol from here."
 
-	^#(#beOuterJoin #bePhantom #sqlCount #sqlSum #sqlMin #sqlMax #sqlAverage #sqlAvg #isEmpty #notEmpty #asDate #asTimestamp #asOuterJoin)
+	^#(#beOuterJoin  #beRightOuterJoin #bePhantom #sqlCount #sqlSum #sqlMin #sqlMax #sqlAverage #sqlAvg #isEmpty #notEmpty #asDate #asTimestamp #asOuterJoin)
 ]

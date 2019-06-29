@@ -19,7 +19,8 @@ Class {
 		'joins',
 		'tablePrefix',
 		'customCommand',
-		'tablesToPrint'
+		'tablesToPrint',
+		'useANSIJoins'
 	],
 	#category : #'GlorpQueries-Glorp'
 }
@@ -55,28 +56,24 @@ SimpleQuery >> addBoundExpressionsIn: aCommand [
 
 { #category : #fields }
 SimpleQuery >> addFields: aliasedFields returningTranslationForFields: originalFields distinct: isDistinct [
-	"The query has computed a set of fields the way the mappings see them, which are then transformed to account for field aliasing in embedded mappings. Add those to our collection, and set up the translation which knows which fields are at which index in the resulting row. If necessary, note that those fields are selected as distinct"
+	"The query has computed a set of fields the way the mappings see them, which are then transformed to account for field aliasing in embedded mappings. Add those to our collection, and set up the translation which knows which fields are at which index in the resulting row. If necessary, note that those fields are selected as distinct."
 
 	| translation |
 	translation := IdentityDictionary new.
-	aliasedFields
-		with: originalFields
-		do:
-			[:aliased :original | 
-			| position fieldToAdd|
-			position := self findPositionOfAliasedField: aliased.
-			position = 0
-				ifTrue:  
-					[fieldToAdd := isDistinct ifTrue: [aliased asDistinctFieldOn: self baseExpression] ifFalse: [aliased].
-					fields add: fieldToAdd .
-					position := fields size].
-			translation at: original put: position].
-	^translation.
+	aliasedFields with: originalFields do:
+		[:aliased :original || position fieldToAdd |
+		position := self findPositionOfAliasedField: aliased.
+		position = 0 ifTrue:
+			[fieldToAdd := isDistinct ifTrue: [aliased asDistinctFieldOn: self baseExpression] ifFalse: [aliased].
+			fields add: fieldToAdd.
+			position := fields size].
+		translation at: original put: position].
+	^translation
 ]
 
 { #category : #preparing }
 SimpleQuery >> addJoin: anExpression [
-	joins addAll: anExpression asIndependentJoins.
+	^joins addAll: anExpression asIndependentJoins.
 ]
 
 { #category : #preparing }
@@ -128,11 +125,31 @@ SimpleQuery >> adjustWhereClause [
 	whereClause := whereClause condensePrimaryKeyComparison.
 	whereClause := whereClause condenseBooleanEquality.
 	whereClause do: [:each | each condenseBooleanEqualityExpressions].
-	(whereClause isConstantExpression and: [whereClause value = true])
-		ifTrue: [
-			whereClause := EmptyExpression on: whereClause value.
-			whereClause base: base.].
+	(whereClause isConstantExpression and: [whereClause value = true]) ifTrue:
+		[whereClause := EmptyExpression on: whereClause value.
+		whereClause base: base].
 	whereClause do: [:each | each rewriteFunctionArguments].
+]
+
+{ #category : #preparing }
+SimpleQuery >> aliasDuplicateFieldNames: orderedAliasingFieldExpressions [
+	"On any database, ordering  a compound query by two same-name fields cannot be done.  Absurdly, Oracle, SQLServer and MySQL will not tolerate two unaliased fields in different tables but of the same name in a compound query, so aliasing may be needed merely to avoid that issue.  Alias the fields to avoid this after query preparation - so my 'fields' instvar is set."
+
+	| fieldNames |
+	fieldNames := OrderedCollection new.
+	1 to: self fields size do:
+		[:index || eachField aliasedFieldExpression | eachField := self fields at: index.
+		eachField class = DatabaseField ifTrue: 
+			[aliasedFieldExpression := orderedAliasingFieldExpressions
+				detect: [:eachExpression | eachExpression field = eachField or: [eachExpression field = eachField parentTableField]]
+				ifNone: [nil].
+			aliasedFieldExpression isNil ifTrue:	"if false, we've aliased it so no need to put its name in fieldNames"
+				[(fieldNames includes: eachField name)
+					ifFalse: [fieldNames add: eachField name]
+					ifTrue:
+						[aliasedFieldExpression :=
+							(FieldExpression forField: eachField basedOn: base) alias: eachField table name , eachField name, '_GEN']].
+			aliasedFieldExpression isNil ifFalse: [self fields at: index put: aliasedFieldExpression]]].
 ]
 
 { #category : #converting }
@@ -158,16 +175,16 @@ SimpleQuery >> asGlorpExpressionOn: anExpression basedOn: aMessageArchiver withU
 
 { #category : #preparing }
 SimpleQuery >> assignTableAliases [
-	| tableNumber allExpressions |
+	| aliasNames allExpressions |
 	whereClause isJoin ifTrue: [^self].
-	tableNumber := 1.
+	aliasNames := Set new.
 	allExpressions := whereClause asExpressionGroup.
 	allExpressions addAll: ordering.
 	allExpressions addAll: grouping.
 	allExpressions addAll: joins.
 	builders do: [:each | allExpressions add: each expression].
 	allExpressions do:
-		[:each | tableNumber := each assignTableAliasesStartingAt: tableNumber prefix: self tablePrefix].
+		[:each | each assignTableAliasesStartingAt: aliasNames prefix: self tablePrefix].
 	"We've aliased tables, joins may now become independent"
 	joins := joins inject: OrderedCollection new into: [:sum :each | (sum addAll: each asIndependentJoins). sum].
 ]
@@ -196,7 +213,7 @@ SimpleQuery >> builders [
 
 { #category : #copying }
 SimpleQuery >> cloneWithinQuery [
-	"Clone me to assist in rewriting an expression.  Make minimal changes to the shallowCopy's internals so the clone will not accidentally aquire later changes that only pertain to the original.  Specifically, flush the trace to drop any alsoFetch: (either we rewrite to pair the original query with a copy that does not fetch, or fetching is irrelevant) and copy the fields collection so any later changes to it will not be on the same collection."
+	"Clone me to assist in rewriting an expression.  Make minimal changes to the shallowCopy's internals so the clone will not accidentally acquire later changes that only pertain to the original.  Specifically, flush the trace to drop any alsoFetch: (either we rewrite to pair the original query with a copy that does not fetch, or fetching is irrelevant) and copy the fields collection so any later changes to it will not be on the same collection."
 
 	^self shallowCopy
 		flushTracing;
@@ -373,7 +390,7 @@ SimpleQuery >> printANSITablesOn: aCommand [
 { #category : #'sql generation' }
 SimpleQuery >> printJoinsOn: aCommand [
 	| noLeadIn|
-	self platform supportsANSIJoins ifTrue: [^self].
+	self useANSIJoins ifTrue: [^self].
 	joins isEmpty ifTrue: [^self].
 	noLeadIn := whereClause isEmptyExpression.
 	noLeadIn ifFalse: [aCommand nextPutAll: ' AND ('].
@@ -426,21 +443,23 @@ SimpleQuery >> printPreLimitOn: aCommand [
 ]
 
 { #category : #'sql generation' }
-SimpleQuery >> printSelectFields: aCollection on: stream [ 
-	| fieldsToPrint |
-	(aCollection anySatisfy: [:each | each isDistinct]) 
-		ifTrue: [
-			fieldsToPrint := aCollection collect: [:each | each asField].
-			stream nextPutAll: 'DISTINCT ']
-		ifFalse: [fieldsToPrint := aCollection].
+SimpleQuery >> printSelectFields: aCollection on: stream [
+	"A union of alsoFetching queries could have two fields of the same name (on different tables of course), which is an issue on SQLServer, Oracle and MySQL.  These platforms require the field to be aliased."
 
-	"For SQL Server, the TOP has to come after the distinct, but before the fields"
-	self printPreLimitOn: stream.
-			
-	GlorpHelper 
-		do: [:field | field printSelectSQLOn: stream withParameters: nil. ]
+	| fieldsToPrint fieldNames isDistinct |
+	isDistinct := false.
+	fieldNames := OrderedCollection new.
+	fieldsToPrint := aCollection collect:
+		[:each |
+		each isDistinct
+			ifFalse: [each]
+			ifTrue: [isDistinct := true.  each asField]].
+	isDistinct ifTrue: [stream nextPutAll: 'DISTINCT '].
+	self printPreLimitOn: stream.	"SQLServer needs TOP to come between DISTINCT and the fields."
+	GlorpHelper
+		do: [:field | field printSelectSQLOn: stream withParameters: fieldNames]
 		for: fieldsToPrint
-		separatedBy: [stream nextPutAll: ', '].
+		separatedBy: [stream nextPut: $,; space].
 ]
 
 { #category : #'sql generation' }
@@ -566,9 +585,10 @@ which works unless MyClass maps to a composite primaryKey (see the commented err
 	self readsOneObject ifFalse: [^self].
 	"A limit 1 is initialized by readOneOf:.  If it has been reset by the user, hope they meant what they set!"
 	self limit = 1 ifFalse:	[^self].	"(nil is OK, but anInteger gets that many rows, not that many objects)"
-	"We cannot alsoFetch a toMany relationship from a composite-keyed base until RelationExpression>>rewriteEquality can handle that case for #= or #in:
+	"We were unable to alsoFetch a toMany relationship from a composite-keyed base when RelationExpression>>rewriteEquality could not handle that case for #=
 	self baseExpression descriptor primaryTable primaryKeyFields size > 1 ifTrue:
-		[GlorpInvalidExpressionError signal: 'Cannot both limit query and alsoFetch a toMany relationship from a base whose table hasCompositePrimaryKey']."
+		[GlorpInvalidExpressionError signal: 'Cannot both limit query and alsoFetch a toMany relationship from a base whose table hasCompositePrimaryKey'].
+	This has now been fixed for almost all modern platforms, so we assume it is OK and omit the [primaryKeyFields size check.]"
 	"Set our copy's tracing to be nil, to get rid of the alsoFetched expressions."
 	subSelect := self cloneWithinQuery asGlorpExpressionOn: self baseExpression.
 	subSelect query
@@ -610,14 +630,13 @@ SimpleQuery >> setUpExpressions [
 
 { #category : #preparing }
 SimpleQuery >> setupTracing [
-	| |
 	builders isNil ifFalse: [^self].	"Already been done"
 	super setupTracing.
 	builders := tracing allTracings asArray
 		inject: #()
-		into:
-			[:sum :each | sum , (ElementBuilder for: each in: self) withAllSubBuilders].
+		into: [:sum :each | sum , (ElementBuilder for: each in: self) withAllSubBuilders].
 	self addOrderingForToManyJoins.
+	builders do: [:each | each cacheBuilderRelationships: builders].
 ]
 
 { #category : #'sql generation' }
@@ -666,12 +685,28 @@ SimpleQuery >> traceExpressionInContextFor: anExpression [
 
 { #category : #testing }
 SimpleQuery >> useANSIJoins [
-	^self session platform supportsANSIJoins.
+	useANSIJoins isNil ifTrue:
+		[useANSIJoins := self session platform supportsANSIJoins].
+	^useANSIJoins
+]
+
+{ #category : #testing }
+SimpleQuery >> useANSIJoins: aBoolean [
+	"On DB2, recursive expressions cannot use ANSI join syntax even though ordinary expressions can.  This allows a recursive query to set this limitation on its subqueries.  It can also be used to force the generated SQL to be written on the older syntax, which can be easier to read when debugging."
+
+	useANSIJoins := aBoolean.
 ]
 
 { #category : #accessing }
 SimpleQuery >> where: anExpression [
 	self deprecated: #(#version '8.2' #sunset '9.0' #use #whereClause:).
-	whereClause := anExpression.
-	self setUpBase.
+	self whereClause: anExpression.
+
+"Rewriting
+	Query read: MyClass where: [:each | ...]
+as
+	(Query read: MyClass) where: [:each | ...]
+can obscure that an initialEmptyExpression where clause is set, so we prefer
+	(Query read: MyClass) whereClause: [:each | ...]
+in the latter case.  The point is of no great importance;  we have (very debatably) chosen instance-side consistency (whereClause:) over class-creation/instance-manipulation consistency."
 ]

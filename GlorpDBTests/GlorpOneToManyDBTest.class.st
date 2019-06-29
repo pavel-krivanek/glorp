@@ -89,19 +89,19 @@ GlorpOneToManyDBTest >> tearDown [
 { #category : #'tests-read' }
 GlorpOneToManyDBTest >> testReadActionWithCollection [
 	| collection |
-	self
-		inTransactionDo:
-			[collection := OrderedCollection new.
-			self writePersonWithEmailAddresses.
-			((session system descriptorFor: GlorpPerson)
-				mappingForAttributeNamed: #emailAddresses)
-				proxyAction:
-					[:owner :object | object do: [:each | collection add: owner -> each]].
-			person := session readOneOf: GlorpPerson.
-			person emailAddresses yourSelf.
-			self assert: collection size = 2.
-			self assert: collection first = (person -> person emailAddresses first).
-			self assert: collection last = (person -> person emailAddresses last)].
+	self inTransactionDo:
+		[collection := OrderedCollection new.
+		self writePersonWithEmailAddresses.
+		((session system descriptorFor: GlorpPerson)
+			mappingForAttributeNamed: #emailAddresses)
+			shouldProxy: true;	"does by default but ensure it, since"
+			proxyAction:		"we must proxy for our action to fire"
+				[:owner :object | object do: [:each | collection add: owner -> each]].
+		person := session readOneOf: GlorpPerson.
+		person emailAddresses glorpRealObject.
+		self assert: collection size = 2.
+		self assert: collection first = (person -> person emailAddresses first).
+		self assert: collection last = (person -> person emailAddresses last)].
 ]
 
 { #category : #'tests-read' }
@@ -314,15 +314,14 @@ GlorpOneToManyDBTest >> testReadPersonAndReplaceUninstantiatedEmailAddressesWith
 { #category : #'tests-read' }
 GlorpOneToManyDBTest >> testReadPersonWithEmailAddresses [
 	| query result emailAddresses |
-	self
-		inTransactionDo:
-			[self writePersonWithEmailAddresses.
-			query := Query
-				readOneOf: GlorpPerson
-				where: [:eachPerson | eachPerson id = personId].
-			result := query executeIn: session.
-			emailAddresses := result emailAddresses getValue.
-			self checkEmailAddresses: emailAddresses].
+	self inTransactionDo:
+		[self writePersonWithEmailAddresses.
+		query := Query
+			readOneOf: GlorpPerson
+			where: [:eachPerson | eachPerson id = personId].
+		result := query executeIn: session.
+		emailAddresses := result emailAddresses glorpRealObject.
+		self checkEmailAddresses: emailAddresses].
 ]
 
 { #category : #'tests-alsoFetch' }

@@ -46,10 +46,11 @@ RowMapForMementos >> adjustForMementos: objects [
 ]
 
 { #category : #'private/mapping' }
-RowMapForMementos >> collectionMementoFor: aCollection [
+RowMapForMementos >> collectionMementoFor: mayBeCollection [
+	"If my parameter is not in fact a collection then, like my super implementor, I just return it."
 
-	aCollection glorpIsCollection ifFalse: [^aCollection].
-	^collectionMementos at: aCollection ifAbsent: [correspondenceMap at: aCollection].
+	mayBeCollection glorpIsCollection ifFalse: [^mayBeCollection].
+	^collectionMementos at: mayBeCollection ifAbsent: [correspondenceMap at: mayBeCollection]
 ]
 
 { #category : #accessing }

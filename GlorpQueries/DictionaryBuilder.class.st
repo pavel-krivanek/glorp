@@ -2,7 +2,7 @@
 This is a subclass of builders that builds dictionaries. Basically it needs to build both the key and the value and then assemble them into a dictionary.
 
 Instance Variables:
-	keyBuilder	<ElementBuilderr>	The builder for the key
+	keyBuilder	<ElementBuilder>	The builder for the key
 	valueBuilder	<ElementBuilder>	The builder for the value.
 
 
@@ -12,7 +12,8 @@ Class {
 	#superclass : #ElementBuilder,
 	#instVars : [
 		'keyBuilder',
-		'valueBuilder'
+		'valueBuilder',
+		'relatedBuilder'
 	],
 	#category : #GlorpQueries
 }
@@ -32,6 +33,16 @@ DictionaryBuilder >> buildObjectFrom: anArray [
 	"We just build an association out of the sub-builders "
 	| |
 	self row: anArray.
+]
+
+{ #category : #copying }
+DictionaryBuilder >> cacheBuilderRelationships: aCollection [
+	"Clone of ObjectBuilder>>cacheBuilderRelationships:"
+
+	expression canKnit ifFalse: [^self].
+	relatedBuilder := aCollection
+		detect: [:each | each buildsObjects and: [each expression == expression base]]
+		ifNone: [nil].
 ]
 
 { #category : #accessing }
@@ -62,17 +73,16 @@ DictionaryBuilder >> instanceValue [
 
 { #category : #'building objects' }
 DictionaryBuilder >> knitResultIn: aCursoredStream [
-	"Connect up our built object with any other objects that reference it. Used if we retrieve more than one thing in the same query"
-	| relatedBuilder |
+	"Populate our built association with its key and value, then repeat the code of ObjectBuilder>>knitResultIn:."
+
 	instance key: keyBuilder instance.
 	instance value: valueBuilder instance.
 
-	"Code from ObjectBuilder>>knitResultIn:"
+	"Clone of ObjectBuilder>>knitResultIn:"
 	expression canKnit ifFalse: [^self].
-	relatedBuilder := aCursoredStream objectBuilderFor: expression base.
-	(relatedBuilder isNil or: [relatedBuilder instance isNil]) 
-		ifFalse: 
-			[expression mapping knitFromBuilder: relatedBuilder toBuilder: self]
+	relatedBuilder isNil ifTrue: [^self].
+	relatedBuilder instance isNil ifTrue: [^self].
+	expression mapping knitFromBuilder: relatedBuilder toBuilder: self.
 ]
 
 { #category : #copying }
@@ -81,17 +91,26 @@ DictionaryBuilder >> postCopy [
 
 { #category : #copying }
 DictionaryBuilder >> reconcileWithBuilders: oldCollection andCopy: newCollection [
-	"Fix up references to our internal sub-builders"
-	| keyIndex valueIndex |
-	keyIndex := oldCollection indexOf: keyBuilder.
-	keyBuilder := newCollection at: keyIndex.
-	valueIndex := oldCollection indexOf: valueBuilder.
-	valueBuilder := newCollection at: valueIndex.
+	"Fix up references to our association sub-builders, then repeat the code of ObjectBuilder>>reconcileWithBuilders:andCopy:."
+
+	| initialValueQuery |
+	keyBuilder := newCollection at: (oldCollection indexOf: keyBuilder).
+	valueBuilder := newCollection at: (oldCollection indexOf: valueBuilder).
+
+	"Clone of ObjectBuilder>>reconcileWithBuilders:andCopy:"
+	relatedBuilder isNil ifTrue: [^self].
+	relatedBuilder := newCollection at: (oldCollection indexOf: relatedBuilder).
+	"Ensure my relatedBuilder does not redundantly try to get my value."
+	initialValueQuery := ShortCircuitQuery new.
+	expression mapping attribute isCollectionAttribute ifTrue:
+		[initialValueQuery resultTemplate: expression mapping attribute newCollection].
+	relatedBuilder cachedQueryFor: expression mapping put: initialValueQuery
 ]
 
 { #category : #'initialize-release' }
 DictionaryBuilder >> setup [
-	"Do any initialization once we've got our parameters"
+	"We now have our expression and our query.  Use them to set our key and value builders."
+
 	| base collectionType |
 	base := query baseExpression.
 	collectionType := expression == base ifTrue: [query collectionType] ifFalse: [expression mapping query collectionType].

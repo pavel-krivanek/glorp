@@ -20,7 +20,7 @@ GlorpExpressionTableAliasingTest class >> visualWorksMetadata [
 { #category : #support }
 GlorpExpressionTableAliasingTest >> helpTestBasicAliasing: aTable [
 	self deny: exp hasTableAliases.
-	exp assignTableAliasesStartingAt: 1 prefix: 's1t'.
+	exp assignTableAliasesStartingAt: Set new prefix: 's1t'.
 	self assert: exp hasTableAliases.
 	self assert: exp tableAliases size = 1.
 	self assert: (exp tableAliases at: aTable) name = 's1t1'.
@@ -60,8 +60,8 @@ GlorpExpressionTableAliasingTest >> testTableSameAsBase [
 	custTable := system tableNamed: 'GR_CUSTOMER'.
 	exp := base getTable: custTable.
 	self deny: exp hasTableAliases.
-	exp assignTableAliasesStartingAt: 1 prefix: ''.
-	base assignTableAliasesStartingAt: 42 prefix: nil.
+	exp assignTableAliasesStartingAt: Set new prefix: ''.
+	base assignTableAliasesStartingAt: (1 to: 41) asSet prefix: nil.
 	self deny: exp hasTableAliases.
 	self assert: (exp aliasedTableFor: custTable) name = 't42'.
 ]

@@ -61,8 +61,7 @@ GlorpInMemorySequenceDatabaseType >> isGenerated [
 
 { #category : #SQL }
 GlorpInMemorySequenceDatabaseType >> preWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor [
-
-	aDatabaseRow at: aDatabaseField put: (self class next)
+	aDatabaseRow at: aDatabaseField put: self class next.
 ]
 
 { #category : #'initialize-release' }

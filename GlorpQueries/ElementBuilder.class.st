@@ -7,6 +7,10 @@ Subclasses must implement the following messages:
 		findInstanceForRow:useProxy:
 	selecting fields
 		fieldsFromMyPerspective
+and should review whether API methods
+	buildsObjects
+	knitResultIn:
+will need overriding.  (The remaining externally-called API is #cursor: and #onCompoundCursor:, #expression, #instance, #hasSetPrimaryKey and #sendPostFetchValidateIn:onFailureDo:, all rarely changed in subclasses.)
 
 Instance Variables:
 	expression	<MappingExpression>	The expression we're mapping. e.g. if the query is reading people, this might be the expression corresponding to ""each address"", meaning that we build the address object related to the main Person instance by the given relationship. 
@@ -39,10 +43,16 @@ Class {
 
 { #category : #private }
 ElementBuilder class >> basicClassFor: anExpression in: aQuery [
+	"If anExpression hasDescriptor then it is a BaseExpression with a descriptor or a MappingExpression whose mapping is a relationship."
 
-	^(anExpression hasDescriptor and: [anExpression mapsSimpleObject not])
-		ifTrue: [ObjectBuilder] 
-		ifFalse: [DataElementBuilder].
+	anExpression hasDescriptor ifFalse: [^DataElementBuilder].
+	"To get here, anExpression is either a BaseExpression with descriptor or ..."
+	anExpression canKnit ifFalse:
+		[^anExpression mapsSimpleObject ifTrue: [DataElementBuilder] ifFalse: [ObjectBuilder]].
+	"... (to get here) it is a MappingExpression whose mapping is a relationship and cannot be a DictionaryMapping (caller intercepts)."
+	anExpression mapsSimpleObject ifTrue: [^RelatedDataElementBuilder].
+	anExpression mapping class == ConditionalMapping ifTrue: [^ConditionalBuilder].
+	^ObjectBuilder
 ]
 
 { #category : #'instance creation' }
@@ -97,6 +107,11 @@ ElementBuilder >> buildsObjects [
 	^false.
 ]
 
+{ #category : #copying }
+ElementBuilder >> cacheBuilderRelationships: aCollection [
+	"By the time this is called, SimpleQuery has all our builders, so subclasses can cache the one to which they will knit, if any."
+]
+
 { #category : #accessing }
 ElementBuilder >> canCauseDuplicateRows [
 	^false.
@@ -114,7 +129,9 @@ ElementBuilder >> cursor [
 
 { #category : #accessing }
 ElementBuilder >> cursor: aGlorpCursoredStream [
-	cursor := aGlorpCursoredStream
+	"I am expected to return self by #onCompoundCursor:."
+
+	cursor := aGlorpCursoredStream.
 ]
 
 { #category : #'building objects' }
@@ -163,6 +180,13 @@ ElementBuilder >> hasFieldTranslations [
 	^self fieldTranslations notNil
 ]
 
+{ #category : #testing }
+ElementBuilder >> hasSetPrimaryKey [
+	"I set key to self when I get a row (which we assume has happened before this is called).  Has it been reset to the row's primaryKey?"
+
+	^key ~~ self
+]
+
 { #category : #initializing }
 ElementBuilder >> initialize [
 ]
@@ -185,6 +209,13 @@ ElementBuilder >> knitResultIn: aSimpleQuery [
 ]
 
 { #category : #copying }
+ElementBuilder >> onCompoundCursor: aGlorpCursoredStream [
+	"This implementor returns self;  subimplementors may not."
+
+	^self cursor: aGlorpCursoredStream
+]
+
+{ #category : #copying }
 ElementBuilder >> postCopy [
 	instance := nil.
 	row := nil.
@@ -204,6 +235,7 @@ ElementBuilder >> query: aQuery [
 
 { #category : #copying }
 ElementBuilder >> reconcileWithBuilders: oldCollection andCopy: newCollection [
+	"Subclasses with already-computed references to other builders must now reset them to be references to the copy."
 ]
 
 { #category : #'building objects' }
@@ -237,14 +269,14 @@ ElementBuilder >> row [
 
 { #category : #accessing }
 ElementBuilder >> row: anArray [
-	"Since nil is a possible key value, use self as a special marker to indicate we haven't found the key yet"
-	row == anArray ifFalse: [
-		key := self].
+	"Since nil is a possible key value, use self as a special marker to indicate we haven't found the key yet.  Logically we could check equality, not identity, of row and anArray - that would equally well guarantee that the primaryKey value(s), if present, were the same.  However a row could be huge and equality comparison very slow.  It is arguably both safer and quicker to re-extract the primaryKey value(s) from anArray if it is not identical to the prior row."
+
+	row == anArray ifFalse: [key := self].
 	row := anArray.
 ]
 
 { #category : #'building objects' }
-ElementBuilder >> sendPostFetchValidateIn: aSession OnFailureDo: aBlock [
+ElementBuilder >> sendPostFetchValidateIn: aSession onFailureDo: aBlock [
 	| validateResult |
 	validateResult := aSession sendPostFetchValidateEventTo: self instance.
 	(self didValidationFail: validateResult) ifTrue: aBlock.

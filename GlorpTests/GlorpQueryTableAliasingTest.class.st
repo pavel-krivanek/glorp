@@ -44,7 +44,7 @@ GlorpQueryTableAliasingTest >> setUp [
 	expression descriptor: (system descriptorFor: GlorpCustomer).
 	(expression descriptor mappingForAttributeNamed: #name) shouldProxy: false.
 	elementBuilder := ObjectBuilder for: expression in: query.
-	expression assignTableAliasesStartingAt: 1 prefix: 't'.
+	expression assignTableAliasesStartingAt: Set new prefix: 't'.
 	session := GlorpSession new.
 	session system: system.
 	query session: system session.
@@ -58,8 +58,11 @@ GlorpQueryTableAliasingTest >> testAliasWithEmbeddedMapping [
 
 { #category : #tests }
 GlorpQueryTableAliasingTest >> testBuildingObject [
+	"This is a non-database-connecting test, so we force all mappings that could require DB connection (or cache prepping) to proxy.  They all do by default anyway, but this makes the test robust to any test-run-configuration-induced changes."
 
 	| customer |
+	elementBuilder descriptor mappings do:
+		[:each | each mapsSimpleObject ifFalse: [each shouldProxy: true]].
 	elementBuilder instance: GlorpCustomer new.
 	elementBuilder requiresPopulating: true.
 	elementBuilder buildObjectFrom: #(12 'Name').
@@ -116,5 +119,5 @@ GlorpQueryTableAliasingTest >> testQueryPrintingTables [
 	stream := String new writeStream.
 	query printTablesOn: stream.
 	string := stream contents.
-	self assert: string withUnixLineEndings = '<n> FROM GR_CUSTOMER t1' expandMacros withUnixLineEndings.
+	self assert: string = '<n> FROM GR_CUSTOMER t1' expandMacros.
 ]

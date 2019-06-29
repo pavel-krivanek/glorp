@@ -45,8 +45,10 @@ EmbeddedValueOneToOneMapping >> fieldTranslation [
 ]
 
 { #category : #accessing }
-EmbeddedValueOneToOneMapping >> fieldTranslation: aPrimaryKeyExpression [ 
-	fieldTranslation := aPrimaryKeyExpression
+EmbeddedValueOneToOneMapping >> fieldTranslation: aPrimaryKeyExpression [
+	"Typically, the parameter is a join connecting the real table to the imaginary table of the embedded value mapping."
+
+	fieldTranslation := aPrimaryKeyExpression.
 ]
 
 { #category : #internal }
@@ -66,6 +68,12 @@ EmbeddedValueOneToOneMapping >> hasFieldTranslation [
 EmbeddedValueOneToOneMapping >> hasTransformation [
 
 	^false.
+]
+
+{ #category : #initializing }
+EmbeddedValueOneToOneMapping >> initialize [
+	super initialize.
+	shouldProxy := false.
 ]
 
 { #category : #testing }
@@ -98,26 +106,28 @@ EmbeddedValueOneToOneMapping >> knitFromBuilder: sourceBuilder toBuilder: target
 ]
 
 { #category : #mapping }
-EmbeddedValueOneToOneMapping >> mapFromObject: anObject toTarget: target puttingRowsIn: aRowMap [ 
+EmbeddedValueOneToOneMapping >> mapFromObject: anObject toTarget: target puttingRowsIn: aRowMap [
+	"We create our rows - that are rows in (some or all of) my owner's table(s) - and then mark them as not to be written to the database.  Row unification causes any values we have put in fields of my rows to be also put in the same fields of my owner's rows that its direct mappings wrote.  These latter rows will be written - with the owner's values and mine - while my rows contain only those values I provide and so will (almost) certainly be incomplete and not fit for writing and in any case redundant."
 
-	self transformationExpression 
+	self transformationExpression
 		mapFromSource: anObject
 		andTarget: target
 		intoRowsIn: aRowMap.
-
-	self transformationExpression allTables do: [:eachTable |	
-		aRowMap rowForTable: eachTable withKey: target ifPresent: [  :each |
-			each shouldBeWritten: false]].
+	self transformationExpression allTables do:
+		[:eachTable |
+		aRowMap rowForTable: eachTable withKey: target ifPresent:
+			[:each | each shouldBeWritten: false]].
 ]
 
 { #category : #mapping }
 EmbeddedValueOneToOneMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
+	"Check whether the object already has a value in my slot.  If it does, then we got a cache hit, the embedded value was carried along for the ride, and we don't need to assign anything.  If not, we need to look up the trace node that corresponds to this mapping, and get its instance."
+
 	| myTraceNode myBuilder |
-	"If the object already has a value in my slot, then this it got a cache hit, the embedded value was carried along for the ride, and we don't need to assign anything"
-	(self getValueFrom: anObject) isNil ifFalse: [^self].	"Otherwise, we need to look up the trace node that corresponds to this mapping, and get its instance"
+	(self getValueFrom: anObject) isNil ifFalse: [^self].
 	myTraceNode := anElementBuilder expression get: self attributeName.
 	myBuilder := anElementBuilder query elementBuilderFor: myTraceNode.
-	self setValueIn: anObject to: myBuilder instance.
+	^self setValueIn: anObject to: myBuilder instance
 ]
 
 { #category : #internal }
@@ -136,38 +146,35 @@ EmbeddedValueOneToOneMapping >> reverseMapping [
 		descriptor: self descriptor.
 ]
 
-{ #category : #testing }
-EmbeddedValueOneToOneMapping >> shouldProxy [
-
-	^false.
+{ #category : #accessing }
+EmbeddedValueOneToOneMapping >> shouldProxy: aBoolean [
+	self halt: 'I''m not sure embedded mappings _can_ proxy;  I''m fairly sure they shouldn''t'.
+	shouldProxy := aBoolean.
 ]
 
 { #category : #transformations }
 EmbeddedValueOneToOneMapping >> transformationExpression [
-
 	^self hasFieldTranslation
 		ifTrue: [fieldTranslation]
-		ifFalse: [fieldTranslation := self defaultTransformationExpressionFor: (self referenceDescriptor)].
+		ifFalse: [fieldTranslation := self defaultTransformationExpressionFor: self referenceDescriptor]
 ]
 
 { #category : #mapping }
-EmbeddedValueOneToOneMapping >> translateFields: anOrderedCollection [ 
-	fieldTranslation isNil ifTrue: [^anOrderedCollection].
-	^anOrderedCollection collect: [:each |
-		fieldTranslation sourceForTarget: each].
+EmbeddedValueOneToOneMapping >> translateField: aDatabaseField [
+	^fieldTranslation isNil
+		ifTrue: [aDatabaseField]
+		ifFalse: [fieldTranslation sourceForTarget: aDatabaseField ifNone: [aDatabaseField]]
 ]
 
 { #category : #mapping }
 EmbeddedValueOneToOneMapping >> translateTable: aTable [
-	"If we have a field translation, return the translated (i.e. real) table to use. This ideally allows us to use either the real table in which something is embedded, or the imaginary table"
+	"If we have a field translation, return the translated (i.e. real) table to use. This ideally allows us to use either the real table in which something is embedded, or the imaginary table."
 
 	fieldTranslation isNil ifTrue: [^aTable].
-	1 to: fieldTranslation allTargetFields size
-		do:
-			[:i | 
-			(fieldTranslation allTargetFields at: i) table == aTable
-				ifTrue: [^(fieldTranslation allSourceFields at: i) table]].
-	^aTable.
+	1 to: fieldTranslation allTargetFields size do:
+		[:i | (fieldTranslation allTargetFields at: i) table == aTable
+			ifTrue: [^(fieldTranslation allSourceFields at: i) table]].
+	^aTable
 ]
 
 { #category : #mapping }

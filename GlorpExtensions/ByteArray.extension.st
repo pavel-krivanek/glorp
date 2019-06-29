@@ -6,15 +6,11 @@ ByteArray >> glorpIsCollection [
 	^false.
 ]
 
-{ #category : #'*GlorpExtensions' }
+{ #category : #'*GlorpExtensions-glorp' }
 ByteArray >> glorpPrintSQLOn: aCommand [
-	|aStream|
-	aStream := WriteStream on: String new.
-	aStream nextPutAll: 'E'''.
-	self do: [:each |
-		aStream nextPutAll: '\\'.
-		aStream nextPutAll: (each asInteger printPaddedWith: $0 to: 3 base: 8 )].
-	aStream nextPutAll: '''::bytea'.
-	aCommand nextPutAll: aStream contents
-
+	|strm|
+	strm := WriteStream on: String new.
+	strm nextPutAll: '0x'.
+	strm nextPutAll: self asHexString.
+	aCommand nextPutAll: strm contents
 ]

@@ -56,47 +56,47 @@ DictionaryMapping >> basicReferenceDescriptor [
 
 { #category : #mapping }
 DictionaryMapping >> buildQuery [
-	| keyExpression valueExpression refDescKeyMapping notAddedByKeyMapping |
-	query := super buildQuery.
-	keyExpression := self keyExpression.
+	"I used to set the 'query' instVar in the first line, after which I set the temp 'keyExpression' in the second line by calling my sibling method #keyExpression, which checked that 'query' was not nil and returned its baseExpression (see that method's comment).  This behaviour is now inlined into me, which lets me delegate setting 'query' to my caller."
+
+	| builtQuery keyExpression valueExpression refDescKeyMapping notAddedByKeyMapping |
+	builtQuery := super buildQuery.	"next line is inlined from #keyExpression in the case query is not nil"
+	keyExpression := builtQuery baseExpression getMapping: self keyMapping named: #key.
 	valueExpression := self valueExpression.
-	query retrieveDictionaryWithKey: keyExpression value: valueExpression.
+	builtQuery retrieveDictionaryWithKey: keyExpression value: valueExpression.
 	"Do we have enough information from the value mapping to get rows from which extracting the key merely requires adding to the list of fields selected from the existing tables (if that)? ..."
-	self keyMapping controlsTables ifFalse: [^query].	"a direct mapping will not control tables"
+	self keyMapping controlsTables ifFalse: [^builtQuery].	"a direct mapping will not control tables"
 	(self descriptor tables includes: self keyMapping mappedFields first table)
-		ifTrue: [^query].
+		ifTrue: [^builtQuery].
 	(self usesLinkTable and: [self join allTables includes: self keyMapping mappedFields first table])
-		 ifTrue: [^query].
+		 ifTrue: [^builtQuery].
 	"... If we get here, the answer is no:  the user has defined a keyMapping that controls tables, i.e. they don't think the overall descriptor already controls all necessary tables (or they forgot to change the value from true - its default - to for-this-case false).  Our key mapping is acting like a second link table:  it must have a join from the key (which is otherwise outside the zone of this descriptor) to the value.  As the keyMapping's join is from the key to the value, we do not need to reverse it (i.e. as is done in expressionFromLinkToReferenceTableWithBase which otherwise guided the code below).  Trivially, we initialize to non-nil (empty) all existing experessions' tableAliases, so we can see which ones are still nil after we extend the where clause, and so are the ones added by the key mapping.  We share aliases from the key mapping to all such added expressions, so ensuring the key part of the expression will sync with the main query's value part of the expression."
-	notAddedByKeyMapping := query baseExpression mappingExpressions values.	"values makes a copy - we must copy"
+	notAddedByKeyMapping := builtQuery baseExpression mappingExpressions values.	"values makes a copy - we must copy"
 	"An alternative to the ANDs below could be to AND
 		(self referenceDescriptor mappingForAttributeNamed: #key) buildQuery whereClause
 	along with replacing the parameter element in the above whereClause with the main query's join element(s) for the value's primaryKey."
 	refDescKeyMapping := self referenceDescriptor mappingForAttributeNamed: #key.
-	query AND:
-		(refDescKeyMapping join asGlorpExpressionOn: query baseExpression) asGeneralGlorpExpressionWithFields.
+	builtQuery AND:
+		(refDescKeyMapping join asGlorpExpressionOn: builtQuery baseExpression) asGeneralGlorpExpressionWithFields.
 	refDescKeyMapping usesLinkTable ifTrue:
-		[query AND:
-			(refDescKeyMapping expressionFromLinkToReferenceTableWithBase: query baseExpression)].
+		[builtQuery AND:
+			(refDescKeyMapping expressionFromLinkToReferenceTableWithBase: builtQuery baseExpression)].
 	"Initialize the the keyExpression table alias dictionary, then initialize the expressions it added to use the same instance."
 	keyExpression tableAliases isNil ifTrue:
 		[keyExpression privateTableAliases: (IdentityDictionary new: 3)].
-	query baseExpression mappingExpressions do:
+	builtQuery baseExpression mappingExpressions do:
 		[:each |
 		(notAddedByKeyMapping includes: each) ifFalse:
 			[each privateTableAliases: keyExpression tableAliases]].
-	^query
+	^builtQuery
 ]
 
 { #category : #mapping }
 DictionaryMapping >> buildRowMapKeyForSource: source target: target index: index [
+	"Caller must ensure source and target cannot be proxies.  Put target first in the actual key:  because we iterate from the source, it is probably quicker not to match than the source, especially in ToManyMappings."
+
 	^self mapsSimpleObject 
-		ifTrue: [
-			MultipleRowMapKey
-				with: target yourSelf
-				with: source yourSelf
-				with: index]
-		ifFalse: [super buildRowMapKeyForSource: source target: target index: index].
+		ifTrue: [MultipleRowMapKey with: target with: source with: index]
+		ifFalse: [super buildRowMapKeyForSource: source target: target index: index]
 ]
 
 { #category : #mapping }
@@ -186,8 +186,8 @@ DictionaryMapping >> initializeValueMappingJoin [
 DictionaryMapping >> keyExpression [
 	"Return the expression to use for our key. In a prior version, the key could be built only using data from either the target object, or from the link table, so we built a fresh expression on one or the other, as appropriate, ignoring the fact that the base expression (for the association descriptor) already had a key mapping.  In this version, we get it from the base expression, since the mapping may be to a third table that joins to the value table.  For hierarchy/type resolver situations (the outer ifTrue: branch), we continue to use the old code."
 	
-	^(query isNil
-		ifFalse: [query baseExpression]		"base(associationDescriptor) already has the mapping"
+	^(query isNil	"former caller #buildQuery must take the ifFalse: branch, so inlines it"
+		ifFalse: [query baseExpression]	"base(associationDescriptor) already has the mapping"
 		ifTrue:						"see call of #setGeneralQueryRetrievalIn:basedOn:phantom:"
 			[| base | base := BaseExpression new.
 			(self descriptor tables includes: self keyMapping mappedFields first table)
@@ -256,15 +256,6 @@ DictionaryMapping >> newMapping: aMappingClass [
 	mapping descriptor: self associationDescriptor.
 	descriptor resetMappedFields.
 	^mapping.
-]
-
-{ #category : #mapping }
-DictionaryMapping >> pseudoDescriptor [
-	"Return a pretend descriptor for our reference class. Since that class is a primitive, it won't have a real descriptor, and it may vary by usage anyway"
-	| pseudoDescriptor |
-	pseudoDescriptor := Descriptor new.
-	pseudoDescriptor system: descriptor system.
-	^pseudoDescriptor.
 ]
 
 { #category : #accessing }

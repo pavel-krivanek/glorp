@@ -17,17 +17,28 @@ String >> glorpPrintSQLOn: aCommand [
 	aCommand nextPut: $'.
 ]
 
-{ #category : #'*GlorpExtensions' }
-String >> like: wildcardString [
-	" 'abcde' like: 'abc%'  "
+{ #category : #'*GlorpExtensions-glorp' }
+String >> like: aPattern [ 
+	"This uses, with permission, the code from ObjectStudio that implements this."
+	^self 
+		likePattern: aPattern
+		from: 1
+		sourceStart: 1
 
-	^self likePattern: wildcardString from: 1 sourceStart: 1.
-	"
-	| newString |
-	newString := wildcardString copy.
-	newString replaceAll: $% with: $*.
-	newString replaceAll: $_ with: $#.
-	^newString match: self."
+
+	":Section Reference
+							like: aPattern
+		Description:        	Returns true if the receiver contains a string being
+                   	 			matched by the parameter 'aPattern'. Using the wildcard
+					  		$% serves as placeholder for 0-n $_ as a placeholder
+					  		for a single matched character.
+		Assumptions:        	'aPattern' is expected to be of class String.
+		Return Value:       	true or false.
+		Receiver Modified:  	No.
+		Examples:			('abcdefg' like: 'abc%') -> true
+							('abcdefg' like: 'abc__fg') -> true
+  							('abcdefg' like: '_defg') -> false
+	:End"
 ]
 
 { #category : #'*GlorpExtensions-glorp' }

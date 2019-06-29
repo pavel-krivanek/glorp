@@ -82,14 +82,13 @@ GlorpAttributeModelTest >> testPreserveAttributes [
 	table := DatabaseTable named: 'FRED'.
 	field := table createFieldNamed: 'BARNEY' type: OraclePlatform new int4.
 	mapping := DirectMapping from: #key type: Object to: field.
-	self assert: mapping attributeAccessor useDirectAccess.
+	self assert: mapping attribute useDirectAccess.
 	self assert: attributeModel useDirectAccess.
 
-	mapping attributeAccessor useDirectAccess: false.
+	mapping attribute useDirectAccess: false.
 	self assert: mapping attribute type == Object.
 	descriptor addMapping: mapping.
 	self assert: mapping attribute == attributeModel.
-	self assert: mapping attribute == mapping attributeAccessor.
 	self assert: attributeModel type == Object.
 	self deny: attributeModel useDirectAccess.
 ]

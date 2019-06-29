@@ -1,8 +1,7 @@
 "
-This builds raw data items rather than persistent objects with descriptors. Used if we do something like 
-  aQuery retrieve: [:each | each address streetName].
+This builds raw data items rather than persistent objects with descriptors.  It is used if we do e.g.
+	aQuery retrieve: [:each | each address streetName].
 giving us back simple data objects.
-This makes building them quite simple.
 "
 Class {
 	#name : #DataElementBuilder,
@@ -49,4 +48,15 @@ DataElementBuilder >> fieldsFromMyPerspective [
 DataElementBuilder >> findInstanceForRow: aRow proxyType: proxyType [
 
 	^self.
+]
+
+{ #category : #copying }
+DataElementBuilder >> onCompoundCursor: aGlorpCursoredStream [
+	^expression class == ConstantExpression
+		ifFalse: [self cursor: aGlorpCursoredStream]
+		ifTrue: [CompoundConstantBuilder new postCopy
+				expression: expression;
+				query: query;
+				fieldTranslations: fieldTranslations;
+				cursor: aGlorpCursoredStream]
 ]

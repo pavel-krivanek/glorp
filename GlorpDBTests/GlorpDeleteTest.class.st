@@ -10,6 +10,11 @@ Class {
 	#category : #'GlorpDBTests-GlorpTest'
 }
 
+{ #category : #accessing }
+GlorpDeleteTest class >> resources [
+	^Array with: GlorpSessionResource
+]
+
 { #category : #'VisualWorks metadata' }
 GlorpDeleteTest class >> visualWorksMetadata [
 
@@ -378,6 +383,69 @@ GlorpDeleteTest >> testDeleteOldCopyInsertNewIsUpdate [
 		ofInsertUpdatesFields: 2.
 ]
 
+{ #category : #tests }
+GlorpDeleteTest >> testDeleteReferencedObject [
+	"Delete a referenced object (a message, in this example) and verify that a cached referencing object (a folder that can contain one or more messages, in this example) is updated after it is refreshed but not before, whereas a proxy is immediately up-to-date.
+	Of course, the usual procedure would not be to delete the message and then refresh the folder but instead to remove the referenced object from its referencer's collection and from the database inside a Folder>>deleteMessage: method;  this would be done unless the app had some expectation that the folder could be a proxy and some performance desire that it remain so."
+
+	| message1 folder1 message2 folder2 |
+	[self setUpFolders.
+	self checkFoldersExistInDatabase.
+
+	"Read a message"
+	message1 := session readOneOf: GlorpMessage where: [:each | each subject = 'also goes in folder 1'].
+	self deny: message1 isNil.
+	self assert: message1 = (session cacheLookupForClass: GlorpMessage key: #(1 'One' 'also goes in folder 1')).
+	"Instantiate the folder containing that message;  verify it is now in the cache"
+	folder1 := message1 folder.
+	self deny: folder1 isInstantiated.
+	folder1 := folder1 yourSelf.
+	self assert: message1 folder isInstantiated.
+	self assert: folder1 = (session cacheLookupForClass: GlorpFolder key: #(1 'One')).
+	self assert: (folder1 messages includes: message1).
+
+	session beginUnitOfWork.
+	session delete: message1.
+	session commitUnitOfWork.
+
+	"The object itself is still in the image"
+	self deny: message1 isNil.
+	"but no longer in the session's cache"
+	self assert: (session cacheLookupForClass: GlorpMessage key: #(1 'One' 'also goes in folder 1')) isNil.
+	"or the database"
+	self assert: (session accessor executeSQLString: 'SELECT * FROM GR_MESSAGE WHERE SUBJECT =  ''also goes in folder 1''')
+		isEmpty.
+	"However it remains in the in-image Glorp object(s) that reference it, in this case its folder"
+	self assert: (folder1 messages includes: message1).
+	"until we refresh such object(s) from the database"
+	session refresh: folder1.
+	self deny: (folder1 messages includes: message1).
+	
+	"Read another message, but leave its folder a proxy for now"
+	message2 := session readOneOf: GlorpMessage where: [:each | each subject = 'goes in folder 2'].
+	self deny: message2 isNil.
+	self assert: message2 = (session cacheLookupForClass: GlorpMessage key: #(2 'Two' 'goes in folder 2')).
+	"The point of this part of the test is to leave folder2 as a proxy till later, so we check in the database, not the image, that the message is in a folder"
+	self assert: ((session read: GlorpMessage where: [:each | each folder name = 'Two']) includes: message2).
+	folder2 := message2 folder.
+	self deny: folder2 isInstantiated.
+
+	session beginUnitOfWork.
+	session delete: message2.
+	session commitUnitOfWork.
+
+	"The object itself is still in the image"
+	self deny: message2 isNil.
+	"but not in the session's cache"
+	self assert: (session cacheLookupForClass: GlorpMessage key: #(2 'Two' 'goes in folder 2')) isNil.
+	"or the database"
+	self assert: (session accessor executeSQLString: 'SELECT * FROM GR_MESSAGE WHERE SUBJECT =  ''goes in folder 2''')
+		isEmpty.
+	"and when we cause instantiation of previously-uninstatiated referencing object by asking, it's no longer there"
+	self deny: (folder2 messages includes: message2)]
+		ensure: [session rollbackTransaction]
+]
+
 { #category : #'delete-insert-update tests' }
 GlorpDeleteTest >> testDeleteShallowCopyInsertIsUpdate [
 	"This is like testDeleteOldCopyInsertNewIsUpdate but demonstrates a workaround for the case when the user knows the object is already in the database but did not capture a shallowCopy before changing it.  It exploits the Glorp shortcut that, when delete and insert are combined to update, Glorp does not check which fields have changed but updates all fields, even though in this example the object and copy are unchanged."
@@ -422,6 +490,84 @@ GlorpDeleteTest >> testDeleteWhenRemovingFromAnExclusiveCollection [
 	generalResult := session accessor executeSQLString: 'SELECT * FROM GR_MESSAGE'.
 	self assert: generalResult size = 1.] 
 			ensure: [session rollbackTransaction]
+]
+
+{ #category : #tests }
+GlorpDeleteTest >> testDeleteWithOnlyUninstantiatedPrimaryKey [
+	"Delete an object whose primaryKey is wholly held by a referenced but uninstantiated object, so the object to be deleted depends wholly on the proxy's parameter to know its primaryKey value.  Verify it can be deleted in this case while leaving the referenced object uninstantiated.  The object being tested has only relationship mappings (a one-one mapping to its uninstantiated primaryKey holder and a many-many mapping that writes to a link table) but no direct mappings to its own primaryTable:  only in this situation is the object wholly dependent on deletion code to put its primaryKey into its forDeletion row."
+
+	| message1 user1 |
+	[self setUpFolders.
+	self checkFoldersExistInDatabase.
+	"Write a default message; just for completeness, check it is in the database and unread."
+	session accessor executeSQLStringNoResult: 'INSERT INTO GR_DEFAULT_MESSAGE VALUES (1)'.
+	self deny: (session accessor executeSQLString: 'SELECT * FROM GR_DEFAULT_MESSAGE WHERE USER_ID = 1') isEmpty.
+	self assert: (session cacheLookupForClass: GlorpDefaultMessage key: 1) isNil.
+	"Read it, specifying the primary key value."
+	message1 := session
+		readOneOf: GlorpDefaultMessage
+		where: [:each | each user id = 1].
+	self deny: message1 isNil.
+	self assert: message1 = (session cacheLookupForClass: GlorpDefaultMessage key: 1).
+	user1 := message1 user.
+	self deny: user1 isInstantiated.
+	self assert: (session cacheLookupForClass: GlorpUser key: 1) isNil.
+	"Delete the message..."
+	session beginUnitOfWork.
+	session delete: message1.
+	session commitUnitOfWork.
+	"...and verify that did not instantiate the primaryKey-ing user - because it was specified as a parameter."
+	self deny: user1 isInstantiated.
+	self assert: (session cacheLookupForClass: GlorpUser key: 1) isNil.
+	"The object itself is still in the image..."
+	self deny: message1 isNil.
+	"...but no longer in the session's cache..."
+	self assert: (session cacheLookupForClass: GlorpMessage key: 1) isNil.
+	"...or the database."
+	self assert: (session accessor executeSQLString: 'SELECT * FROM GR_DEFAULT_MESSAGE WHERE USER_ID = 1') isEmpty.]
+		ensure: [session rollbackTransaction].
+]
+
+{ #category : #tests }
+GlorpDeleteTest >> testDeleteWithUninstantiatedPrimaryKeys [
+	"Delete an object whose composite primaryKey is partly held by other uninstantiated objects, but where those primaryKey values are known via parameters."
+
+	| message1 folder1 user1 |
+	[self setUpFolders.
+	self checkFoldersExistInDatabase.
+
+	"Read a message, specifying all three primary key values."
+	message1 := session readOneOf: GlorpMessage where:
+		[:each |
+		each user id = 1
+		AND: [each folder name = 'One'
+		AND: [each subject = 'also goes in folder 1']]].
+	self deny: message1 isNil.
+	self assert: message1 = (session cacheLookupForClass: GlorpMessage key: #(1 'One' 'also goes in folder 1')).
+	"Do not instantiate the folder or user keying that message."
+	folder1 := message1 folder.
+	user1 := message1 user.
+	self deny: folder1 isInstantiated.
+	self deny: user1 isInstantiated.
+	"Delete the message..."
+	session beginUnitOfWork.
+	session delete: message1.
+	session commitUnitOfWork.
+	"...and verify that did not instantiate the primaryKey-ing objects - because they were specified."
+	self deny: folder1 isInstantiated.
+	self deny: user1 isInstantiated.
+
+	"The object itself is still in the image"
+	self deny: message1 isNil.
+	"but no longer in the session's cache"
+	self assert: (session cacheLookupForClass: GlorpMessage key: #(1 'One' 'also goes in folder 1')) isNil.
+	"or the database"
+	self assert: (session accessor executeSQLString: 'SELECT * FROM GR_MESSAGE WHERE SUBJECT = ''also goes in folder 1''') isEmpty.
+	"or the folder, if we now instantiate it"
+	self deny: folder1 isInstantiated.
+	self deny: (folder1 messages includes: message1).
+	self assert: folder1 isInstantiated]
+		ensure: [session rollbackTransaction]
 ]
 
 { #category : #tests }

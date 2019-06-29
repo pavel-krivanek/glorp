@@ -77,11 +77,6 @@ Mapping >> attribute [
 ]
 
 { #category : #accessing }
-Mapping >> attributeAccessor [
-	^self attribute.
-]
-
-{ #category : #accessing }
 Mapping >> attributeName [
 	^self attribute name.
 ]
@@ -109,7 +104,16 @@ Mapping >> beForPseudoVariable [
 
 { #category : #accessing }
 Mapping >> beReadOnly [
-	self canWrite: false.
+	self attribute
+		canRead: true;
+		canWrite: false.
+]
+
+{ #category : #accessing }
+Mapping >> beWriteOnly [
+	self attribute
+		canRead: false;
+		canWrite: true.
 ]
 
 { #category : #testing }
@@ -122,6 +126,11 @@ Mapping >> canBeUsedForRetrieve [
 { #category : #accessing }
 Mapping >> canRead [
 	^self attribute canRead.
+]
+
+{ #category : #accessing }
+Mapping >> canRead: aBoolean [
+	self attribute canRead: aBoolean.
 ]
 
 { #category : #accessing }
@@ -148,7 +157,7 @@ Mapping >> controlsTables [
 	self subclassResponsibility
 ]
 
-{ #category : #private }
+{ #category : #'printing SQL' }
 Mapping >> convertedDbValueOf: stValue [ 
 	"Mappings in general don't know how to do type conversion. Subclasses that deal with database primitive types should override."
 	^stValue
@@ -156,7 +165,8 @@ Mapping >> convertedDbValueOf: stValue [
 
 { #category : #'initialize/release' }
 Mapping >> copyAttributeAttributes [
-	"We have an attributemodel that was created before we actually had a descriptor. It's possible that it had properties set. Make sure we copy them. If necessary, initialize things that require it."
+	"We have an attribute model that was created before we actually had a descriptor. It's possible that it had properties set. Make sure we copy them. If necessary, initialize things that require it."
+
 	| oldAttribute |
 	oldAttribute := attribute.
 	attribute := self classModel attributeNamed: oldAttribute name type: oldAttribute type collectionType: oldAttribute collectionType.
@@ -239,10 +249,23 @@ Mapping >> fieldsForSelectStatement [
 	^self mappedFields
 ]
 
+{ #category : #'initialize/release' }
+Mapping >> getValueBlock: aOneArgBlock [
+	"Tell my attribute model to use the block to get its value from the object.  The new class of attribute that this requires must be set here and in my class model.  Copy properties of the existing attribute (there must be one)."
+
+	descriptor isNil ifTrue:
+		[self error: 'We have no descriptor so cannot see our true classModel to reset its attribute'].
+	attribute := attribute beAttributeClass: GlorpBlockModel.
+	attribute getValueBlock: aOneArgBlock.
+]
+
 { #category : #public }
 Mapping >> getValueFrom: anObject [
+	"Glorp leaves it to callers to check (as far up the stack as is sensible) whether this attribute canWrite and avoid calling this if not, except in cases where the context makes it clear the attribute must be writable or it is necessary to get the value of a non-writable mapping."
 
 	^self attribute getValueFrom: anObject.
+
+"For an example of needing to get the value of a non-writable mapping, consider an embedded mapping whose target object includes an instvar holding a related object from another table.  The related table will link to the main table's primaryKey(s).  The easy way to handle the issue of AR 55457 (Validate when a non-embedded object doesn't map primary keys or gets them from another to whom it lacks a readable mapping) is to read (only) the main table's primaryKey(s) into the embedded object as well."
 ]
 
 { #category : #testing }
@@ -276,7 +299,9 @@ Mapping >> initialize [
 
 { #category : #'initialize/release' }
 Mapping >> initializeAttribute [
-	"This is where we can initialize aspects of the attribute, if required. The motivating example is initializing the collection type of the attribute if it wasn't set. We need it to have some type, but we don't want to initialize it while we're doing basic initialization and aren't yet properly attached to a descriptor or class model"
+	"This is where we can initialize aspects of the attribute, if required. The motivating example is initializing the collection type of the attribute if it wasn't set. We need it to have some type, but we don't want to initialize it while we're doing basic initialization and aren't yet properly attached to a descriptor or class model.  BE AWARE: the required form is
+	instvar isNil ifTrue: [instvar := ... some default value ...].
+We must check whether any instVar is nil _before_ initializing it, as this is called after copying."
 ]
 
 { #category : #validation }
@@ -298,7 +323,7 @@ Mapping >> isExclusive: aBoolean [
 
 { #category : #accessing }
 Mapping >> isForPseudoVariable [
-	^self attribute isForPseudoVariable or: [self attributeAccessor isValid not].
+	^self attribute isForPseudoVariable or: [self attribute isValid not].
 ]
 
 { #category : #testing }
@@ -367,8 +392,9 @@ Mapping >> mapsPrimaryKeys [
 
 { #category : #testing }
 Mapping >> mapsSimpleObject [
-	"Return true if we know that we map something without a descriptor. For some mappings, like ad hoc or conditional, we don't really know, so we default to false"
-	^false.
+	"Return true if we know that we map something without a descriptor. For some mappings, like ad hoc or conditional, we don't really know, so we default to false."
+
+	^false
 ]
 
 { #category : #preparing }
@@ -409,11 +435,13 @@ Mapping >> readBackNewRowInformationFor: anObject fromRowsIn: aRowMap [
 
 { #category : #accessing }
 Mapping >> readOnly [
-	^self canWrite not.
+	self deprecated:  #(#version '8.3.1' #sunset '9.1' #use #canWrite).
+	^self canWrite not
 ]
 
 { #category : #accessing }
 Mapping >> readOnly: aBoolean [
+	self deprecated:  #(#version '8.3.1' #sunset '9.1' #use #canWrite).
 	self canWrite: aBoolean not.
 ]
 
@@ -432,6 +460,16 @@ Mapping >> referencedIndependentObjectsFrom: anObject [
 Mapping >> session [
 	
 	^self descriptor session.
+]
+
+{ #category : #'initialize/release' }
+Mapping >> setValueBlock: aTwoArgBlock [
+	"Tell my attribute model to use the block to set its value from the object.  The new class of attribute that this requires must be set here and in my class model.  Copy properties of the existing attribute (there must be one)."
+
+	descriptor isNil ifTrue:
+		[self error: 'We have no descriptor so cannot see our true classModel to reset its attribute'].
+	attribute := attribute beAttributeClass: GlorpBlockModel.
+	attribute setValueBlock: aTwoArgBlock.
 ]
 
 { #category : #public }
@@ -463,9 +501,10 @@ Mapping >> trace: aTracing context: anExpression [
 ]
 
 { #category : #mapping }
-Mapping >> translateFields: anOrderedCollection [ 
-	"Normal mappings don't translate"
-	^anOrderedCollection.
+Mapping >> translateField: aDatabaseField [ 
+	"Most mappings don't translate."
+
+	^aDatabaseField
 ]
 
 { #category : #mapping }

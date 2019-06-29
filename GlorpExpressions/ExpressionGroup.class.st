@@ -47,6 +47,31 @@ ExpressionGroup >> asExpressionGroup [
 	^self
 ]
 
+{ #category : #converting }
+ExpressionGroup >> asMultipleExpressionRelationOf: aRelationExpression [
+	"We are the base (left child) of aRelationExpression whose relation is one of = , <> or IN.  (We were probably constructed explicitly using #getMappings: for lack of a descriptor whose primaryKeys matched our requirements.)  If we have two or more children and our platform does not allow composites for our relation, or our right-hand side is not a subselect, then we must be rewritten as a conjuction of AND:s or OR:s.  The expression intentionally begins unset, i.e. as nil, since we can AND: and OR: to nil parameter."
+
+	| expression orderedRetrievals tracing |
+	self size < 2 ifTrue: [^aRelationExpression].
+	(aRelationExpression rightChild class == GeneralSubSelectExpression ifTrue:
+		[self queryLevelBaseExpression system platform supportsCompositeKeyArgsForOperand: aRelationExpression relation])
+			ifTrue: [^aRelationExpression]
+			ifFalse:
+				[tracing := aRelationExpression rightChild query tracing.
+				orderedRetrievals := tracing allTracings select:
+					[:each | tracing retrievalExpressions includes: each]].
+	1 to: children size do:
+		[:index || leftChild rightChild clause |
+		leftChild := children at: index.
+		rightChild := aRelationExpression rightChild.
+		rightChild class == GeneralSubSelectExpression ifTrue:
+			[rightChild := rightChild shallowCopy query: rightChild query cloneWithinQuery; yourself.
+			rightChild query retrieve: (orderedRetrievals at: index)].
+		clause := aRelationExpression shallowCopy leftChild: leftChild; rightChild: rightChild.
+		expression := aRelationExpression relation = #<> ifTrue: [clause OR: expression] ifFalse: [clause AND: expression]].
+	^expression
+]
+
 { #category : #accessing }
 ExpressionGroup >> canHaveBase [
 	^self children anySatisfy: [:each | each canHaveBase]
@@ -67,6 +92,22 @@ ExpressionGroup >> do: aBlock skipping: aSet [
 	aBlock value: self.
 ]
 
+{ #category : #api }
+ExpressionGroup >> get: aSymbol withArguments: anArray [
+	"This is a direct clone of the code in ObjectExpression which is what MappingExpression inherits (If the ExpressionGroup has a single child, it would usually be a mapping expression), minus behaviours we suspect are not relevant to functiona groups and/or should be pushed within them to relevant members of the group."
+
+	| functionExpression |
+	functionExpression := self getFunction: aSymbol withArguments: anArray.
+	functionExpression isNil ifFalse: [^functionExpression].
+	"specialExpression := self performSpecialExpression: aSymbol withArguments: anArray.
+	specialExpression isNil ifFalse: [^specialExpression].
+	anArray isEmpty ifTrue: [^self get: aSymbol]."
+	^RelationExpression
+		named: aSymbol
+		basedOn: self
+		withArguments: anArray
+]
+
 { #category : #initialize }
 ExpressionGroup >> initialize [
 	super initialize.
@@ -83,6 +124,15 @@ ExpressionGroup >> mappedFields [
 	^self children
 		inject: OrderedCollection new
 		into: [:all :each | all addAll: each mappedFields. all]
+]
+
+{ #category : #printing }
+ExpressionGroup >> printOnlySelfOn: aStream [
+	"If #displayString is sent to an expression, it calls #printOnlySelfOn: and it is sent e.g. by the LHS pane of an IdentitySet inspector in VW.  Whether there is any other need for this class to have this method I do not know."
+
+	aStream
+		nextPutAll: children size printString;
+		nextPutAll: ' expressions'.
 ]
 
 { #category : #'printing SQL' }

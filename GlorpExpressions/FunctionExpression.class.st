@@ -37,6 +37,7 @@ FunctionExpression class >> createBasicFunctionsFor: aDatabasePlatform [
 	| defaultFunctions |
 	defaultFunctions := IdentityDictionary new.
 	defaultFunctions
+		at: #negated put: (PrefixFunction named: '-');
 		at: #descending put: (PostfixFunction named: 'DESC');
 		at: #distinct put: (PrefixFunction named: 'DISTINCT');
 		at: #max put: (PrefixFunction named: 'MAX');
@@ -48,8 +49,10 @@ FunctionExpression class >> createBasicFunctionsFor: aDatabasePlatform [
 		at: #not put: (PrefixFunction named: 'NOT');
 		at: #, put: (InfixFunction named: '||');
 		at: #countStar put: (StandaloneFunction named: 'COUNT(*)');
+		at: #prepend: put: (ReversingFunction named: '||');
 		at: #count put: (PrefixFunction named: 'COUNT');
 		at: #between:and: put: (InfixFunction named: #('BETWEEN' 'AND'));
+		at: #alias: put: (PseudoColumnFunction named: '');
 		at: #isNil put: ((RelationExpression new)
 						relation: #=;
 						rightChild: nil asGlorpExpression);
@@ -62,6 +65,7 @@ FunctionExpression class >> createBasicFunctionsFor: aDatabasePlatform [
 		at: #notNIL put: ((RelationExpression new)
 						relation: #<>;
 						rightChild: nil asGlorpExpression).
+					
 	defaultFunctions at: #exists: put: ((InfixFunction named: 'EXISTS') type: aDatabasePlatform boolean).
 	defaultFunctions at: #notExists: put: ((InfixFunction named: 'NOT EXISTS') type: aDatabasePlatform boolean).
 
@@ -116,7 +120,8 @@ FunctionExpression class >> named: aString [
 
 { #category : #private }
 FunctionExpression class >> resetFunctions [
-	"self resetFunctions"
+	"After adding a function, execute 'FunctionExpression resetFunctions' for it to be immediately visible to a currently-running Glorp."
+
 	functions := nil.
 ]
 
@@ -205,7 +210,7 @@ FunctionExpression >> convertValueOf: anObject in: aDictionary [
 	^self base convertedDbValueOf: translated.
 ]
 
-{ #category : #accessing }
+{ #category : #converting }
 FunctionExpression >> convertedDbValueOf: anObject [
 	"Not clear what should happen here, but let's just pass it through for the moment"
 	^(self converterForStType: anObject class) convert: anObject toDatabaseRepresentationAs: self type.
@@ -399,10 +404,18 @@ FunctionExpression >> translateField: aField [
 
 { #category : #accessing }
 FunctionExpression >> type [
+	"Since >>field is recursively chased down to a real field, we could end up with the field's type.
+	However, if we chase >>base down to a type, and we reach a CAST function, we assume that the CAST's type wins over field's type."
+
 	| field |
 	type isNil ifFalse: [^type].
 	field := self field.
-	^field isNil ifTrue: [self defaultType] ifFalse: [field type].
+	^field isNil
+		ifTrue: [self defaultType]
+		ifFalse: 
+			[base class = Cast			"We expect base to have a type if it's a CAST"
+				ifTrue: [base type]
+				ifFalse: [field type]]
 ]
 
 { #category : #accessing }
@@ -421,7 +434,7 @@ FunctionExpression >> valueInBuilder: anElementBuilder [
 	^self base valueInBuilder: anElementBuilder as: self.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #mapping }
 FunctionExpression >> valueInBuilder: anElementBuilder as: anExpression [
 	^self base valueInBuilder: anElementBuilder as: anExpression.
 ]

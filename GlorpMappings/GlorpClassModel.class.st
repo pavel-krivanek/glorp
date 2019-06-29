@@ -151,6 +151,13 @@ GlorpClassModel >> printOn: aStream [
 	aStream nextPutAll: '~~'.
 ]
 
+{ #category : #private }
+GlorpClassModel >> privateAndBasicAtAttribute: anAttribute put: anotherAttribute [
+	^attributes
+		at: (attributes indexOf: anAttribute)
+		put: (anotherAttribute classModel: self)
+]
+
 { #category : #accessing }
 GlorpClassModel >> privateAndBasicSetDescribedClass: aClass [
 	"In theory, my parameter could answer true to glorpCanHaveDescriptorDirectly yet not understand subclasses. At time of writing, this is only possible in recursive queries."

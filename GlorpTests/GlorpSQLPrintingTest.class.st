@@ -201,9 +201,9 @@ GlorpSQLPrintingTest >> sixRowUpdateCommandForPlatform: aDatabasePlatform [
 	rows last
 		atFieldNamed: 'ID' put: 6;
 		atFieldNamed: 'HOUSE_NUM' put: '12'.
-	^UpdateCommand
-		forRows: rows asArray
-		useBinding: session useBinding
+	^session platform
+		updateCommandForRows: rows asArray
+		binding: session useBinding
 		session: session
 ]
 
@@ -274,6 +274,9 @@ GlorpSQLPrintingTest >> testGroupWritingInsertCommandSQL [
 	self assertGroupWritingOnPlatform: platform printsSQL: boundArray.
 	platform := SQLServerPlatform new useBinding: false.
 	self assertGroupWritingOnPlatform: platform printsSQL: unboundStatements.
+	"We do not use bound batching (i.e. instead of array binding) on any platform (we did on SQLServer in the past), so we have a test platform to exercise it."
+	platform := BatchTestPlatform new useBinding: true.
+	self assertGroupWritingOnPlatform: platform printsSQL: boundStatements.
 
 	platform := OraclePlatform new useBinding: true.
 	self assertGroupWritingOnPlatform: platform printsSQL: boundArray.
@@ -308,8 +311,9 @@ GlorpSQLPrintingTest >> testGroupWritingInsertCommandSQL [
 GlorpSQLPrintingTest >> testGroupWritingUpdateCommandSQL [
 	"Oracle and DB2 support array binding but not statement batching, so they can only group-write bound updates..  PostgreSocket supports statement batching but only for unbound statements, so can never writes groups of updates bound.  SQLServer supports array binding and statement batching, so can group-write both bound and unbound updates.  Array-bound updates share the same SQL statement so, the rows of a multi-row update command must be subdivided into subgroups of rows with values for the same subset of fields and only these subgroups can be group-written.  Batched update statements do not have this limitation."
 
-	| platform unboundStatements boundArrayAll mockAccessor |
+	| platform unboundStatements boundArrayAll mockAccessor boundStatements |
 	unboundStatements := #('UPDATE GR_ADDRESS SET STREET = ''Privet Drive'',HOUSE_NUM = ''4'' WHERE ID = 1; UPDATE GR_ADDRESS SET STREET = ''Baker Street'' WHERE ID = 2; UPDATE GR_ADDRESS SET STREET = ''Coven Street'' WHERE ID = 3; UPDATE GR_ADDRESS SET HOUSE_NUM = ''221b'' WHERE ID = 4; UPDATE GR_ADDRESS SET HOUSE_NUM = ''7'' WHERE ID = 5; UPDATE GR_ADDRESS SET HOUSE_NUM = ''12'' WHERE ID = 6').
+	boundStatements := #('UPDATE GR_ADDRESS SET STREET = ?,HOUSE_NUM = ? WHERE ID = ?' 'UPDATE GR_ADDRESS SET STREET = ? WHERE ID = ?; UPDATE GR_ADDRESS SET STREET = ? WHERE ID = ?' 'UPDATE GR_ADDRESS SET HOUSE_NUM = ? WHERE ID = ?; UPDATE GR_ADDRESS SET HOUSE_NUM = ? WHERE ID = ?; UPDATE GR_ADDRESS SET HOUSE_NUM = ? WHERE ID = ?').
 	boundArrayAll :=
 		#('UPDATE GR_ADDRESS SET STREET = ?,HOUSE_NUM = ? WHERE ID = ?'
 		'UPDATE GR_ADDRESS SET STREET = ? WHERE ID = ?'
@@ -350,6 +354,10 @@ GlorpSQLPrintingTest >> testGroupWritingUpdateCommandSQL [
 	platform := SQLServerPlatform new useBinding: true.
 	self assertGroupUpdatingOnPlatform: platform printsSQLs: boundArrayAll.
 
+	platform := BatchTestPlatform new useBinding: true.
+	self assertGroupUpdatingOnPlatform: platform printsSQLs: boundStatements.
+
+
 	platform := OraclePlatform new useBinding: true.
 	self assertGroupUpdatingOnPlatform: platform printsSQLs: boundArrayAll.
 
@@ -361,8 +369,9 @@ GlorpSQLPrintingTest >> testGroupWritingUpdateCommandSQL [
 GlorpSQLPrintingTest >> testGroupWritingWithIdentityColumn [
 	"When a row is inserted into a table with a serial-type column, some servers post-assign the id value, i.e. the id is a _result_ of inserting a row and so cannot easily be known beforehand.  Glorp needs to know such ids to maintain the map between an object and row(s) written for it.  This can complicate group-writing insert statements:  if the table has a serial type and the platform uses identity columns, either a post-insert query to discover the ids must be wrapped into a grouped insert, or individual inserts, immediately succeeded by post-insert query for the id, are needed.  See #postWriteAssignSequencesUsing: versus #preWriteAssignSequencesUsing: and their call chain."
 
-	| platform unboundValues boundArray |
+	| platform unboundValues boundArray boundValues |
 	unboundValues := 'DECLARE @TableOfIdentities TABLE (IdentValue INT); INSERT INTO ITINERARY (RES_ID)  OUTPUT Inserted.ID INTO @TableOfIdentities(IdentValue)  VALUES (4), (5); SELECT IdentValue FROM @TableOfIdentities ORDER BY IdentValue'.
+	boundValues := 'DECLARE @TableOfIdentities TABLE (IdentValue INT); INSERT INTO ITINERARY (RES_ID)  OUTPUT Inserted.ID INTO @TableOfIdentities(IdentValue)  VALUES (?), (?); SELECT IdentValue FROM @TableOfIdentities ORDER BY IdentValue'.
 	boundArray := 'DECLARE @TableOfIdentities TABLE (IdentValue INT); INSERT INTO ITINERARY (RES_ID)  OUTPUT Inserted.ID INTO @TableOfIdentities(IdentValue)  VALUES (?); SELECT IdentValue FROM @TableOfIdentities ORDER BY IdentValue'.
 
 	platform := SQLServerPlatform new useBinding: true.
@@ -375,6 +384,10 @@ GlorpSQLPrintingTest >> testGroupWritingWithIdentityColumn [
 		description: ('Old versions of <1s> <2?Bound:Unbound> should not attempt to group-write rows with identity column'
 				expandMacrosWith: platform class name
 				with: platform useBinding).
+
+	platform := BatchTestPlatform new useBinding: true.
+	platform instVarNamed: 'supportsGroupWritingValues' put: true.
+	self assertGroupWritingIdentityOnPlatform: platform printsSQL: boundValues.
 ]
 
 { #category : #tests }

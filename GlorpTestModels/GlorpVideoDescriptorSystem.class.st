@@ -19,7 +19,7 @@ GlorpVideoDescriptorSystem class >> visualWorksMetadata [
 
 { #category : #accessing }
 GlorpVideoDescriptorSystem >> allTableNames [
-	^#('VIDEO_STORE' 'VIDEO_PURCHASE' 'VIDEO_RENTAL' 'VIDEO_PURCHASE_LINK' 'VIDEO_CUSTOMER' 'VIDEO_CREDIT_STATUS').
+	^#('VIDEO_STORE' 'VIDEO_PURCHASE' 'VIDEO_RENTAL' 'VIDEO_PURCHASE_LINK' 'VIDEO_CUSTOMER' 'VIDEO_CREDIT_STATUS' 'RENTAL_PROMOTION').
 ]
 
 { #category : #'class models' }
@@ -63,6 +63,13 @@ GlorpVideoDescriptorSystem >> classModelForGlorpVideoRental: aClassModel [
 ]
 
 { #category : #'class models' }
+GlorpVideoDescriptorSystem >> classModelForGlorpVideoRentalPromotion: aClassModel [
+	self classModelForGlorpVideoRental: aClassModel.
+	aClassModel newAttributeNamed: #storePromotionalName type: String.
+	aClassModel newAttributeNamed: #rentalPromotion type: String.
+]
+
+{ #category : #'class models' }
 GlorpVideoDescriptorSystem >> classModelForGlorpVideoStore: aClassModel [
 	aClassModel newAttributeNamed: #name type: String.
 	aClassModel newAttributeNamed: #purchases collectionOf: GlorpVideoPurchase.
@@ -77,6 +84,7 @@ GlorpVideoDescriptorSystem >> constructAllClasses [
 		add: GlorpVideoCustomer;
 		add: GlorpVideoPurchase;
 		add: GlorpVideoRental;
+		add: GlorpVideoRentalPromotion;
 		yourself
 ]
 
@@ -126,8 +134,9 @@ GlorpVideoDescriptorSystem >> descriptorForGlorpVideoCustomer: aDescriptor [
 			to: (purchaseTable fieldNamed: 'CUSTOMERBIRTHDATE')
 			from: 'T'
 			to: (purchaseTable fieldNamed: 'IN_STORE'));
-			constructRowMapKeyAs: [:customer :purchase | 
-					MultipleRowMapKey with: customer with: purchase with: customer videoStore yourself].
+			constructRowMapKeyAs:	"finding mismatch is usually fastest with target first, source second, in key"
+				[:customer :purchase :index |	"block params are sure to be real; ensure videoStore not proxy"
+				MultipleRowMapKey with: purchase with: customer with: customer videoStore glorpRealObject].
 
 	(aDescriptor newMapping: ToManyMapping)
 		useLinkTable;
@@ -142,8 +151,9 @@ GlorpVideoDescriptorSystem >> descriptorForGlorpVideoCustomer: aDescriptor [
 			to: (purchaseTable fieldNamed: 'CUSTOMERBIRTHDATE')
 			from: 'F'
 			to: (purchaseTable fieldNamed: 'IN_STORE'));
-			constructRowMapKeyAs: [:customer :purchase | 
-					MultipleRowMapKey with: customer with: purchase with: customer videoStore yourself].
+			constructRowMapKeyAs:	"finding mismatch is usually fastest with target first, source second, in key"
+				[:customer :purchase :index | 	"block params are sure to be real; ensure videoStore not proxy"
+				MultipleRowMapKey with: purchase with: customer with: customer videoStore yourself].
 
 	"A complicated way of saying that the Store plus one other attribute has to be there"
 	aDescriptor imaginaryTableIsDefinedByRelationFrom: #store to: #inStorePurchases.
@@ -165,10 +175,11 @@ GlorpVideoDescriptorSystem >> descriptorForGlorpVideoPurchase: aDescriptor [
 	(aDescriptor newMapping: DirectMapping) from: #inStore to: (table fieldNamed: 'IN_STORE').
 
 	(aDescriptor newMapping: OneToOneMapping)
-			useLinkTable;
-			attributeName: #store;
-			constructRowMapKeyAs: [:purchase :store | 
-					MultipleRowMapKey with: purchase with: store with: purchase customer yourself].
+		useLinkTable;
+		attributeName: #store;
+		constructRowMapKeyAs:	"is finding mismatch in OneToOne faster with target first, source second?"
+			[:purchase :store |	"block params are sure to be real; ensure customer not proxy"
+			MultipleRowMapKey with: store with: purchase with: purchase customer glorpRealObject].
 
 	(aDescriptor newMapping: OneToOneMapping)
 		attributeName: #customer.
@@ -193,6 +204,39 @@ GlorpVideoDescriptorSystem >> descriptorForGlorpVideoRental: aDescriptor [
 ]
 
 { #category : #descriptors }
+GlorpVideoDescriptorSystem >> descriptorForGlorpVideoRentalPromotion: aDescriptor [
+	"Provide three DirectToOneMappings:  a pseudoVariable to an existing field;  a read-and-write mapping to that same field;  a mapping to the string field of a table whose sole primary key is its relationship to us.  Have the second mapping convert to uppercase in the image and camel case in the database.  Have the third mapping convert specific strings in the image to other strings in the database.  Thus test both DirectToOneMappings and converters of the #myValue DirectMappings they generate."
+
+	| table storeTable promotionTable customerTable |
+	self descriptorForGlorpVideoRental: aDescriptor.
+	table := aDescriptor table.	"VIDEO_RENTAL"
+	"We are about to add a second mapping to GlorpVideoStore and make it a table we can write to, so our inherited mapping to GlorpVideoCustomer will no longer be able to compute a unique join to customer via store; tell it what the join is."
+	customerTable := self tableNamed: 'VIDEO_CUSTOMER'.
+	(aDescriptor mappingForAttributeNamed: #customer) join:
+		(Join
+			from: (table fieldNamed: 'CUSTOMERNAME') to: (customerTable fieldNamed: 'CUSTOMERNAME') 
+			from: (table fieldNamed: 'CUSTOMERBIRTHDATE') to: (customerTable fieldNamed: 'BIRTHDATE')
+			from: (table fieldNamed: 'STORE_ID') to: (customerTable fieldNamed: 'STORE_ID')).
+	aDescriptor table: (storeTable := self tableNamed: 'VIDEO_STORE').
+	aDescriptor table: (promotionTable := self tableNamed: 'RENTAL_PROMOTION').
+	aDescriptor directToOneMapping
+		attributeName: #storeNamePseudo referenceClass: String;
+		resultField: (storeTable fieldNamed: 'NAME');
+		join: (Join from: (table fieldNamed: 'STORE_ID') to: (storeTable fieldNamed: 'ID'));
+		beForPseudoVariable.
+	aDescriptor directToOneMapping
+		attributeName: #storePromotionalName referenceClass: String;
+		resultField: (storeTable fieldNamed: 'NAME');
+		join: (Join from: (table fieldNamed: 'STORE_ID') to: (storeTable fieldNamed: 'ID'));
+		converter: self upperUnderscoreToCamelSpaceConverter.
+	aDescriptor directToOneMapping
+		attributeName: #rentalPromotion referenceClass: String;
+		resultField: (promotionTable fieldNamed: 'NAME');
+		join: (Join from: (table fieldNamed: 'ID') to: (promotionTable fieldNamed: 'RENTAL_ID'));
+		converter: self rentalPromotionCodeConverter.
+]
+
+{ #category : #descriptors }
 GlorpVideoDescriptorSystem >> descriptorForGlorpVideoStore: aDescriptor [
 
 	| table |
@@ -201,16 +245,17 @@ GlorpVideoDescriptorSystem >> descriptorForGlorpVideoStore: aDescriptor [
 	(aDescriptor newMapping: DirectMapping) from: #id to: (table fieldNamed: 'ID').
 	(aDescriptor newMapping: DirectMapping) from: #name to: (table fieldNamed: 'NAME').
 	(aDescriptor newMapping: ToManyMapping)
-			attributeName: #customers;
-			join: (Join
+		attributeName: #customers;
+		join: (Join
 				from: (table fieldNamed: 'ID')
 				to: ((self tableNamed: 'VIDEO_CUSTOMER') fieldNamed: 'STORE_ID')).
 	"The relationship to purchases is different from the one in customer, which distinguishes online from inStore"
 	(aDescriptor newMapping: ToManyMapping)
 		useLinkTable;
 		attributeName: #purchases;
-		constructRowMapKeyAs: [:store :purchase | 
-					MultipleRowMapKey with: store with: purchase with: purchase customer yourself].
+		constructRowMapKeyAs:	"finding mismatch in ToMany is faster with target first, source second"
+			[:store :purchase :index |	"block params are sure to be real; ensure customer not proxy"
+			MultipleRowMapKey with: purchase with: store with: purchase customer glorpRealObject].
 	"No relationship to rentals at all"
 ]
 
@@ -523,6 +568,35 @@ GlorpVideoDescriptorSystem >> exampleStore2 [
 	^example.
 ]
 
+{ #category : #converters }
+GlorpVideoDescriptorSystem >> rentalPromotionCodeConverter [
+	"This exists purely for test purposes and is not written to be efficient or an example.  It encodes domain information, not just image-DB type conversion information, into the converter, which in actual use should not be done without thought.  It maps some image UI strings to shorter database strings and vice versa, handling the rest just as the isVariableType branch of {un}padString:for: would."
+
+	| toDbDictionary fromDbDictionary |
+	fromDbDictionary := Dictionary new
+		at: 'SD' put: 'Standard';
+		at: 'DD' put: 'DisneyDiscount';
+		at: '50%' put: 'Half-off';
+		at: '25%' put: 'Quarter-off';
+		yourself.
+	"I would use #keyAtValue:ifAbsent: below instead of creating two dictionaries, but (it is a serious bug, as the method's comment admits), that Dictionary>>keyAtValue:ifAbsent: uses identity comparison, not equality comparison)."
+	toDbDictionary := Dictionary new.
+	fromDbDictionary keysAndValuesDo: [:k :v | toDbDictionary at: v put: k].
+	^PluggableDatabaseConverter new
+		name: 'RentalPromotionCode';
+		dbToStConverter: [:fromDbString | fromDbDictionary at: fromDbString ifAbsent: [self halt: 'Did we type wrong?'. fromDbString]];
+		stToDbConverter: [:fromImageString | toDbDictionary at: fromImageString ifAbsent: [self halt: 'Did we type wrong?'. fromImageString]];
+		yourself
+]
+
+{ #category : #tables }
+GlorpVideoDescriptorSystem >> tableForRENTAL_PROMOTION: aTable [
+	| rentalId |
+	rentalId := (aTable createFieldNamed: 'RENTAL_ID' type: (platform int4)) bePrimaryKey.
+     aTable createFieldNamed: 'NAME' type: (platform varchar: 20).
+	aTable addForeignKeyFrom: rentalId to: ((self tableNamed: 'VIDEO_RENTAL') fieldNamed: 'ID').
+]
+
 { #category : #tables }
 GlorpVideoDescriptorSystem >> tableForVIDEO_CREDIT_STATUS: aTable [
 	| customerTable custName custDate storeId |
@@ -609,5 +683,31 @@ GlorpVideoDescriptorSystem >> tableForVIDEO_RENTAL: aTable [
 { #category : #tables }
 GlorpVideoDescriptorSystem >> tableForVIDEO_STORE: aTable [
 	(aTable createFieldNamed: 'ID' type: (platform int4)) bePrimaryKey.
-	aTable createFieldNamed: 'NAME' type: (platform varchar: 20).
+	(aTable createFieldNamed: 'NAME' type: (platform varchar: 20)) beNullable: false.
+]
+
+{ #category : #converters }
+GlorpVideoDescriptorSystem >> upperUnderscoreToCamelSpaceConverter [
+	"This exists purely for test purposes.  It maps camel-case-with-space names in the database to and from uppercase-with-underscore names in the image:  for example, 'ALS_VIDEO' in the image becomes 'Als Video' and vice versa.  Unlike the isVariableType branch of {un}padString:for: in the default #stringToString converter that we are replacing,  we do not bother to test NULL/isNil (or isString);  the field in #tableForVIDEO_STORE: is not-NULLable and our test data only supplies Strings to it."
+
+	^PluggableDatabaseConverter new
+		name: 'UpperToCamelUnderscoreToSpace';
+		dbToStConverter: [:aValue | aValue yourSelf asUppercase copyReplaceAll: ' ' with: '_'];
+		stToDbConverter:
+			[:aValue || strm tokens |
+			aValue isEmpty
+				ifTrue: [aValue yourSelf]
+				ifFalse: 
+					[strm := String new writeStream.
+					tokens := aValue yourSelf asString tokensBasedOn: $_. "Spaces became underscores."
+					tokens
+						inject: strm
+						into:
+							[:stream :next |
+							stream nextPut: next first asUppercase.
+							stream nextPutAll: (next allButFirst: 1) asLowercase.
+							stream nextPut: Character space.			"Restore the original space."
+							stream].
+					strm contents allButLast: 1]];
+		yourself
 ]

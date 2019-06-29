@@ -138,8 +138,8 @@ GlorpVirtualCollection >> readOnlyError [
 
 { #category : #private }
 GlorpVirtualCollection >> realObjects [
-	realObjects isNil ifTrue: [	realObjects := query executeWithParameters: parameters in: session].
-	^realObjects.
+	realObjects isNil ifTrue: [realObjects := query executeWithParameters: parameters in: session].
+	^realObjects
 ]
 
 { #category : #enumerating }

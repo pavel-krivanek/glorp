@@ -291,6 +291,96 @@ GlorpCompositeKeyTest >> testReadWithSubselectAndINClause [
 		description: 'We asked only for users with some folders but got a user with none'.
 ]
 
+{ #category : #'tests - composite keys' }
+GlorpCompositeKeyTest >> testUserConstructedComposite [
+	"Check a user-constructed composite key where the nominal composite has in fact only one mapping."
+
+	| query users userNames assertQuery allNamedUsers mappingsToRetrieve |
+	mappingsToRetrieve := #(name id).
+	query := Query read: GlorpUser where:
+		[:each || q |
+		q := Query read: GlorpUser where: [:e | e folders sqlCount > 0].
+		q retrieveAll: mappingsToRetrieve.
+		(each getMappings: mappingsToRetrieve) in: q].
+	users := session execute: query.
+	self assert: users notEmpty.
+	"the code above completes the exercise of getMappings: - what follows checks the results"
+	userNames := users collect: [:each | each name].
+	assertQuery := Query read: GlorpUser where:
+		[:each | each name in: userNames].
+	allNamedUsers := (session execute: assertQuery) groupedBy: [:each | each name].
+	allNamedUsers do:
+		[:each | self assert: (each anySatisfy: [:folder | folder folders size > 0])].
+]
+
+{ #category : #'tests - composite keys' }
+GlorpCompositeKeyTest >> testUserConstructedCompositeBlock [
+	"Check a user-constructed composite key where the nominal composite has in fact only one mapping."
+
+	| query users userNames assertQuery allNamedUsers mappingsToRetrieve |
+	mappingsToRetrieve := Array with: [:each | each name] with: [:each | each id].
+	query := Query read: GlorpUser where:
+		[:each || q |
+		q := Query read: GlorpUser where: [:e | e folders sqlCount > 0].
+		q retrieveAll: mappingsToRetrieve.
+		(each getMappings: mappingsToRetrieve) in: q].
+	users := session execute: query.
+	self assert: users notEmpty.
+	"the code above completes the exercise of getMappings: - what follows checks the results"
+	userNames := users collect: [:each | each name].
+	assertQuery := Query read: GlorpUser where:
+		[:each | each name in: userNames].
+	allNamedUsers := (session execute: assertQuery) groupedBy: [:each | each name].
+	allNamedUsers do:
+		[:each | self assert: (each anySatisfy: [:folder | folder folders size > 0])].
+]
+
+{ #category : #'tests - composite keys' }
+GlorpCompositeKeyTest >> testUserConstructedCompositeBlockSingleton [
+	"Exercise a user-constructed composite key where the nominal composite has in fact only one mapping.  As there is only one, we can check what is returned by comparing it with the results of a conventional query."
+
+	| testQuery folders assertQuery assertFolders |
+	testQuery := Query read: GlorpFolder where:
+		[:each || q |
+		q := Query read: GlorpFolder where: [:e | e messages sqlCount > 0].
+		q retrieve: [:e | e name].
+		(each getMappings: (Array with: [:ea | ea name])) in: q].
+	testQuery orderBy: [:each | each name].		"order just to make assert comparison easier"
+	folders := session execute: testQuery.
+	self assert: folders notEmpty.
+	assertQuery := Query read: GlorpFolder where:
+		[:each || q |
+		q := Query read: GlorpFolder where: [:e | e messages sqlCount > 0].
+		q retrieve: #name.
+		each name in: q].
+	assertQuery orderBy: [:each | each name].	"order just to make assert comparison easier"
+	assertFolders := session execute: assertQuery.
+	self assert: folders = assertFolders.
+]
+
+{ #category : #'tests - composite keys' }
+GlorpCompositeKeyTest >> testUserConstructedCompositeSingleton [
+	"Exercise a user-constructed composite key where the nominal composite has in fact only one mapping.  As there is only one, we can check what is returned by comparing it with the results of a conventional query."
+
+	| testQuery folders assertQuery assertFolders |
+	testQuery := Query read: GlorpFolder where:
+		[:each || q |
+		q := Query read: GlorpFolder where: [:e | e messages sqlCount > 0].
+		q retrieve: #name.
+		(each getMappings: #(name)) in: q].
+	testQuery orderBy: [:each | each name].		"order just to make assert comparison easier"
+	folders := session execute: testQuery.
+	self assert: folders notEmpty.
+	assertQuery := Query read: GlorpFolder where:
+		[:each || q |
+		q := Query read: GlorpFolder where: [:e | e messages sqlCount > 0].
+		q retrieve: #name.
+		each name in: q].
+	assertQuery orderBy: [:each | each name].	"order just to make assert comparison easier"
+	assertFolders := session execute: assertQuery.
+	self assert: folders = assertFolders.
+]
+
 { #category : #'tests- basic reading' }
 GlorpCompositeKeyTest >> testUserIdentity [
 	| users |

@@ -1,10 +1,15 @@
 "
 This builds full-blown persistent objects with descriptors. This is the most common type of builder.
+
+Instance Variables:
+	relatedBuilder	<ObjectBuilder>	If I am alsoFetched, I knit myself to the instance of my relatedBuilder.
+	queryCache	<ObjectBuilder>
 "
 Class {
 	#name : #ObjectBuilder,
 	#superclass : #ElementBuilder,
 	#instVars : [
+		'relatedBuilder',
 		'queryCache'
 	],
 	#category : #'GlorpQueries-Glorp'
@@ -25,7 +30,7 @@ ObjectBuilder >> buildObjectFrom: anArray [
 	self row: anArray.
 	self requiresPopulating ifTrue: [self populateInstance].
 	(self system shouldResetExpiryTimeForObjectOfClass: instance class readFrom: self query)
-		ifTrue: [self session markAsCurrentOfClass: instance class key: self key].
+		ifTrue: [self session markAsCurrentOfClass: instance class key: self primaryKey].
 ]
 
 { #category : #testing }
@@ -33,23 +38,41 @@ ObjectBuilder >> buildsObjects [
 	^true.
 ]
 
-{ #category : #accessing }
-ObjectBuilder >> cachedQueryFor: aMapping [
-	^self queryCache at: aMapping ifAbsent: [nil].
+{ #category : #copying }
+ObjectBuilder >> cacheBuilderRelationships: aCollection [
+	"By this point, we have all our builders, so find if there is one to whose instance we will knit our instance."
+
+	expression canKnit ifFalse: [^self].
+	relatedBuilder := aCollection
+		detect: [:each | each buildsObjects and: [each expression == expression base]]
+		ifNone: [nil].
+
+"Clone any changes to DictionaryBuilder>>cacheBuilderRelationships: as needed."
 ]
 
 { #category : #accessing }
-ObjectBuilder >> cachedQueryFor: aMapping is: aQuery [
-	"Save a query which we will use when constructing filtered queries"
-	self queryCache at: aMapping put: aQuery.
+ObjectBuilder >> cachedQueryFor: aMapping ifAbsent: aBlock [
+	"If we have no queries - the usual case - exit as quick as we can and do not initialize the cache."
+
+	queryCache isNil ifTrue: [^aBlock value].
+	^queryCache at: aMapping ifAbsent: aBlock
+]
+
+{ #category : #accessing }
+ObjectBuilder >> cachedQueryFor: aMapping put: aQuery [
+	"Save a query which we will use when constructing filtered queries, or as a NullQuery to avoid getting something we will alsoFetch."
+
+	queryCache isNil ifTrue: [queryCache := IdentityDictionary new: 5].
+	^queryCache at: aMapping put: aQuery
 ]
 
 { #category : #'building objects' }
 ObjectBuilder >> canBuild [
-	"If we have a regular object with a nil primary key, or if we have an embedded object whose values are all nil, we can't build anything (probably due to an outer join)"
+	"If we have a regular object with a nil primary key, or if we have an embedded object whose values are all nil, we can't build anything.  This could be due to an outer join, or to a ConditionalMapping whose representativeMapping is a relationship but whose current case is not."
+
 	^self descriptor mapsPrimaryKeys
-		ifTrue: [self key notNil]
-		ifFalse: [true].
+		ifTrue: [self primaryKey notNil]
+		ifFalse: [true]
 ]
 
 { #category : #'building objects' }
@@ -83,7 +106,7 @@ ObjectBuilder >> descriptor [
 
 { #category : #'selecting fields' }
 ObjectBuilder >> fieldsForSelectStatement [
-	^self fieldsFromThePerspectiveOfTheMainSelect: (self fieldsFromMyPerspective).
+	^self fieldsFromThePerspectiveOfTheMainSelect: self fieldsFromMyPerspective.
 ]
 
 { #category : #'selecting fields' }
@@ -115,10 +138,10 @@ ObjectBuilder >> findInstanceForRow: aRow proxyType: proxyType [
 			[requiresPopulating := requiresPopulating | query shouldRefresh.
 			^self].
 	requiresPopulating := true.
-	instance := self createObjectOfClass: (expression descriptor
+	instance := self createObjectOfClass: (self descriptor
 		describedConcreteClassFor: self row
 		withBuilder: self).
-	self canCache ifTrue: [self session cacheAt: self key put: instance].
+	self canCache ifTrue: [self session cacheAt: self primaryKey put: instance].
 ]
 
 { #category : #initializing }
@@ -150,39 +173,29 @@ ObjectBuilder >> instanceExistsButIsDeleted [
 	^instance isNil.
 ]
 
-{ #category : #accessing }
-ObjectBuilder >> key [
-	^self primaryKey.
-]
-
 { #category : #'building objects' }
-ObjectBuilder >> knitResultIn: aCursoredStream [ 
-	"Connect up our built object with any other objects that reference it. Used if we retrieve more than one thing in the same query"
+ObjectBuilder >> knitResultIn: aCursoredStream [
+	"Connect up our built object with any other objects that reference it. Used if we retrieve more than one thing in the same query."
 
-	| relatedBuilder |
-	expression canKnit ifFalse: [^self].
-	relatedBuilder := aCursoredStream objectBuilderFor: expression base.
-	(relatedBuilder isNil or: [relatedBuilder instance isNil]) 
-		ifFalse: 
-			[expression mapping knitFromBuilder: relatedBuilder toBuilder: self]
+	relatedBuilder isNil ifTrue: [^self].
+	relatedBuilder instance isNil ifTrue: [^self].
+	expression mapping knitFromBuilder: relatedBuilder toBuilder: self.
 ]
 
 { #category : #'building objects' }
 ObjectBuilder >> lookupCachedObject [
 	| resultClass |
 	self canBuild ifFalse: [^self].
-	self canCache
-		ifTrue:
-			[
-			resultClass := expression descriptor describedClass.
-			(self session hasExpired: resultClass key: self key)
-				ifTrue:
-					[instance := self session expiredInstanceOf: resultClass key: self key.
-					requiresPopulating := true.
-					isExpired := true]
-				ifFalse:
-					[instance := self session cacheLookupForClass: resultClass key: self key.
-					requiresPopulating := instance isNil]].
+	self canCache ifTrue:
+		[resultClass := expression descriptor describedClass.
+		(self session hasExpired: resultClass key: self primaryKey)
+			ifTrue:
+				[instance := self session expiredInstanceOf: resultClass key: self primaryKey.
+				requiresPopulating := true.
+				isExpired := true]
+			ifFalse:
+				[instance := self session cacheLookupForClass: resultClass key: self primaryKey.
+				requiresPopulating := instance isNil]].
 ]
 
 { #category : #'building objects' }
@@ -191,7 +204,7 @@ ObjectBuilder >> newProxyWithNewQueryForClass: aClass [
 	parameters := IdentityDictionary new.
 	self descriptor primaryTable primaryKeyFields
 		do:
-			[:eachField | parameters at: eachField put: (self valueOfField: eachField in: row)].
+			[:eachField | parameters at: eachField put: (self valueOfField: eachField)].
 	instance := aClass new
 		session: self session;
 		parameters: parameters;
@@ -217,13 +230,16 @@ ObjectBuilder >> postCopy [
 
 { #category : #accessing }
 ObjectBuilder >> primaryKey [
-	"We use self as a special guard value to indicate that the value hasn't changed"
+	"We use self as a special guard value to indicate that we have not already found the key."
+
 	key == self ifFalse: [^key].
 	self canCache ifFalse: [^nil].
-	key := self descriptor keyFields
-		collect: [:each | self valueOfField: each].
-	key size = 1 ifTrue: [key := key first].
-	^key.
+	key := self descriptor keyFields collect: [:each | self valueOfField: each].
+	"If we get here, we have a collection of one or more primaryKey values.  If there is only one, key is set to be that sole value (to be economical and performant - or, it might be claimed, 'clever').  Of course, this means we must make all accesses robust to the fact that it might be a value or a collection of values.  Here we ensure that a nil check also works when the original was #(nil nil ... nil) as well as when it was #(nil).  Arguably we need only check the first value for nil since a primaryKey value should not be NULL, but let's let any cases of e.g. #(nil 27) proceed since they would probably indicates errors we want to see and fix."
+	key size = 1
+		ifTrue: [key := key first]
+		ifFalse: [(key allSatisfy: [:each | each isNil]) ifTrue: [key := nil]].
+	^key
 ]
 
 { #category : #printing }
@@ -232,12 +248,6 @@ ObjectBuilder >> printOn: aStream [
 	aStream nextPut: $(.
 	expression printOn: aStream.
 	aStream nextPut: $).
-]
-
-{ #category : #accessing }
-ObjectBuilder >> queryCache [
-	queryCache isNil ifTrue: [queryCache := IdentityDictionary new: 5].
-	^queryCache.
 ]
 
 { #category : #'building objects' }
@@ -250,6 +260,18 @@ ObjectBuilder >> queryForNewProxy [
 	^Query
 		readOneOf: query resultClass 
 		where: whereExpression
+]
+
+{ #category : #copying }
+ObjectBuilder >> reconcileWithBuilders: oldCollection andCopy: newCollection [
+	| initialValueQuery |
+	relatedBuilder isNil ifTrue: [^self].
+	relatedBuilder := newCollection at: (oldCollection indexOf: relatedBuilder).
+	"Ensure my relatedBuilder does not redundantly try to get my value."
+	initialValueQuery := ShortCircuitQuery new.
+	expression mapping attribute isCollectionAttribute ifTrue:
+		[initialValueQuery resultTemplate: expression mapping attribute newCollection].
+	relatedBuilder cachedQueryFor: expression mapping put: initialValueQuery.
 ]
 
 { #category : #accessing }

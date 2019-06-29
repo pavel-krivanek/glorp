@@ -21,12 +21,6 @@ Class {
 	#category : #'GlorpQueries-Glorp-Expressions'
 }
 
-{ #category : #'as yet unclassified' }
-MessageArchiver class >> inspectorClass [
-
-	^EyeProtoInspector 
-]
-
 { #category : #'instance creation' }
 MessageArchiver class >> receiver: aMessageCollector selector: aSymbol arguments: aCollection [
 

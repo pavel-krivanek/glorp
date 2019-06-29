@@ -2,12 +2,22 @@
 A UnitOfWork keeps track of objects which might potentially be modified and lets you roll them back or commit the changes into the database.
 
 Instance Variables:
-	newObjects	<IdentitySet of: Object>	The objects registered with us as being new (i.e. not existing already in the database)
 	session	<Session>	The session in which this is all taking place.
-	transaction	<ObjectTransaction>	Keeps track of the original object state so that we can revert it.
-	rowMap	<RowMap>	A holder for the rows when we are writing out changes.
+	transaction	<ObjectTransaction>	Keeps track of the original object state so that we can revert it in the image if the transaction aborts.
+Instance Variables - Objects:
+	newObjects	<IdentitySet>	Objects registered with us as being new (i.e. not existing already in the database)
+	deletedObjects	<IdentitySet>	Objects to be deleted.
+	deleting	<IdentitySet>	Temporarily holds to-be-deleted objects while registering (for deletion) their closure, to avoid recursion
+Instance Variables - Rows:
 	commitPlan	<(OrderedCollection of: DatabaseRow)>	The list of rows to be written, in order. Constructed by topological sorting the contents of the row map.
-	calculatingRows <Boolean> Are we in the process of computing the rows to be written. If so, we should not be doing reads and registrations - it's probably an error in the mapping code by accidentally forcing a read.
+	deletePlan		<(OrderedCollection of: DatabaseRow)>	The list of rows to be deleted, in order. Constructed by topological sorting the contents of the row map.
+	linkRowsForUpdate	<IdentitySet of: DatabaseRow>	update rows replacing deletes and inserts of rows with the same primary key.  (Typically, link table rows, because Glorp-managed object identity ensures this only ever happens by user intent torows that map to objects:  a user can explicitly delete an object and add another, giving it the same key, in the same transaction.)
+	rowMap	<RowMap>	A holder for the rows when we are writing out changes.
+	rowsByTable	<Dictionary>	Holds the same rows as rowMap, sorted by table for getting sequence numbers and writing
+Instance Variables - Status:
+	succeeded	<Boolean>	This is always true when inserting.  It is false if the rowCount of an update is fewer than the number if rows submitted for update (used e.g. by lockFields).
+	commitPhase	<Symbol | nil>	noting when we are #registering and when we are #building, to detect reads and registrations during the process of computing the rows to be written (that would probably be an error in the mapping code that accidentally forcing a read).
+
 
 
 "
@@ -135,7 +145,6 @@ UnitOfWork >> computeCollectionDeletesFor: aMapping inObject: anObject [
 	currentObjects := self session
 		realObjectFor: (aMapping getValueFrom: anObject)
 		ifNone: [^self].
-	(aMapping isValidTarget: currentObjects) ifFalse: [^self].
 	memento := transaction mementoFor: anObject.
 	mementoObjects := transaction collectionMementoFor:
 		(self session realObjectFor: (aMapping getValueFrom: memento)).
@@ -236,46 +245,46 @@ UnitOfWork >> initialize [
 
 { #category : #'private/mapping' }
 UnitOfWork >> instantiateIfRequiredFor: anObject mapping: eachMapping [
-	"Sometimes we have to instantiate the targets if they weren't. Specifically, if there's a relationship where the target has a foreign key to us. e.g. if X has a 1-many to Y, and we don't instantiate the collection of Y, but then replace it with some other collection. The Y's keys have to be updated, so we need to make sure they're read. There are other cases, too"
+	"Sometimes we have to instantiate the targets if they weren't. One case is when there is a relationship where the target has a foreign key to us, e.g. if X has a 1-many to Y and we don't instantiate the collection of Y, but then replace it with some other collection:  the Y's keys have to be updated, so we need to make sure they're read. There are other cases."
 
 	| originalTarget targetObject mapping instantiated |
 	mapping := eachMapping applicableMappingForObject: anObject.
 	mapping isRelationship ifFalse: [^false].
-	mapping readOnly ifTrue: [^false].
+	mapping canWrite ifFalse: [^false].
 	targetObject := mapping getValueFrom: anObject.
-	(self isNewObject: anObject)
-		ifTrue:
-			[^self instantiateIfRequiredForNewObjectReferenceTo: targetObject].
-	instantiated := (self willDelete: anObject)
-		ifTrue:
-			[self instantiateIfRequiredForDeletedObjectReferencing: targetObject from: anObject in: eachMapping]
-		ifFalse: [false].
+	(self isNewObject: anObject) ifTrue:
+		[^self instantiateIfRequiredForNewObjectReferenceTo: targetObject].
+	instantiated := (self willDelete: anObject) and: [self
+		instantiateIfRequiredForDeletedObjectReferencing: targetObject
+		from: anObject
+		in: eachMapping].
 	originalTarget := self originalValueFor: anObject mapping: mapping.
 	^instantiated or: [self
 		instantiateIfRequiredForReferenceChangedFrom: originalTarget
-		to: targetObject].
+		to: targetObject]
 ]
 
 { #category : #'private/mapping' }
 UnitOfWork >> instantiateIfRequiredForDeletedObjectReferencing: targetObject from: anObject in: aMapping [
-	"If we are deleted, then we need to have at least one mapping for each of our primary keys instantiated. If we're lucky, there's a direct mapping, and it's easy. Note that this only looks for the primary table. This might not be correct, but it's not clear, and for secondary tables there's a multiple table join that can be used without needing a mapping. And I'm not prepared to think about secondary tables whose keys are mapped only as relationships. In addition, if we use a link table, then we need to instantiate the reference, because we'll need to have enough information to delete the link table entry/entries."
+	"If we are to be deleted, we need the value(s) of each of our primary key(s).  If we're lucky, there's a direct mapping, and it's easy.  However if one or more of our primaryKeys come from target objects that we reference (e.g. if a GlorpMessage is keyed by its owning GlorpFolder's name and its sending GlorpUser's id as well as by its own title) then we must instantiate any targets for whose key(s) we do not already have the value(s).
+	Note that this implementation only looks at the primary table. This might not be correct, but it's not clear, and for secondary tables there's a multiple table join that can be used without needing a mapping. And I'm not prepared to think about secondary tables whose keys are mapped only as relationships. In addition, if we use a link table, then we need to instantiate the reference, because we'll need to have enough information to delete the link table entry/entries."
+
 	| mappingsToUseForPrimaryKeys |
 	aMapping mapsPrimaryKeys ifFalse: [^false].	
-	aMapping usesLinkTable ifTrue: [
-		"Make sure we get the non-filtered version, and return false so that if the reference has changed, we'll also get the original version."
-		self notFilteringDeletesDo: [targetObject yourSelf]. ^false].
+	aMapping usesLinkTable ifTrue:	"Make sure we get the non-filtered version, and return false so that if the reference has changed, we'll also get the original version."
+		[self notFilteringDeletesDo: [targetObject yourSelf].
+		^false].
 	mappingsToUseForPrimaryKeys := aMapping descriptor primaryKeyMappingsFor: aMapping descriptor primaryTable.
 	"For any of the fields we map, is there anyone else who can get us the value. If not, instantiate us. It might be better to optimize this a bit to look for e.g. one-one mappings before to-many."
-	aMapping mappedFields do: [:each |
-		| mappings |
+	aMapping mappedFields do:
+		[:each || mappings |
 		mappings := mappingsToUseForPrimaryKeys at: each ifAbsent: [nil].
-		mappings isNil ifFalse: [
-			(mappings allSatisfy: [:eachMapping | 
-				(eachMapping hasValueThatCanProvideField: each from: anObject) not])
-					ifTrue: [
-						targetObject yourSelf.
-						^true]]].
-	^false.
+		mappings isNil ifFalse:
+			[(mappings anySatisfy: [:pkMapping | pkMapping hasValueThatCanProvideField: each from: anObject])
+				ifFalse:	"we do not have the value; instantiate the target"
+					[targetObject glorpRealObject.
+					^true]]].
+	^false
 ]
 
 { #category : #'private/mapping' }
@@ -353,6 +362,8 @@ UnitOfWork >> postCommit [
 
 { #category : #'begin/commit/abort' }
 UnitOfWork >> preCommit [
+	"Despite the instvar name, the 'linkRowsForUpdate' are not necessarily all link rows.  Firstly, the #testDelete*CopyInsert* tests show a pattern (to be used with great care) for inserting existing objects into a new UnitOfWork.  Secondly, whenever #differenceFrom: fails to recognise a RowMapForMementos row as being the same as a RowMap row (i.e. the constructed key is somehow non-identical) then the spurious deletion will be collapsed into an update - which is wrong but at least substitutes a needless no-op update for an incorrect delete."
+
 	commitPhase := #registering.
 	self registerTransitiveClosure.
 	commitPhase := #building.
@@ -416,11 +427,13 @@ UnitOfWork >> readBackNewRowInformation [
 ]
 
 { #category : #registering }
-UnitOfWork >> register: anObject [ 
+UnitOfWork >> register: anObject [
+	"The #building guard should never happen; if it did, it would probably indicate we're triggering proxies while firing the mappings.  The nil guard is just an optimisation;  the call below it would exit after finding that nil's class has no descriptor."
 
 	| realObject |
-	commitPhase == #building ifTrue: [self halt]. "Should not happen. Probably indicates that we're triggering proxies while firing the mappings"
+	commitPhase == #building ifTrue: [self halt].
 	realObject := transaction register: anObject.
+	realObject isNil ifTrue: [^nil].
 	self registerTransitiveClosureFrom: realObject.
 ]
 
@@ -473,7 +486,7 @@ UnitOfWork >> registerTransitiveClosureFrom: anObject [
 
 { #category : #'begin/commit/abort' }
 UnitOfWork >> registeredObjects [
-	^self correspondenceMap keys asOrderedCollection
+	^self correspondenceMap keys
 ]
 
 { #category : #enumerating }
@@ -517,6 +530,16 @@ UnitOfWork >> reserveSequenceNumbers [
 							ifTrue: [sum + 1] ifFalse: [sum]])
 					in: self session
 					for: eachTable]]
+]
+
+{ #category : #private }
+UnitOfWork >> revertNewObjectsAfter: aBlock [
+	"USE WITH CAUTION (read comments in callers for issues):  discard any new objects added during the execution of aBlock."
+
+	| priorNewObjects |
+	priorNewObjects := newObjects.
+	^aBlock ensure:
+		[newObjects := priorNewObjects]
 ]
 
 { #category : #'begin/commit/abort' }
@@ -581,8 +604,10 @@ UnitOfWork >> system [
 
 { #category : #deletion }
 UnitOfWork >> undelete: anObject ifNotDeleted: aBlock [
+	"If the deleted object has embedded objects, aBlock should exit or otherwise ensure that trying to #undele: the embedded objects in the next line does not cause an error.  This method was added (untested) in Glorp(0.4.45) in mid-August 2006 and for the next 11 years was certainly never called on an object with embedded subobjects (I have just fixed a bug in that), and maybe was never called at all.  Should we delete this unused method?"
+
 	deletedObjects remove: anObject ifAbsent: aBlock.
-	(session embeddedObjectsFor: anObject) do: [:each | self undelete: each].
+	(session embeddedObjectsFor: anObject) do: [:each | session undelete: each].
 ]
 
 { #category : #'private/mapping' }

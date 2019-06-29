@@ -29,6 +29,14 @@ GlorpNumericType >> = aType [
 	^true.
 ]
 
+{ #category : #accessing }
+GlorpNumericType >> beRelative [
+	^super beRelative
+		precision: self precision;
+		scale: self scale;
+		yourself
+]
+
 { #category : #converting }
 GlorpNumericType >> converterForStType: aClass [
 	(aClass includesBehavior: Boolean) ifTrue: [^self platform converterNamed: #booleanToInteger].

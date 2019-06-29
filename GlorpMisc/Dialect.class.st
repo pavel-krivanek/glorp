@@ -48,29 +48,6 @@ Dialect class >> convert: aByteArray toStringWithEncoding: encodingName [
 	self error: 'Not yet implemented'.
 ]
 
-{ #category : #private }
-Dialect class >> determineDialect [
-	^ dialectName := #Pharo
-]
-
-{ #category : #identifying }
-Dialect class >> dialectName [
-
-	dialectName isNil ifTrue: [self determineDialect.].
-	^ dialectName
-]
-
-{ #category : #identifying }
-Dialect class >> isPharo [
-
-	^ self dialectName = #Pharo
-]
-
-{ #category : #collections }
-Dialect class >> needsCollectionMementoFor: aCollection [
-	^true.
-]
-
 { #category : #reflection }
 Dialect class >> selectorsFor: aClass do: aBlock [
 	"Stupid dialects"

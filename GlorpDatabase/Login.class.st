@@ -15,16 +15,12 @@ Class {
 	#name : #Login,
 	#superclass : #Object,
 	#instVars : [
-		'encodingStrategy',
 		'database',
 		'username',
 		'password',
 		'connectString',
 		'name',
 		'schema',
-		'databaseName',
-		'host',
-		'port',
 		'secure'
 	],
 	#category : #'GlorpDatabase-Glorp'
@@ -46,11 +42,11 @@ Login class >> visualWorksMetadata [
 
 { #category : #accessing }
 Login >> = aLogin [ 
-	^self class == aLogin class and: 
-			[self name = aLogin name and: 
-					[self database class = aLogin database class and: 
-							[self username = aLogin username and: 
-									[self connectString = aLogin connectString]]]]
+	^self class == aLogin class 
+		and: [self database class = aLogin database class 
+		and: [self username = aLogin username 
+		and: [self connectString = aLogin connectString
+		and: [self schema = aLogin schema]]]]
 ]
 
 { #category : #converting }

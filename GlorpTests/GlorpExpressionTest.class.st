@@ -93,12 +93,19 @@ GlorpExpressionTest >> testAnySatisfyPrintJoin [
 
 { #category : #tests }
 GlorpExpressionTest >> testBetweenAnd [
-	| expression base |
-	base := BaseExpression new.
+	| expression base command |
+	base := FieldExpression
+		forField: (DatabaseField named: 'test' type: system platform int4)
+		basedOn: BaseExpression new.
 	expression := [:a | a between: 3 and: 4] asGlorpExpressionOn: base.
 	self assert: expression class == InfixFunction.
 	self assert: expression name = 'BETWEEN AND'.
 	self assert: (expression arguments collect: [:each | each value]) = (Array with: 3 with: 4).
+	command := GlorpNullCommand useBinding: false session: system session.
+	expression	
+		printSQLOn: command
+		withParameters: Dictionary new.
+	self assert: command sqlString = 'test BETWEEN 3 AND 4'.
 ]
 
 { #category : #tests }

@@ -74,6 +74,8 @@ QuerySelectCommand >> maximumLobSizeToRetrieveDirectly [
 
 { #category : #executing }
 QuerySelectCommand >> nextPutBindMarkerIn: aRelationExpression [
+	"The ifAbsent case should probably raise an error - certainly it should if any are present."
+
 	| bindInteger |
 	bindInteger := self boundExpressions
 		indexOf: aRelationExpression

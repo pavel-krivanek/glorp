@@ -101,6 +101,26 @@ Dialect class >> coerceToDoublePrecisionFloat: aNumber [
 	^ aNumber
 ]
 
+{ #category : #'*GlorpExtensions-private' }
+Dialect class >> determineDialect [
+	self basicIsDolphin ifTrue: [^ dialectName := #Dolphin].
+	self basicIsGNU ifTrue: [^ dialectName := #GNU].
+	self basicIsVisualAge ifTrue: [^ dialectName := #VisualAge].
+	self basicIsVisualWorks ifTrue: [^ dialectName := #VisualWorks].
+	self basicIsSqueak ifTrue: [^ dialectName := #Squeak].
+	self basicIsObjectStudio ifTrue: [^dialectName := #ObjectStudio].
+	self basicIsVisualWorksWithoutNamespaces ifTrue: [^dialectName := #VisualWorks].
+	self error: 'I don''t know what dialect this is'.
+	^ self
+]
+
+{ #category : #'*GlorpExtensions-identifying' }
+Dialect class >> dialectName [
+
+	dialectName isNil ifTrue: [self determineDialect.].
+	^ dialectName
+]
+
 { #category : #'*GlorpExtensions-identifying' }
 Dialect class >> dialectVersion [
 	"Glorp does not need to consult dialect versions at the moment.  This method is currently made available purely as a precaution, in case Glorp experimenters should wish to add a dialect-version-requiring feature."

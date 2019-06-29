@@ -78,6 +78,26 @@ ConstantExpression >> canHaveBase [
 	^false.
 ]
 
+{ #category : #recursion }
+ConstantExpression >> createMappingToFieldInRecursionTable: aDatabaseTable [
+	"Recursion table fields are not assigned types in the database, but Glorp DNUs on a nil type during recursion definition, and will send #exdiType if binding (that call will survive a return of nil but must not return #subclassResponsibility).  Thus we seek a specific Glorp type for the recursion table field.
+	The commented-out ifNone: block indicates a viable alternative or backstop arrangement - to return a nonce type (that we do not add it to the platform's type dictionary).  If the deed arises, uncomment this (and define GlorpNonceType subclass of GlorpDatabaseType, with GlorpNonceType>>exdiType returning nil)."
+
+	| impliedGlorpType newMapping |
+	impliedGlorpType := aDatabaseTable platform typesWithValues
+		detect:
+			[:each || stClass | stClass := each impliedSmalltalkType.
+			stClass ~~ Object and: [value isKindOf: stClass]].
+		"ifNone:
+			[GlorpNonceType new
+				typeString: 'recursionConstant';
+				platform: aDatabaseTable platform]"
+	newMapping := DirectMapping new.
+	newMapping field:
+		(aDatabaseTable createFieldNamed: alias type: impliedGlorpType).
+	^newMapping
+]
+
 { #category : #accessing }
 ConstantExpression >> field [
 	^self.

@@ -68,7 +68,7 @@ ParameterExpression >> canHaveBase [
 	^true.
 ]
 
-{ #category : #printing }
+{ #category : #converting }
 ParameterExpression >> convertedDbValueOf: anObject [
 	"We don't do any conversion"
 	^anObject
@@ -153,6 +153,11 @@ ParameterExpression >> rebuildOn: aBaseExpression startingFrom: anExpression wit
 	self == anExpression ifTrue: [^aBaseExpression].
 	self base == ultimateBaseExpression ifTrue: [^self].
 	^aBaseExpression getParameter: lookupKey.
+]
+
+{ #category : #preparing }
+ParameterExpression >> tableForANSIJoin [
+	^self field table
 ]
 
 { #category : #navigating }

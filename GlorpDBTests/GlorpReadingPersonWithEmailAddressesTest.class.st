@@ -94,10 +94,6 @@ GlorpReadingPersonWithEmailAddressesTest >> testPreparedStatementsAreReused [
 	"The tearDown ensures our forcing of reusePreparedStatements is reverted."
  
 	session useBinding ifFalse: [^self].	"test only makes sense if binding is on"
-	
-	"20160531, pierce: Skip this test for now."	
-	session accessor currentLogin database isUDBCSQLite3Platform ifTrue: [ ^ self ].
-	
 	oldReuseState := session reusePreparedStatements.
 	session reusePreparedStatements: true.
 	session reset.
@@ -138,13 +134,9 @@ GlorpReadingPersonWithEmailAddressesTest >> testReadPersonWithEmailAddresses [
 		readOneOf:GlorpPerson
 		where: [:person | person id = 3].
 	result := query executeIn: session.
-	emailAddresses := result emailAddresses getValue.
+	emailAddresses := result emailAddresses glorpRealObject.
 	self assert: emailAddresses size = 2.
-	self
-		assert:
-			(emailAddresses first id = id1 or: [emailAddresses last id = id1]).
-	self
-		assert:
-			(emailAddresses first id = id2 or: [emailAddresses last id = id2]).
+	self assert: (emailAddresses first id = id1 or: [emailAddresses last id = id1]).
+	self assert: (emailAddresses first id = id2 or: [emailAddresses last id = id2]).
 	self assert: emailAddresses first id ~= emailAddresses last id.
 ]

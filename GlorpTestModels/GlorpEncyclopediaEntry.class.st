@@ -26,7 +26,7 @@ GlorpEncyclopediaEntry class >> example2 [
 		text: 'The second number (comes after 1)'.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #'initialize-release' }
 GlorpEncyclopediaEntry class >> new [
 	^super new initialize
 ]

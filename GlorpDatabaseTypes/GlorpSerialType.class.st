@@ -19,6 +19,11 @@ GlorpSerialType class >> visualWorksMetadata [
 ]
 
 { #category : #accessing }
+GlorpSerialType >> beRelative [
+	self error: 'Serial and Identity types do not support relative attribute.'
+]
+
+{ #category : #accessing }
 GlorpSerialType >> hasParameters [
 	^true.
 ]

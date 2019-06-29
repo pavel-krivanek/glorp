@@ -31,11 +31,15 @@ GlorpConditionalMappingTest >> setUp [
 	super setUp.
 	descriptor := system descriptorFor: GlorpPassenger.
 	mapping := descriptor newMapping: ConditionalMapping.
+"These next two calls are old protocol"
 	mapping conditionalField: (descriptor primaryTable fieldNamed: 'ID').
+	mapping conditionalMethod: #id.
+"remaining here only to check b/w-compatibility until replaced with
+	mapping forField: (descriptor primaryTable fieldNamed: 'ID') attribute: #id.
+or #conditionalValueMapping: or #forField:attribute:if:then:"
 	mapping if: #testIDLessThan5: then: (mapping1 := DirectMapping from: #blah to: (descriptor primaryTable fieldNamed: 'ID')).
 	mapping if: #testIDMoreThan5: then: (mapping2 := DirectMapping from: #bletch to: (descriptor primaryTable fieldNamed: 'NAME')).
 	mapping otherwise: (mapping3 := DirectMapping from: #bazoomer to: (descriptor primaryTable fieldNamed: 'ID')).
-	mapping conditionalMethod: #id.
 ]
 
 { #category : #support }
@@ -57,8 +61,11 @@ GlorpConditionalMappingTest >> testApplicableMappingForReadNewProtocol [
 	| builder |
 	self setUpNew.
 	builder := ElementBuilder for: ([:x | x] asGlorpExpressionForDescriptor: descriptor) in: SimpleQuery new.
+	builder row: #(1 foo nil nil).
 	self assert: (newMapping applicableMappingForRow: #(1 foo nil nil) in: builder) == mapping1.
+	builder row: #(6 foo nil nil).
 	self assert: (newMapping applicableMappingForRow: #(6 foo nil nil) in: builder) == mapping2.
+	builder row: #(5 foo nil nil).
 	self assert: (newMapping applicableMappingForRow: #(5 foo nil nil) in: builder) == mapping3.
 ]
 
@@ -67,8 +74,11 @@ GlorpConditionalMappingTest >> testApplicableMappingForReadOldProtocol [
 
 	| builder |
 	builder := ElementBuilder for: ([:x | x] asGlorpExpressionForDescriptor: descriptor) in: SimpleQuery new.
+	builder row: #(1 foo nil nil).
 	self assert: (mapping applicableMappingForRow: #(1 foo nil nil) in: builder) == mapping1.
+	builder row: #(6 foo nil nil).
 	self assert: (mapping applicableMappingForRow: #(6 foo nil nil) in: builder) == mapping2.
+	builder row: #(5 foo nil nil).
 	self assert: (mapping applicableMappingForRow: #(5 foo nil nil) in: builder) == mapping3.
 ]
 
@@ -108,16 +118,15 @@ GlorpConditionalMappingTest >> testDescriptor [
 ]
 
 { #category : #tests }
-GlorpConditionalMappingTest >> testMappedFieldsOldProtocol [
-
+GlorpConditionalMappingTest >> testMappedFields [
 	self assert: mapping mappedFields asSortedCollection = descriptor primaryTable fields asSortedCollection.
-
 	mapping := descriptor newMapping: ConditionalMapping.
-	self assert: mapping mappedFields isEmpty.
-
-	mapping conditionalField: (descriptor primaryTable fieldNamed: 'ID').
-	self assert: mapping mappedFields size = 1.	
-
+	"We have to define the conditional mapping first otherwise mappedFields will DNU on nil."
+	mapping forField: (descriptor primaryTable fieldNamed: 'ID') attribute: #id.
+	self assert: mapping mappedFields size = 1.
+	mapping otherwise: (DirectMapping from: #bletch to: (descriptor primaryTable fieldNamed: 'NAME')).
+	self assert: mapping mappedFields size = 2.
 	mapping if: #testIDLessThan5: then: (mapping1 := DirectMapping from: #blah to: (descriptor primaryTable fieldNamed: 'NAME')).
+	self assert: mapping mappedFields size = 2.
 	self assert: mapping mappedFields asSortedCollection = descriptor primaryTable fields asSortedCollection.
 ]

@@ -16,21 +16,21 @@ GlorpTimestampTest class >> visualWorksMetadata [
 
 { #category : #tests }
 GlorpTimestampTest >> compareTime: read to: original [
-	"GNU Smalltalk seems to be quite lone in following the ANSI standard..."
+	"GNU Smalltalk seems to be quite alone in following the ANSI standard..."
+
 	| zeroDuration max min |
-	Dialect isGNU
-		ifTrue: [
-			zeroDuration := (Smalltalk at: #Duration) zero.
-			^(read offset: zeroDuration) = (original offset: zeroDuration)].
+	Dialect isGNU ifTrue:
+		[zeroDuration := (Smalltalk at: #Duration) zero.
+		^(read offset: zeroDuration) = (original offset: zeroDuration)].
 	"MS SQL Server fails randomly because it has a resolution of 3 ms only."
-	session platform class = SQLServerPlatform ifTrue: [
-		max := original addMilliseconds: 3.
+	session platform class = SQLServerPlatform ifTrue:
+		[max := original addMilliseconds: 3.
 		min := original addMilliseconds: -3.
 		^read between: min and: max].
 	"Otherwise"
 	^session platform supportsMillisecondsInTimes 
 		ifTrue: [read = original]
-		ifFalse: [read = original or: [read = (original addMilliseconds: (-1 * original milliseconds)) or: [read asSeconds = original asSeconds]]].
+		ifFalse: [read = original or: [read = (original addMilliseconds: (-1 * original milliseconds)) or: [read asSeconds = original asSeconds]]]
 ]
 
 { #category : #types }
@@ -73,8 +73,8 @@ GlorpTimestampTest >> testTimeStampBetweenAnd [
 				where:
 					[:each | 
 					each updateTime
-						between: (time - 1 second)
-						and: (time + 1 second)].
+						between: (time subtractSeconds: 1)
+						and: (time addSeconds: 1)].
 			self assert: newRecord id = record id.].
 ]
 
@@ -83,11 +83,11 @@ GlorpTimestampTest >> testTimeStampCast [
 	"SQLite does not have time-related types:  they are all mapped to strings.  I have not debugged why this test fails yet but assume it is completely unrealistic to expect a string to be cast to a timestamp."
 
 	| timestamp model |
-	
-	Dialect isPharo ifTrue: [ ^ self skip: 'Pharo does not implement #cast:.' ].
-	
+	Dialect isVisualAge ifTrue: [Transcript cr; show: 'Avoiding testTimestampCast for VisualAge'. ^self].
 	timestamp := Dialect timestampNow.
-	"OraclePlatform>>timestamp returns the 'DATE' type;  casting to Oracle DATE loses all data below seconds.  We therefore truncate the timestamp to seconds in what is (or can be made in Glorp*Port) a dialect-neutral way."
+	"Since VW moved to nanosend-granularity Timestamps, the
+		timestamp millisecond: 0
+	call we used to make here no longer suffices to round for all platforms.  In particular, OraclePlatform>>timestamp returns the 'DATE' type;  casting to Oracle DATE loses all data below seconds.  We therefore truncate the timestamp to seconds in what is (or can be made in Glorp*Port) a dialect-neutral way."
 	timestamp := timestamp class fromSeconds: timestamp asSeconds.
 	session transact: [session register: (GlorpTypeTestsModelClass new test: timestamp)].
 	model := session readOneOf: GlorpTypeTestsModelClass where: [:each | (each test cast: session platform timestamp) = timestamp].
@@ -121,7 +121,7 @@ GlorpTimestampTest >> testTimeStampCompare [
 				readOneOf: GlorpRecordWithUpdateTime
 				where:
 					[:each | 
-						(each updateTime > (time - 1 second))
-						& (each updateTime < (time + 1 second))].
+						(each updateTime > (time subtractSeconds: 1))
+						& (each updateTime < (time addSeconds: 1))].
 			self assert: newRecord id = record id].
 ]

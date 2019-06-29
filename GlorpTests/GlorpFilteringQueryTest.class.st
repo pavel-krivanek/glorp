@@ -1,9 +1,6 @@
 Class {
 	#name : #GlorpFilteringQueryTest,
 	#superclass : #TestCase,
-	#instVars : [
-		'collection'
-	],
 	#category : #GlorpTests
 }
 

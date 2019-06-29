@@ -50,6 +50,15 @@ VariableJoin >> anyJoin [
 	^joins detect: [:each | true].
 ]
 
+{ #category : #preparing }
+VariableJoin >> asExpressionJoiningSource: sourceExpression toTarget: targetExpression [
+	| expression |
+	joins do:
+		[:each |
+		expression := (each asExpressionJoiningSource: sourceExpression toTarget: targetExpression) OR: expression].
+	^expression
+]
+
 { #category : #converting }
 VariableJoin >> asGeneralGlorpExpression [
 	"We know that we represent querying for an abstract class, so we don't want to convert ourselves to a join form, but rather just to a source mapping form. There are some assumptions in here, but it should work for the basic cases anyway."
@@ -121,6 +130,13 @@ VariableJoin >> isJoin [
 	^true.
 ]
 
+{ #category : #testing }
+VariableJoin >> isOuterJoin [
+	"The outer join state must be the same for all (or much additional thinking is needed).  This is checked in #validate."
+
+	^self anyJoin isOuterJoin
+]
+
 { #category : #accessing }
 VariableJoin >> joins [
 	^joins.
@@ -133,6 +149,8 @@ VariableJoin >> joins: aCollection [
 
 { #category : #api }
 VariableJoin >> mapFromSource: sourceObject andTarget: targetObject intoRowsIn: aRowMap [
+	"Return the join for the target object, or the variable join if there is none."
+
 	(sourceObject isNil or: [targetObject isNil]) ifTrue: [^self].
 	^(joins at: targetObject class)
 		mapFromSource: sourceObject
@@ -148,9 +166,13 @@ VariableJoin >> mappableSourceFieldsDo: aBlock [
 
 { #category : #preparing }
 VariableJoin >> prepareIn: aQuery [
+	"There was a significant problem with horizontal inheritance where a VariableJoin was getting converted into a full expression in a query before that query had time to be converted to a full query and then back into sub-queries. When we did this, it lost information, so the sub-queries would get generated with each one talking to the same sub-table. We therefore delay conversion by not having VariableJoin convert itself to a general expression (so this method is now a no-op instead of
+	aQuery whereClause: self asGeneralGlorpExpression.
+as it used to be) which required implementing a bit more protocol on VariableJoin (these changes were integrated in Glorp (0.4.162) on 23oct2007).
+	This also exposed a subtle bug with subselects where we had a join whose base was not a base expression, and so asking it for ultimateBaseExpression gave the wrong answer. This was fixed by also sending ultimateBaseExpression to the result."
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #'primary keys' }
 VariableJoin >> primaryKeyFromDictionary: anIdentityDictionary [ 
 	^self anyJoin primaryKeyFromDictionary: anIdentityDictionary.
 ]
@@ -167,6 +189,13 @@ VariableJoin >> printSQLOn: aStream withParameters: aDictionary [
 	(joins at: aStream query resultClass) printSQLOn: aStream withParameters: aDictionary.
 ]
 
+{ #category : #private }
+VariableJoin >> privateGetOuterJoin [
+	"The outer join state must be the same for all (or much additional thinking is needed).  This is checked in #validate."
+
+	^self anyJoin privateGetOuterJoin
+]
+
 { #category : #accessing }
 VariableJoin >> queryLevelBaseExpression [
 	^self ultimateBaseExpression.
@@ -178,12 +207,24 @@ VariableJoin >> rebuildOn: aBaseExpression startingFrom: anExpression withOuterS
 		rebuildOn: aBaseExpression startingFrom: anExpression withOuterScopeBase: ultimateBaseExpression
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #testing }
 VariableJoin >> shortCircuitOnNullComparison: anIdentityDictionary [ 
 	joins do: [:each |
 		(each shortCircuitOnNullComparison: anIdentityDictionary)
 			ifFalse: [^false]].
 	^true.
+]
+
+{ #category : #preparing }
+VariableJoin >> sourceForTarget: aDatabaseField ifNone: aBlock [
+	"Our target fields vary but our source fields are the same;  any match will do"
+
+	| eachSourceField |
+	joins do:
+		[:each |
+		eachSourceField := each sourceForTarget: aDatabaseField ifNone: [nil].
+		eachSourceField isNil ifFalse: [^eachSourceField]].
+	^aBlock value
 ]
 
 { #category : #converting }
@@ -195,8 +236,32 @@ VariableJoin >> targetExpressionFor: eachTarget [
 				ifFalse: [(self anyJoin base getTable: eachTarget table) getField: eachTarget]].
 ]
 
+{ #category : #preparing }
+VariableJoin >> targetForSource: aField valueOfTargetField: aBlock [
+	"Only evaluate the block if each of my joins includes aField as source field.  Since we may assume (see #allSourceFields) that variable joins vary in their targets, not in their sources, treat any nil target as meaning no match.  I rely on the value of the block being the target value of the join's mapping, and on the block's exiting if the target is an uninstantiated proxy and returning the value if it is instantiated."
+
+	| targetsForSource |
+	targetsForSource := self joins collect: [:each | each targetForSource: aField].
+	^targetsForSource
+		detect: [:each | each isNil]
+		ifNone: [targetsForSource at: aBlock value class ifAbsent: [nil]]
+]
+
 { #category : #accessing }
 VariableJoin >> ultimateBaseExpression [
 
 	^self anyJoin base.
+]
+
+{ #category : #testing }
+VariableJoin >> validate [
+	"The outer join state must be the same for all (or much additional thinking is needed)."
+
+	| outerJoinState |
+	outerJoinState := self privateGetOuterJoin.
+	joins do:
+		[:each |
+		each validate.
+		each privateGetOuterJoin = outerJoinState ifFalse:
+			[self error: 'All the joins of a VariableJoin must have the same outer join value']].
 ]

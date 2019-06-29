@@ -143,6 +143,11 @@ DualRoleFunction >> type: aSymbol [
 	selectListVersion type: aSymbol.
 ]
 
+{ #category : #mapping }
+DualRoleFunction >> valueInBuilder: anElementBuilder [
+	^anElementBuilder valueOfField: self
+]
+
 { #category : #accessing }
 DualRoleFunction >> whereClauseVersion [
 	^whereClauseVersion.

@@ -63,7 +63,7 @@ GlorpSession >> accessor [
 { #category : #accessing }
 GlorpSession >> accessor: aDatabaseAccessor [ 
 	accessor := aDatabaseAccessor.
-	system isNil ifFalse: [system platform: (accessor platform)].
+	system isNil ifFalse: [system platform: accessor platform].
 ]
 
 { #category : #accessing }
@@ -183,11 +183,8 @@ GlorpSession >> commandForHomogeneousRows: aCollectionOfDatabaseRows [
 	aDatabaseRow := aCollectionOfDatabaseRows first.	"Just a representativeRow"
 	aDatabaseRow forDeletion ifTrue: [self error: 'invalid way of handling deletes (this should never happen)'].
 	^(self shouldInsert: aDatabaseRow)
-		ifFalse: [UpdateCommand forRows: aCollectionOfDatabaseRows useBinding: self useBinding session: self]
-		ifTrue: [self platform
-				insertCommandForRows: aCollectionOfDatabaseRows
-				binding: self useBinding
-				session: self]
+		ifFalse: [self platform updateCommandForRows: aCollectionOfDatabaseRows binding: self useBinding session: self]
+		ifTrue: [self platform insertCommandForRows: aCollectionOfDatabaseRows binding: self useBinding session: self]
 
 "My binding boolean is obtained from the accessor's platform's binding value whereas the session's platform is derived from the system's;  later, review whether and when these differ."
 ]
@@ -197,7 +194,10 @@ GlorpSession >> commandForRow: aDatabaseRow [
 	(aDatabaseRow forDeletion) ifTrue: [^DeleteCommand forRow: aDatabaseRow useBinding: self useBinding session: self].
 	^(self shouldInsert: aDatabaseRow)
 		ifTrue: [InsertCommand forRow: aDatabaseRow useBinding: self useBinding session: self]
-		ifFalse: [UpdateCommand forRow: aDatabaseRow useBinding: self useBinding session: self]
+		ifFalse: [self platform
+				updateCommandForRow: aDatabaseRow
+				binding: self useBinding
+				session: self]
 ]
 
 { #category : #'api/transactions' }
@@ -262,7 +262,7 @@ GlorpSession >> createRowsFor: anObject in: rowMap [
 
 { #category : #'table creation' }
 GlorpSession >> createTables [
-	"Create the tables for our descriptor system. This will fail if the tables already exist. Use recreateTables for that."
+	"Create the tables for our descriptor system. This will fail if the tables already exist. Use recreateTables for that.  Returns self."
 
 	self createTables: system allTables.
 ]
@@ -672,12 +672,20 @@ GlorpSession >> privateRegisterAsNew: anObject [
 
 { #category : #private }
 GlorpSession >> privateRegisterAsOld: anObject [ 
-	"Register the object as something we already read from the database, skipping the isNew: test. Private! Normally you would just use register:"
+	"Register the object as something we already read from the database, skipping the isNew: test. Private! Normally you would just use register:.  Note however that it's closure will NOT be registered as old.  Use (with even greater caution than this method) #privateRegisterClosureAsOld: if you want _everything_ anObject points at to be treated as old as well - including of course any objects that might otherwise unavoidably be treated as new through not being cachable, etc."
+
 	| realObject |
 	currentUnitOfWork isNil ifTrue: [^self].
 	realObject := self realObjectFor: anObject ifNone: [^self].
+	currentUnitOfWork register: realObject.
+]
 
-	currentUnitOfWork register: realObject
+{ #category : #private }
+GlorpSession >> privateRegisterClosureAsOld: anObject [
+	"Use (with great caution) this method if you want anObject AND its closure to be treated as old;  use #privateRegisterAsOld: if you only want anObject to be so registered. Be aware that objects that might otherwise unavoidably (and, it may well be, needlessly or even undesirably) be treated as new through not being cachable, etc., will be registered as old.  Obviously, be sure you know that the object and all of its closure have been written to the database (including update of its primaryKeys in #readBackNewRowInformationFor:fromRowsIn:) or else read from it (and fully instantiated) when you call this.  This is mainly an optimisation method, to be used only when its functional correctness is beyond question."
+
+	currentUnitOfWork isNil ifTrue: [^self].
+	currentUnitOfWork revertNewObjectsAfter: [self register: anObject].
 ]
 
 { #category : #'api/queries' }
@@ -1023,7 +1031,7 @@ GlorpSession >> shouldInsert: aDatabaseRow [
 	(currentUnitOfWork notNil and: [currentUnitOfWork forcesUpdateFor: aDatabaseRow]) ifTrue: [^false].
 
 	"If this is for a mapped object, so not a link table, then we are an insert if there is no corresponding row in the cache that we read from the database, and an update if there is such a row." 
-	isMappedObjectRow := (RowMap new isRowMapKey: aDatabaseRow owner) not.
+	isMappedObjectRow := (RowMap basicNew isRowMapKey: aDatabaseRow owner) not.
 	isMappedObjectRow ifTrue: [
 		^(self cacheContainsObjectForRow: aDatabaseRow) not].
 
@@ -1071,7 +1079,7 @@ GlorpSession >> transact: aBlock [
 	alreadyInUnitOfWork := self hasUnitOfWork.
 	alreadyInUnitOfWork ifFalse: [self beginUnitOfWork].
 	result := aBlock numArgs = 1 ifTrue: [aBlock value: self] ifFalse: [aBlock value].
-	self register: result.
+	result == self ifFalse: [self register: result].
 	alreadyInUnitOfWork ifFalse: [self commitUnitOfWork].
 	alreadyInTransaction ifFalse: [self commitTransaction]]
 		ifCurtailed: [alreadyInUnitOfWork ifFalse: [self rollbackUnitOfWork]]]

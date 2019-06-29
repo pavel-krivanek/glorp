@@ -18,7 +18,7 @@ would find all customers who had exactly one account whose value exceeded 1000."
 		[expression := next mapping addPhantomMappingExpressionOn: expression.
 		next := next base].
 	"We have to force construct the equality expression, because we don't want 'self' rebuilt onto the other base"
-	expression := RelationExpression new outerJoin: false; relation: #=; leftChild: expression; rightChild: self.
+	expression := RelationExpression new relation: #=; leftChild: expression; rightChild: self.
 	q whereClause: expression.
 	"We need to rebuild the thing we're using to retrieve in the right context. Also, if we're called directly, the symbol may be wrapped as a constantExpression. Unwrap it"
 	basicExpression := anExpression rebuildOn: q baseExpression startingFrom: objectExpression.
@@ -32,9 +32,9 @@ would find all customers who had exactly one account whose value exceeded 1000."
 { #category : #'*GlorpQueries-api-aggregates' }
 ObjectExpression >> existenceCheck: anExpression as: functionName [
 	"Make a subselect of the expression that is our argument, returning it wrapped in either an exists or a not exists, e.g. 
-	session read: GlorpCustomer where: 	[:each |  
-		each existenceCheck: eachCust accounts as: #exists:].
-	This is the most general form of existence checking convenience method, others are implemented in terms of it. It's very similar to aggregate:as:where:, but simpler."
+		session read: GlorpCustomer where:
+			[:each | each existenceCheck: eachCust accounts as: #exists:].
+This is the most general form of existence checking convenience method, others are implemented in terms of it. It is similar to #aggregate:as:where:, but simpler."
 
 	| q expression next objectExpression |
 	"We may be passed an expression corresponding to either a field, or to a full object, depending on the aggregate function. In either case, build backwards from the first full object"
@@ -47,9 +47,9 @@ ObjectExpression >> existenceCheck: anExpression as: functionName [
 		expression := next mapping addPhantomMappingExpressionOn: expression.
 		next := next base].
 	"We have to force construct the equality expression, because we don't want 'self' rebuilt onto the other base"
-	expression := RelationExpression new outerJoin: false; relation: #=; leftChild: expression; rightChild: self.
+	expression := RelationExpression new relation: #=; leftChild: expression; rightChild: self.
 	q whereClause: expression.
-	"Just read back a literal constant, we don't actually care about the data"
+	"Here, in synch with #initializeFunctions (for the relevant platforms), we use 'x' to name the data being retrieved."
 	q retrieve: ([:each | 'x' ] asGlorpExpression getFunction: #distinct withArguments: #()).
 	^self get: functionName withArguments: (Array with: (q asGlorpExpressionOn: self ultimateBaseExpression)).
 ]

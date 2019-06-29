@@ -62,8 +62,12 @@ GlorpError >> description [
 
 { #category : #accessing }
 GlorpError >> getMessageText [
+	"This is horribly ugly. Not only are dialects inconsistent, but behaviour between types of exceptions is inconsistent within dialects"
 	
-	^self databaseError
+	Dialect isVisualWorks ifTrue: [^self getVisualWorksMessageText].
+	Dialect isVisualAge ifTrue: [^self getVisualAgeMessageText].
+	Dialect isSqueak ifTrue: [^self databaseError].
+	^self printString.
 ]
 
 { #category : #accessing }

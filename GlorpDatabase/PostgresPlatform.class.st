@@ -5,7 +5,7 @@ This supports binding but has it off by default.  To change this generally, impl
 	Glorp.DatabasePlatform.UseBindingIfSupported := true
 In either case check already-assigned values of any existing platform instances after changing.
 
-Instance Variables
+Instance Variables:
 	charactersThatNeedEscaping	<Array of Char>	the standard_conforming_strings setting determines whether we must escape backslash;  we must always escape single-quote
 "
 Class {
@@ -211,11 +211,6 @@ PostgresPlatform >> initializeFunctions [
 	functions at: #regexMatches: put: (InfixFunction named: '~').
 ]
 
-{ #category : #constants }
-PostgresPlatform >> initializeReservedWords [
-	super initializeReservedWords.
-]
-
 { #category : #types }
 PostgresPlatform >> int [
 	^self int4
@@ -253,12 +248,6 @@ PostgresPlatform >> maximumLengthOfTableName [
 	"^<Integer> I return the max. length of a table name"
 
 	^31
-]
-
-{ #category : #testing }
-PostgresPlatform >> measuresStringFieldWidthsInBytes [
-	"Return true if we measure the width of a string in bytes rather than characters. So, a 255-character field can hold 255 bytes worth of string, not 255 characters. This is important with encodings"
-	^true.
 ]
 
 { #category : #types }
@@ -319,6 +308,19 @@ PostgresPlatform >> printPostLimit: anInteger on: aCommand [
 	anInteger printOn: aCommand.
 ]
 
+{ #category : #'database-specific' }
+PostgresPlatform >> printReturningFieldsOn: aCommand [
+	"Return current field value from an UPDATE statement, e.g.
+		UPDATE my_able SET field = field + 10 RETURNING field
+returns the post-update (incremented by 10) value of field."
+
+	aCommand nextPutAll: ' RETURNING '.
+	GlorpHelper
+		do: [:nextField | aCommand nextPutAll: nextField name]
+		for: aCommand relativeFields
+		separatedBy: [aCommand nextPut: $,; space].
+]
+
 { #category : #'conversion-times' }
 PostgresPlatform >> printTime: aTime for: aType [
 	"Print a time (or timestamp) as hh:mm:ss.fff"
@@ -350,6 +352,13 @@ PostgresPlatform >> printTimestamp: aTimestamp on: stream for: aType [
 { #category : #types }
 PostgresPlatform >> real [
 	^self float4
+]
+
+{ #category : #commands }
+PostgresPlatform >> relativeUpdateCommand [
+	"I can append to an update expression such that the post-update value will be returned in the same unit of work.  I use this ability when updating relative fields."
+
+	^ReturningUpdateCommand
 ]
 
 { #category : #testing }
@@ -494,7 +503,6 @@ PostgresPlatform >> timetz [
 { #category : #'type helpers' }
 PostgresPlatform >> typesWithValues [
 	super typesWithValues.
-	self boolean.
 	self bigint.
 	self date.
 	self decimal.
@@ -511,7 +519,7 @@ PostgresPlatform >> typesWithValues [
 	self serial.
 	self timetz.
 	self timestamptz.
-	^self types.
+	^self types
 ]
 
 { #category : #testing }

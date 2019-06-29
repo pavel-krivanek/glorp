@@ -227,7 +227,7 @@ SELECT t1.ATTRACLASSJ, t1.ATTRBCLASSJ, t2.ATTRACLASSK, t2.ATTRBCLASSK, t2.ATTRCC
  FROM (TBLJ t1 INNER JOIN TBLK t2 ON (t1.ATTRACLASSJ = t2.ATTRCCLASSK))
  WHERE (t1.ATTRACLASSJ = 10) ORDER BY t1.ATTRACLASSJ LIMIT 1
 
-when in fact we would need the last characters to be LIMIT 10, not LIMIT 1 since there are 10 TBLK rows linked to the sole TBLJ row we are reading.  To fix this, Glorp must rehognise the situation and rewrite to an outer query that alsoFetches and an inner query that is limited but does not alsoFetch."
+when in fact we would need the last characters to be LIMIT 10, not LIMIT 1 since there are 10 TBLK rows linked to the sole TBLJ row we are reading.  To fix this, Glorp must recognise the situation and rewrite to an outer query that alsoFetches and an inner query that is limited but does not alsoFetch.  This is now fixed for the readOneOf: (i.e. LIMIT 1) case."
 
 	| query myClassJ |
 	self glorpSession inUnitOfWorkDo: [:session | self class createDataForClassJAndK: session].
@@ -247,13 +247,13 @@ when in fact we would need the last characters to be LIMIT 10, not LIMIT 1 since
 
 { #category : #running }
 GlorpAlphaSystemTest >> testAlsoFetchOrderedMapping09 [
-	"Problem/Question: In TestDescriptorSystem>>descriptorForClassJ: we define attrCClassJ of ClassJ  to return its collection in descending order.  The ordering was not working when the attribute was alsoFetch:ed in a query for ClassJs instead of by instantiating the proxy later.  The following sql was being issued by Glorp (and written to the Transcript by this test):
+	"Problem/Question: In TestDescriptorSystem>>descriptorForClassJ: we define attrCClassJ of ClassJ  to return its collection in descending order.  The ordering was not working when the attribute was alsoFetch:ed in a query for ClassJs instead of by instantiating the proxy later.  The SQL being issued by Glorp (and written to the Transcript by this test) was:
 
 SELECT t1.ATTRACLASSJ, t1.ATTRBCLASSJ, t2.ATTRACLASSK, t2.ATTRBCLASSK, t2.ATTRCCLASSK
  FROM (TBLJ t1 INNER JOIN TBLK t2 ON (t1.ATTRACLASSJ = t2.ATTRCCLASSK))
  WHERE (t1.ATTRACLASSJ = 10) ORDER BY t1.ATTRACLASSJ
 
-It should instead have issued the following sql:
+It should instead have been:
 
 SELECT t1.ATTRACLASSJ, t1.ATTRBCLASSJ, t2.ATTRACLASSK, t2.ATTRBCLASSK, t2.ATTRCCLASSK
  FROM (TBLJ t1 INNER JOIN TBLK t2 ON (t1.ATTRACLASSJ = t2.ATTRCCLASSK))
@@ -266,7 +266,7 @@ since we are recovering ClassJ objects and its oneToMany mapping to ClassK has a
 	self tearDown; setUp.
 	"Read a ClassJ but do not fetch its ClassK collection in the same query;  instantiate the proxy lazily."
 	query := Query read: ClassJ where: [:classJ | classJ attrAClassJ = 10].
-	myClassJ := (self glorpSession  execute: query) first.
+	myClassJ := (self glorpSession execute: query) first.
 	self assert: myClassJ attrCClassJ size = 10.
 	self assert: (myClassJ attrCClassJ collect: [:each | each attrBClassK]) =
 		((myClassJ attrCClassJ collect: [:each | each attrBClassK])
@@ -599,12 +599,12 @@ GlorpAlphaSystemTest >> testRepeatSQLUpdate08 [
 	2 timesRepeat:
 		[self glorpDBAccessor
 			beginTransaction;
-			executeSQLString: 'update tbla set ATTRECLASSA = 0';
+			executeSQLString: 'update TBLA set ATTRECLASSA = 0';
 			commitTransaction].
 	2 timesRepeat:	"Test 3 expects ATTRECLASSA to be true."
 		[self glorpDBAccessor
 			beginTransaction;
-			executeSQLString: 'update tbla set ATTRECLASSA = 1';
+			executeSQLString: 'update TBLA set ATTRECLASSA = 1';
 			commitTransaction].
 ]
 

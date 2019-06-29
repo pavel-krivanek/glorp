@@ -1,6 +1,14 @@
 "
 This is an abstract superclass for classes that provide a compatibility layer for different databases. They encapsulate different SQL syntaxes, binding mechanism, types that are available, and general limits.
 
+Instance Variables:
+	characterEncoding	<ByteSymbol>	What character encoding should we use for the database connection.
+	converters	<Dictionary from: Symbol to: DatabaseConverter>	The available type converters. So, for example, if there is a boolean to integer conversion, we expect it in this dictionary associated with the symbol #booleanToInteger. If that symbol isn't there, we will look up the converter by performing #booleanToIntegerConverter and caching the result.
+	functions	<FunctionExpression>	Which functions are available for this database. There is a set of common functions created by FunctionExpression, plus we can define our own additions or overrides that are specific to this database.
+	reservedWords	<Collection of: String>	Which names are reserved words in this database. Any that we use as table or column names will need to be quoted.
+	types	<Dictionary from: Symbol to: GlorpDatabaseType>	A cache of available types, mapped by name to the type instance.
+	useBinding	<Boolean>	By default, should we use binding for this database.
+
 Subclasses must implement the following messages:
 	accessing
 		vwEXDIConnectionClass
@@ -21,14 +29,6 @@ Subclasses must implement the following messages:
 		varbinary
 		varchar
 
-Instance Variables:
-	characterEncoding	<ByteSymbol>	What character encoding should we use for the database connection.
-	converters	<Dictionary from: Symbol to: DatabaseConverter>	The available type converters. So, for example, if there is a boolean to integer conversion, we expect it in this dictionary associated with the symbol #booleanToInteger. If that symbol isn't there, we will look up the converter by performing #booleanToIntegerConverter and caching the result.
-	functions	<FunctionExpression>	Which functions are available for this database. There is a set of common functions created by FunctionExpression, plus we can define our own additions or overrides that are specific to this database.
-	reservedWords	<Collection of: String>	Which names are reserved words in this database. Any that we use as table or column names will need to be quoted.
-	types	<Dictionary from: Symbol to: GlorpDatabaseType>	A cache of available types, mapped by name to the type instance.
-	useBinding	<Boolean>	By default, should we use binding for this database.
-
 
 "
 Class {
@@ -43,10 +43,7 @@ Class {
 		'characterEncoding'
 	],
 	#classVars : [
-		'UseBindingIfSupported'
-	],
-	#classInstVars : [
-		'converterRepository'
+		'DatabasePlatform'
 	],
 	#category : #'GlorpDatabase-Glorp'
 }
@@ -79,6 +76,11 @@ DatabasePlatform class >> loginWithConnectionDictionary: aDict [
 		detect: [:cls | cls understandsConnectionDictionary: aDict].
 	^platformClass isNil ifFalse:
 		[platformClass createLoginFromConnectionDictionary: aDict]
+]
+
+{ #category : #'instance creation' }
+DatabasePlatform class >> new [
+	^super new initialize
 ]
 
 { #category : #constants }
@@ -228,6 +230,13 @@ DatabasePlatform >> canBind: aValue to: aType [
 ]
 
 { #category : #testing }
+DatabasePlatform >> canRecurse [
+	"Do I support RecursiveQuery (see its comment for details).  For all databases that do, the answer will be version-specific."
+
+	^false
+]
+
+{ #category : #testing }
 DatabasePlatform >> canUseInWhereClause: aValue type: aType [
 	(Dialect isFloatingPoint: aValue) ifTrue: [^false].
 	^true.
@@ -278,8 +287,6 @@ DatabasePlatform >> character [
 
 { #category : #accessing }
 DatabasePlatform >> characterEncoding [
-	"We hope that this will be set appropriately for the connection, but make sure the default is fairly harmless, and will in most cases complain rather than write characters incorrectly"
-	characterEncoding isNil ifTrue: [characterEncoding := #ascii].
 	^characterEncoding
 ]
 
@@ -314,8 +321,9 @@ DatabasePlatform >> compoundOperationFor: aSymbol [
 
 { #category : #'conversion-boolean' }
 DatabasePlatform >> convertBooleanToDBBoolean: aBoolean for: aType [
-	(self usesNullForFalse and: [aBoolean isNil]) ifTrue: [^false].
-	^aBoolean.
+	"Some databases do not treat TRUE and FALSE as first-class types, so may override me to return 1 and 0 or similar (or, when there is not even a bi-valued type to substitute, they may instead override my sender)."
+
+	^aBoolean
 ]
 
 { #category : #'conversion-boolean' }
@@ -360,8 +368,10 @@ DatabasePlatform >> convertByteArrayToString: aByteArray for: aType [
 ]
 
 { #category : #'conversion-boolean' }
-DatabasePlatform >> convertDBBooleanToBoolean: aBoolean for: aType [
-	^aBoolean.
+DatabasePlatform >> convertDBBooleanToBoolean: aDBBoolean for: aType [
+	"Databases that lack a first-class boolean type may return 1 and 0 or similar as aDBBoolean."
+
+	^aDBBoolean
 ]
 
 { #category : #'conversion-boolean' }
@@ -444,8 +454,7 @@ DatabasePlatform >> converterNamed: aSymbol [
 
 { #category : #'type converters' }
 DatabasePlatform >> converters [
-	converters isNil ifTrue: [converters := IdentityDictionary new].
-	^converters.
+	^converters
 ]
 
 { #category : #'services columns' }
@@ -699,14 +708,14 @@ DatabasePlatform >> createPrimaryKeyConstraintAddStatement: aPrimaryKeyConstrain
 ]
 
 { #category : #'services tables' }
-DatabasePlatform >> createTableIndexStatementStringFor: aGLORPDatabaseTable index: aGlorpDatabaseIndex [
+DatabasePlatform >> createTableIndexStatementStringFor: aGlorpDatabaseTable index: aGlorpDatabaseIndex [
 
 	| sqlStatementStream |
 	sqlStatementStream := WriteStream on: String new.
 	sqlStatementStream nextPutAll: 'CREATE INDEX '.
-	sqlStatementStream nextPutAll: aGlorpDatabaseIndex name.
+	self printDDLIndexNameFor: aGlorpDatabaseIndex inSchema: aGlorpDatabaseTable schema on: sqlStatementStream.
 	sqlStatementStream nextPutAll: ' ON '.
-	self printDDLTableNameFor: aGLORPDatabaseTable on: sqlStatementStream.
+	self printDDLTableNameFor: aGlorpDatabaseTable on: sqlStatementStream.
 	aGlorpDatabaseIndex printStatementOn: sqlStatementStream platform: self.
 	^sqlStatementStream contents
 ]
@@ -855,14 +864,23 @@ DatabasePlatform >> escapeFor: aCharacter [
 ]
 
 { #category : #'exdi specific' }
+DatabasePlatform >> exdiTypeForBoolean [
+	^#Boolean
+]
+
+{ #category : #'exdi specific' }
+DatabasePlatform >> exdiTypeForDate [
+	^#Date
+]
+
+{ #category : #'exdi specific' }
 DatabasePlatform >> exdiTypeForDates [
 	^#Date.
 ]
 
 { #category : #functions }
 DatabasePlatform >> functions [
-	functions isNil ifTrue: [self initializeFunctions].
-	^functions.
+	^functions
 ]
 
 { #category : #types }
@@ -883,6 +901,17 @@ DatabasePlatform >> hasSubtransaction [
 DatabasePlatform >> inMemorySequence [
 	^self typeNamed: #inMemorySequence ifAbsentPut: [
 		GlorpInMemorySequenceDatabaseType representedBy: self int4].
+]
+
+{ #category : #'initialize-release' }
+DatabasePlatform >> initialize [
+	"We hope the characterEncoding will be set appropriately for the connection, but make sure the default is fairly harmless, and will in most cases complain rather than write characters incorrectly."
+
+	characterEncoding := #ascii.
+	types := IdentityDictionary new.
+	converters := IdentityDictionary new.
+	self initializeReservedWords.
+	self initializeFunctions.
 ]
 
 { #category : #functions }
@@ -1002,6 +1031,29 @@ DatabasePlatform >> isSQLite3Platform [
 	^false
 ]
 
+{ #category : #utility }
+DatabasePlatform >> isVersion: aReferenceIntegerArray notNewerThan: aCurrentIntegerOrStringArray [
+	"In order, look for a number in the first parameter that is either higher or lower than that in the same place in the second parameter, continuing to the next pair if the current pair are equal.  Return true if we reach the end of the first array without finding an unequal pair.  Return false if the first parameter is longer than the second."
+
+	1 to: aReferenceIntegerArray size do:
+		[:index || eachVersionNumber eachReferenceNumber |
+		aCurrentIntegerOrStringArray size < index ifTrue: [^false].
+		eachVersionNumber := (aCurrentIntegerOrStringArray at: index) asNumber.
+		eachReferenceNumber := aReferenceIntegerArray at: index.
+		eachVersionNumber = eachReferenceNumber ifFalse:
+			[^eachVersionNumber > eachReferenceNumber]].
+	^true
+]
+
+{ #category : #types }
+DatabasePlatform >> maxInlineVarCharSize [
+	"The longest length of a string that will be stored inline with the rest of a table and thus be most performantly retrieved."
+
+	^2000
+
+"This is too long for the general case;  push this value down to specific platforms (and take version into account where necessary) and put a safe-for-all value here:  whatever all sufficiently modern RDBs accept, since only Glorp systems delivered in 2018 and after will use it."
+]
+
 { #category : #constants }
 DatabasePlatform >> maxSQLBufferLength [
 	"^<Integer> I return the maximum length of a sql command stream"
@@ -1009,9 +1061,18 @@ DatabasePlatform >> maxSQLBufferLength [
 	^8192
 ]
 
+{ #category : #types }
+DatabasePlatform >> maxVarCharSize [
+	"A suggested longest length of a varChar field, i.e. just within the length that a given database will support."
+
+	^32000
+
+"This value suits Postgres, and also DB2 (which allows maximum varchar length 32704.)  The current implementation of SQLite will support a string length up to 2147483647 (2^31-1)."
+]
+
 { #category : #constants }
 DatabasePlatform >> maximumLengthOfColumnName [
-	"^<Integer> I return the maximum length of a column name.  (I am not sent at present;  I am here so that if I and #maximumLengthOfTableName (which is sent) should ever differ on some database platform, I can be used in revised truncation logic.)"
+	"I am only used in the calculation of recursive column names.  However if I should ever differ from #maximumLengthOfTableName (which is used in all other cases) on some database platform, I can be used in revised truncation logic."
 
 	^18
 ]
@@ -1032,12 +1093,6 @@ DatabasePlatform >> maximumSizeToGroupWriteFor: aRowBasedCommand [
 	"If we are going to group write, how many rows of this command should we do it for at once."
 
 	^aRowBasedCommand allRows size
-]
-
-{ #category : #testing }
-DatabasePlatform >> measuresStringFieldWidthsInBytes [
-	"Return true if we measure the width of a string in bytes rather than characters. So, a 255-character field can hold 255 bytes worth of string, not 255 characters. This is important with encodings"
-	^false.
 ]
 
 { #category : #'services columns' }
@@ -1130,7 +1185,16 @@ DatabasePlatform >> numeric [
 
 { #category : #types }
 DatabasePlatform >> nvarchar [
-	^self subclassResponsibility.
+	"An nvarchar encodes and decodes using unicode separately from whether the database platform as a whole does or does not do so.  They were used as a transition mechanism in platforms that gradually introduced full unicode support, and can still be used to assign an encoding for specified columns likely to need it while the rest of the database uses a simpler one.  Not all platforms support nvarchars."
+
+	^self subclassResponsibility
+]
+
+{ #category : #types }
+DatabasePlatform >> nvarchar: anInt [
+	"Not all platforms support nvarchars so this, in calling #nvarchar, will properly raise a #subclassRepsonsibility error on any that do not."
+
+	^self nvarchar width: anInt
 ]
 
 { #category : #'conversion-strings' }
@@ -1232,11 +1296,12 @@ DatabasePlatform >> printBlob: aByteArray on: aStream for: aType [
 
 { #category : #'conversion-boolean' }
 DatabasePlatform >> printBoolean: aBoolean for: aType [
-	"If the platform is MS SQL Server, a boolean object in a SELECT needs to be converted to  BIT type, since T, Y, or true make SQLServer complain. "
+	"Not all database platforms accept TRUE and FALSE, T and F, etc.  Override this in those cases (and ensure the platform's converter named #booleanToBoolean conforms)."
+
 	| stream |
 	stream := WriteStream on: String new.
 	aBoolean glorpPrintSQLOn: stream.
-	^stream contents.
+	^stream contents
 ]
 
 { #category : #'services columns' }
@@ -1278,6 +1343,13 @@ DatabasePlatform >> printColumnsSpecificationFor: aGlorpDatabaseTable on: sqlSta
 							[sqlStatementStream nextPutAll: self columnNameSeparatorString].
 					self printColumn: eachGlorpDatabaseField on: sqlStatementStream.
 					sepFlag := true]].
+]
+
+{ #category : #'services tables' }
+DatabasePlatform >> printDDLIndexNameFor: aGlorpDatabaseIndex inSchema: schemaName on: sqlStatementStream [
+	"This method just writes the name of an index to a stream, in a way appropriate for DDL statements.  Subclasses can override for databases where, for example, the name needs to be qualified to avoid clashes."
+	
+	sqlStatementStream nextPutAll: aGlorpDatabaseIndex name.
 ]
 
 { #category : #'services tables' }
@@ -1549,11 +1621,6 @@ DatabasePlatform >> queryWithUnsupportedOperationsEliminatedFrom: aQuery do: aBl
 	^self.
 ]
 
-{ #category : #types }
-DatabasePlatform >> raw [
-	^self blob.
-]
-
 { #category : #'conversion-times' }
 DatabasePlatform >> readDate: anObject for: aType [
 	"format '2003-03-13"
@@ -1664,6 +1731,13 @@ DatabasePlatform >> readTimestampFromStream: aStream for: aType [
 		offset:timeZoneOffset.
 ]
 
+{ #category : #commands }
+DatabasePlatform >> relativeUpdateCommand [
+	"Subclasses override me if they can not only write a relative update but also return the post-updated value of the field.  Those that cannot do so must use this command, and trust users to know that the actual value of a relatively-updated field must be re-read explicitly, or the objects holding the no-longer-trustworthy relatively-updated values discarded."
+
+	^RelativeUpdateCommand
+]
+
 { #category : #testing }
 DatabasePlatform >> requiresCastsForNullsInUnions [
 	"If we have explicit nulls in a query which is unioned, do we need to cast them to the appropriate type in order to keep the database happy."
@@ -1678,8 +1752,7 @@ DatabasePlatform >> requiresTransactionForTableOperations [
 
 { #category : #constants }
 DatabasePlatform >> reservedWords [
-	reservedWords isNil ifTrue: [self initializeReservedWords].
-	^reservedWords.
+	^reservedWords
 ]
 
 { #category : #testing }
@@ -1703,6 +1776,13 @@ DatabasePlatform >> serial [
 { #category : #types }
 DatabasePlatform >> serial: aNumber [
 	^self serial increment: aNumber
+]
+
+{ #category : #'conversion-strings' }
+DatabasePlatform >> serverEncodesSingleByteCharsAsSingleBytes [
+	"A hook which we probably do not need to override:  while n{var}chars are often encoded as UTF16, {var}chars are usually encoded in a way that lets the assumed majority of ascii characters take one byte, not two.  This method applies to {var}chars and is ignored "
+
+	^true
 ]
 
 { #category : #types }
@@ -1933,6 +2013,13 @@ DatabasePlatform >> supportsANSIJoins [
 ]
 
 { #category : #testing }
+DatabasePlatform >> supportsANSIJoinsWithRecursion [
+	"Usually, a platform that supports the ANSI JOIN syntax does so in all cases, but a platform can support it for ordinary queries but not for recursive queries."
+
+	^self supportsANSIJoins
+]
+
+{ #category : #testing }
 DatabasePlatform >> supportsAliasInCompoundQuery [
 	"Return true if, when we have a subselect, we can (and/or must) alias the result with a table name. Access doesn't like the table name"
 	^true.
@@ -1983,6 +2070,13 @@ DatabasePlatform >> supportsCorrelatedSubqueriesInOrderBy [
 DatabasePlatform >> supportsDecimalsOnAllNumerics [
 	"Return true if a general 'numeric' type will allow numbers after the decimal place"
 	^true.
+]
+
+{ #category : #testing }
+DatabasePlatform >> supportsDuplicateFieldNamesInCompoundQueries [
+	"Absurdly, Oracle, SQLServer and MySQL will not tolerate two unaliased fields in different tables but of the same name in a compound query, so the second (and subsequent) such fields must be aliased."
+
+	^true
 ]
 
 { #category : #testing }
@@ -2037,8 +2131,15 @@ DatabasePlatform >> supportsOffset [
 ]
 
 { #category : #testing }
+DatabasePlatform >> supportsOrderedSubqueriesInCompoundQueries [
+	"Can this database tolerate orderings being defined on the inner query?  Tests till now show most cases duplicate #supportsDuplicateFieldNamesInCompoundQueries, the exception being SQLite."
+
+	^self supportsDuplicateFieldNamesInCompoundQueries
+]
+
+{ #category : #testing }
 DatabasePlatform >> supportsRowCountFor: aRowBasedCommand [
-	"The parameter can be a RowBasedCommand or a QueryDeleteCommand, almost always the former."
+	"The parameter can be a RowBasedCommand (currently, only an UpdateCommand using optimistic locking) or a QueryDeleteCommand.  Do not use optimistic locking where this method returns false."
 
 	^true
 ]
@@ -2184,24 +2285,39 @@ DatabasePlatform >> toTimestamp: anObject for: aType [
 ]
 
 { #category : #'conversion-strings' }
-DatabasePlatform >> trimString: aString for: aType [ 
-	| trimmedString length excess |
+DatabasePlatform >> trimString: aString for: aType [
+	"Use this converter if strings too long for the field should silently truncate instead of raising an error.  We assume that the server uses the same (or similar) encoding for VARCHAR columns as our connection. If this is not true, our truncation may be shorter than the field would allow or tooo long, cause an error.
+	- From ascii to target utf16 (need x2 bytes).
+	- From utf8 to target utf16 (worst case, needs x2 bytes. Best case, uses 2/3 as many bytes).
+	- From utf16 to target utf8 (worst case, 2-bytes needs 3-bytes, every character)."
+
+	| trimmedString encodedArray |
 	aType width isNil ifTrue: [^aString].
-	self measuresStringFieldWidthsInBytes ifFalse: [
-		^aString size > aType width ifTrue: [aString copyFrom: 1 to: aType width] ifFalse: [aString]].
-	"If our characters are less than half the number of bytes it can hold, assume it will fit and don't try to do this"
-	(aString size < (aType width // 2)) ifTrue: [^aString].
-	"If we're doing defaults that don't map characters to multi-bytes, don't do this"
-	(#(ascii default) includes: self characterEncoding) ifTrue: [
-		^aString size > aType width ifTrue: [aString copyFrom: 1 to: aType width] ifFalse: [aString]].
-	trimmedString := aString.
-	[length := (Dialect convert: trimmedString toByteArrayWithEncoding: self characterEncoding) size.
-	excess := length - aType width.
-	excess > 0 
-		"Try to be careful and trim as little as possible, while still keeping the number of steps reasonable for large excesses"
-		ifTrue: [trimmedString := trimmedString copyFrom: 1 to: trimmedString size - ((excess // 2) max: 1)]
-		ifFalse: [^trimmedString].
-	true] whileTrue.
+	aString isNil ifTrue: [^nil].
+	aString isEmpty ifTrue: [^self usesNullForEmptyStrings ifTrue: [nil] ifFalse: [aString]].
+
+	aType measuresStringFieldWidthsInBytes ifFalse:	"nvarchars measure width in characters, not their UTF16-encoded bytes"
+		[^aString size > aType width ifTrue: [aString copyFrom: 1 to: aType width] ifFalse: [aString]].
+	"Our current assumptions mean no nvar gets to here, verified for Oracle, SQL Server, DB2 and MySQL."
+	
+	"String>>size is all we need care about if we can rely on the String's characters encoding one-one."
+	(aString isByteIndexed and: [self serverEncodesSingleByteCharsAsSingleBytes])	"serverEncodesSingleByteCharsAsSingleBytes needed?"
+		ifTrue: [^aString size > aType width ifTrue: [aString copyFrom: 1 to: aType width] ifFalse: [aString]].
+
+	"If our size is less than a quarter of the available of bytes, UTF8 cannot need more;  assume that's OK."
+	aString size < (aType width // 4) ifTrue: [^aString].
+
+	"We cannot be here unless the database measures string widths in bytes for our type, so we are (by assumption) not an nvarchar."
+	encodedArray := aString asByteArrayEncoding: #utf8.		"<-Assume target column encoding matches connection encoding."
+	encodedArray size > aType width	"assume encoded size always >= string size"
+		ifFalse: [^aString]
+		ifTrue: [encodedArray := encodedArray copyFrom: 1 to: aType width].
+	"Trim as little as possible, while ensuring we have a trimmed string that is the first part of the main string."
+	[trimmedString := [encodedArray asStringEncoding: #utf8]
+					on: Error do: [:ex | nil].
+	trimmedString isNil or: [trimmedString last ~= (aString at: trimmedString size)]]
+		whileTrue: [encodedArray := encodedArray copyFrom: 1 to: encodedArray size - 1].
+	^trimmedString
 ]
 
 { #category : #types }
@@ -2242,13 +2358,13 @@ DatabasePlatform >> typeWithDatabaseName: aString characterWidth: aNumber extraI
 
 { #category : #types }
 DatabasePlatform >> types [
-	types == nil ifTrue: [types := IdentityDictionary new].
-	^types.
+	^types
 ]
 
 { #category : #'type helpers' }
 DatabasePlatform >> typesWithValues [
-	"Return our types list, but makes sure it has at least basic types in it"
+	"Return our types list, after making sure it has at least basic types in it."
+
 	self varchar.
 	self int4.
 	self integer.
@@ -2258,10 +2374,10 @@ DatabasePlatform >> typesWithValues [
 	self char.
 	self blob.
 	self clob.
-	self raw.
 	self serial.
 	self text.
-	^self types.
+	self boolean.
+	^self types
 ]
 
 { #category : #'conversion-strings' }
@@ -2270,6 +2386,20 @@ DatabasePlatform >> unpadString: aString for: aType [
 	^aType isVariableWidth 
 		ifTrue: [aString]
 		ifFalse: [(ReadStream on: aString) upTo: self paddingCharacter]
+]
+
+{ #category : #commands }
+DatabasePlatform >> updateCommandForRow: aDatabaseRow binding: aBoolean session: aSession [
+	^(aDatabaseRow fields anySatisfy: [:each | each type isRelativeType])
+		ifFalse: [UpdateCommand forRow: aDatabaseRow useBinding: aBoolean session: aSession]
+		ifTrue: [self relativeUpdateCommand forRow: aDatabaseRow useBinding: aBoolean session: aSession]
+]
+
+{ #category : #commands }
+DatabasePlatform >> updateCommandForRows: someDatabaseRows binding: aBoolean session: aSession [
+	^(someDatabaseRows first fields anySatisfy: [:each | each type isRelativeType])
+		ifFalse: [UpdateCommand forRows: someDatabaseRows useBinding: aBoolean session: aSession]
+		ifTrue: [self relativeUpdateCommand forRows: someDatabaseRows useBinding: aBoolean session: aSession]
 ]
 
 { #category : #testing }
@@ -2333,8 +2463,9 @@ DatabasePlatform >> usesNullForEmptyStrings [
 
 { #category : #constants }
 DatabasePlatform >> usesNullForFalse [
-	"Return true if this database is likely to use nil as an empty string value"
-	^false.
+	"This has been inlined away in subclass callers;  it is left purely for information.  Return true if this database treats NULL as meaning FALSE when occurring in a boolean column, or an integer column where 1 signifies TRUE and 0 (or NULL) false."
+
+	^false
 ]
 
 { #category : #testing }
@@ -2363,6 +2494,13 @@ DatabasePlatform >> varChar: anInt [
 ]
 
 { #category : #types }
+DatabasePlatform >> varCharMaxLength [
+	"This is too long for the general case;  push this value down to specific platforms (and take version into account where necessary) and put a safe-for-all value here:  whatever all sufficiently modern RDBs accept, since only Glorp systems delivered in 2018 and after will use it."
+
+	^self varChar: 32000
+]
+
+{ #category : #types }
 DatabasePlatform >> varbinary [
 	^self subclassResponsibility.
 ]
@@ -2381,6 +2519,17 @@ DatabasePlatform >> varchar [
 DatabasePlatform >> varchar: anInt [
 
 	^self varchar width: anInt.
+]
+
+{ #category : #'conversion-strings' }
+DatabasePlatform >> variableStringEmptyBecomeNil: aString for: aType [
+	"Parameter aType must return true to isVariableWidth for this method to be used on it;  to handle cases where it does not, look at #{un}padString:for: (see also #usesNullForEmptyStrings).  Unlike those methods, this method does not check that a non-nil parameters #isString;  it treats that as a safe or needless assumption."
+
+	aString isNil
+		ifTrue: [ ^ nil ].
+	aString isEmpty
+		ifTrue: [ ^ nil ].
+	^ aString
 ]
 
 { #category : #types }

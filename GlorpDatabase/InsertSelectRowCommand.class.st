@@ -38,7 +38,10 @@ InsertSelectRowCommand >> executeBoundInRoundTrip: anAccessor [
 	result := anAccessor executeCommandBound: self.
 	self postWriteAssignSequenceInRoundTrip: result.
 	result release.
-	failed := false.	"This should be  failed := failed & false  but that's needless until it could ever be true.  Only update commands, not insert comands, need to check that the number of rows reported by the DB is the number expected, so this can just be false - unless we wish to set the number of rows returned by the select as rowCount and make these subclasses return true to #needsRowCount."
+"	failed := false.
+The instvar 'failed' is initialized to false.  The last line could be
+	failed := failed & (self needsRowCount and: [rowCount ~= self expectedNumberOfModifiedRows]).
+but that's needless until failed could ever be true.  Only update commands, not insert comands, need to check that the number of rows reported by the DB is the number expected, so this can just be false - unless we wish to set the number of rows returned by the select as rowCount and make these subclasses return true to #needsRowCount."
 ]
 
 { #category : #executing }
@@ -49,7 +52,8 @@ InsertSelectRowCommand >> executeUnboundInRoundTrip: anAccessor [
 	result := anAccessor executeCommandUnbound: self.
 	self postWriteAssignSequenceInRoundTrip: result.
 	result release.
-	failed := false.	"This should be  failed := failed & false  but that's needless until it could ever be true.  Only UpdateCommands with lock fields, never InsertCommands, need to check that the number of rows that the DB reports affected is the number expected."
+"	failed := failed & false.
+The instvar 'failed' is initialized to false.  This line can remain commented out until failed could ever be true.  Only UpdateCommands with lock fields, never InsertCommands, need to check that the number of rows that the DB reports affected is the number expected."
 ]
 
 { #category : #executing }

@@ -24,9 +24,12 @@ ConditionalToManyMapping class >> visualWorksMetadata [
 
 { #category : #mapping }
 ConditionalToManyMapping >> applicableMappingForObject: anObject [
-	"We can actually be called here with our parent object, but the contexts in which that happens we basically just want to do nothing, so return our conditional mapping."
-	[self attribute checkTargetType: anObject] on: GlorpInvalidTypeError do: [:ex | ^self conditional].
-	^self conditional applicableMappingForObject: anObject.
+	"We can actually be called here with our parent object, but in the contexts in which that happens we basically just want to do nothing, so return a dummy mapping that replies false to isRelationship.  Give its value text about its origins in case anyone finds themselves examining it in some unexpected context."
+
+	[self attribute checkTargetType: anObject]
+		on: GlorpInvalidTypeError
+		do: [:ex | ^ConstantMapping new constantValue: 'ConditionalToManyMapping>>applicableMappingForObject: called on parent, so did nothing and handled ', ex getMessageText].
+	^self conditional applicableMappingForObject: anObject
 ]
 
 { #category : #mapping }
@@ -36,10 +39,11 @@ ConditionalToManyMapping >> applicableMappingForRow: anArray in: anElementBuilde
 
 { #category : #mapping }
 ConditionalToManyMapping >> buildQuery [
-	query := CompositeQuery new.
-	self conditional casesDo: [:each |
-		query addQuery: each query].
-	^query
+	| builtQuery |
+	builtQuery := CompositeQuery new.
+	self conditional casesDo:
+		[:each | builtQuery addQuery: each query].
+	^builtQuery
 ]
 
 { #category : #accessing }
@@ -53,20 +57,21 @@ ConditionalToManyMapping >> conditional: anObject [
 	conditional := anObject
 ]
 
-{ #category : #conditions }
+{ #category : #'backward-compatibility' }
 ConditionalToManyMapping >> conditionalField: aField [
 	self conditional conditionalField: aField.
 ]
 
-{ #category : #conditions }
+{ #category : #'backward-compatibility' }
 ConditionalToManyMapping >> conditionalMethod: aSymbol [
 	self conditional conditionalMethod: aSymbol.
 ]
 
 { #category : #conditions }
-ConditionalToManyMapping >> forField: aField attribute: attributeBlock if: testBlock useMapping: aMapping [
-	self conditionalField: aField.
-	self conditionalMethod: attributeBlock.
+ConditionalToManyMapping >> forField: aField attribute: aSymbolOrOneArgBlock if: testBlock useMapping: aMapping [
+	self conditional
+		forField: aField
+		attribute: aSymbolOrOneArgBlock.
 	self if: testBlock then: aMapping.
 ]
 
@@ -77,10 +82,14 @@ ConditionalToManyMapping >> if: conditionSelector then: aMapping [
 
 { #category : #mapping }
 ConditionalToManyMapping >> mapOneFromObject: sourceObject toTarget: targetObject intermediate: aRowMapKey atPosition: index puttingRowsIn: aRowMap [
-	
-	(self applicableMappingForObject: targetObject) mapOneFromObject:
-			sourceObject toTarget: targetObject intermediate: aRowMapKey atPosition:
-			index puttingRowsIn: aRowMap.
+	"For the applicable mapping, map a single object from the target (which is a collection) to the RowMap."
+
+	(self applicableMappingForObject: targetObject)
+		mapOneFromObject: sourceObject
+		toTarget: targetObject
+		intermediate: aRowMapKey
+		atPosition: index
+		puttingRowsIn: aRowMap.
 ]
 
 { #category : #accessing }
@@ -105,13 +114,16 @@ ConditionalToManyMapping >> otherwise: aMapping [
 
 { #category : #mapping }
 ConditionalToManyMapping >> parametersIn: anElementBuilder [
+	"The conditional's conditionalFieldMapping (if there is one) may well not have a join - it may be a direct mapping to the base table - and so it is omitted from the list below, i.e. we call casesDo:, not mappingsDo:."
+
 	| parameters |
 	self shouldUseFilteredRead ifTrue: [^anElementBuilder command parameters].
 	parameters := IdentityDictionary new.
-	self conditional casesDo: [:each |
+	self conditional casesDo:
+		[:each |
 		each join mappableSourceFieldsDo:
 			[:eachSource | parameters at: eachSource put: (anElementBuilder valueOfField: eachSource)]].
-	^parameters.
+	^parameters
 ]
 
 { #category : #mapping }

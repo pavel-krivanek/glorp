@@ -303,7 +303,7 @@ GlorpUnitOfWorkTest >> testRegisterEmbeddedInTargetDontRefetch [
 			transaction := session readOneOf: GlorpBankTransaction
 						where: [:each | each id = transactionId].
 			amount := transaction amount.
-			transaction owner transactions getValue.
+			transaction owner transactions glorpRealObject.
 			self assert: amount == transaction amount]] 
 			ensure: [session rollbackTransaction]
 ]

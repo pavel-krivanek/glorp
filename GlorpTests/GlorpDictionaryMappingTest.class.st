@@ -45,10 +45,10 @@ GlorpDictionaryMappingTest >> testCollectionKeyQuery [
 	encyclopedias := session system exampleEncyclopedias.
 	session transact: [session register: encyclopedias].
 	session reset.
-"	matches := session read: GlorpEncyclopedia	 where: [:each | each entries anySatisfy: [:eachEntry |
+"	matches := session read: GlorpEncyclopedia where: [:each | each entries anySatisfy: [:eachEntry |
 		((eachEntry getTable: 'ENCYC_ENTRY_LINK') getField: 'REFERENCE_NO') = 'unique']]."
-	matches := session read: GlorpEncyclopedia	 where: [:each | each entries anySatisfy: [:eachEntry |
-		eachEntry key = 'unique']].
+	matches := session read: GlorpEncyclopedia where:
+		[:each | each entries anySatisfy: [:eachEntry | eachEntry key = 'unique']].
 	self assert: matches size = 1.
 	self assert: matches first name = 'The Canadian Encyclopedia'.
 	matches do: [:each | self assert: (each entries anySatisfy: [:eachEntry | eachEntry id = 'three'])].
@@ -359,6 +359,49 @@ GlorpDictionaryMappingTest >> testSimpleTypeOneToMany [
 		each titles do: [:eachTitle | self assert: eachTitle isString]].
 	self assert: publishers first titles size = 3.
 	self assert: publishers first titles asSortedCollection = session system examplePublisher1 titles asSortedCollection.
+]
+
+{ #category : #'tests-simple reference classes' }
+GlorpDictionaryMappingTest >> testSimpleTypeOneToManyAlsoFetch [
+	"See what happens when we #alsoFetch several toMany relations, including the simple one-many relation."
+
+	| publishers query |
+	publishers := session system examplePublishers.
+	session modify: publishers in: [].
+	session reset.
+	query := Query read: GlorpPublisher where: [:each | each id = 1].
+	query alsoFetch: [:each | each titles].
+	publishers := session execute: query.
+	publishers do:
+		[:each |
+		self deny: each titles isGlorpProxy.
+		self assert: each employees isGlorpProxy.	"just for comparison with #testSimpleTypeOneToManyAlsoFetchOthers"
+		each titles do: [:eachTitle | self assert: eachTitle isString]].
+	self assert: publishers first titles size = 3.
+	self assert: publishers first titles asSortedCollection = session system examplePublisher1 titles asSortedCollection.
+]
+
+{ #category : #'tests-simple reference classes' }
+GlorpDictionaryMappingTest >> testSimpleTypeOneToManyAlsoFetchOthers [
+	"See what happens when we #alsoFetch the simple one-many relation instead of letting its proxy do the work."
+
+	| publishers query readEmpDict exampleEmpDict |
+	publishers := session system examplePublishers.
+	session modify: publishers in: [].
+	session reset.
+	query := Query read: GlorpPublisher where: [:each | each id = 1].
+	query alsoFetch: [:each | each employees].
+	query alsoFetch: [:each | each titles].
+	publishers := session execute: query.
+	publishers do:
+		[:each |
+		self deny: each titles isGlorpProxy.
+		self deny: each employees isGlorpProxy.
+		each titles do: [:eachTitle | self assert: eachTitle isString]].
+	self assert: publishers first titles size = 3.
+	self assert: publishers first titles asSortedCollection = session system examplePublisher1 titles asSortedCollection.
+	self assert: (readEmpDict := publishers first employees) size = (exampleEmpDict := session system examplePublisher1 employees) size.
+	readEmpDict keysAndValuesDo: [:key :value | self assert: (exampleEmpDict at: key) id = value id].
 ]
 
 { #category : #'tests-simple reference classes' }

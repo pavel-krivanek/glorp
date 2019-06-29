@@ -1,8 +1,11 @@
+"
+This is the original descriptor system created to test Glorp.  It is the most general, having a wide range of features.  (As their names tend to attest, its sibling subclasses of GlorpTestDescriptorSystem were often created to test specific aspects of Glorp.)
+"
 Class {
 	#name : #GlorpDemoDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
 	#classVars : [
-		'Default'
+		'GlorpDemoDescriptorSystem'
 	],
 	#category : #'GlorpTestModels-GlorpTest'
 }
@@ -11,6 +14,11 @@ Class {
 GlorpDemoDescriptorSystem class >> default [
 	Default isNil ifTrue: [Default := self new].
 	^Default
+]
+
+{ #category : #accessing }
+GlorpDemoDescriptorSystem class >> rawValidateDescriptorSystem [
+	^validateDescriptorSystem
 ]
 
 { #category : #'VisualWorks metadata' }
@@ -25,7 +33,7 @@ GlorpDemoDescriptorSystem class >> visualWorksMetadata [
 
 { #category : #other }
 GlorpDemoDescriptorSystem >> allTableNames [
-	^#('GR_ADDRESS' 'PERSON' 'GR_CUSTOMER' 'BANK_TRANS' 'BANK_ACCT' 'CUSTOMER_ACCT_LINK' 'EMAIL_ADDRESS' 'STUFF' 'PASSENGER' 'AIRLINE' 'FREQUENT_FLYER' 'COMPRESSED_MONEY_TABLE' 'RESERVATION' 'ITINERARY' 'TRANSFORMED_TIME' 'FKCONTACT' 'FKADDRESS' 'GLORP_OWNER' 'GLORP_SLAVE' 'TREE_NODE' 'TREE_NODE_LINK' 'RECORD_WITH_UPDATE' 'GR_TRAVEL_AGENT' 'GLORP_SALARIED_EMPLOYEE').
+	^#('GR_ADDRESS' 'PERSON' 'GR_CUSTOMER' 'BANK_TRANS' 'BANK_ACCT' 'CUSTOMER_ACCT_LINK' 'EMAIL_ADDRESS' 'STUFF' 'PASSENGER' 'AIRLINE' 'FREQUENT_FLYER' 'COMPRESSED_MONEY_TABLE' 'RESERVATION' 'ITINERARY' 'TRANSFORMED_TIME' 'FKCONTACT' 'FKADDRESS' 'GLORP_OWNER' 'GLORP_SLAVE' 'TREE_NODE' 'TREE_NODE_LINK' 'RECORD_WITH_UPDATE' 'GR_TRAVEL_AGENT' 'GLORP_SALARIED_EMPLOYEE' 'CITIES' 'CITIES_GRAPH' 'ITEM_WITH_QTY' 'ITEM_RELATIVE_LOCKS' 'STRING_EXAMPLES')
 ]
 
 { #category : #'descriptors/other' }
@@ -71,6 +79,21 @@ GlorpDemoDescriptorSystem >> classModelForGlorpBankTransaction: aClassModel [
 	aClassModel newAttributeNamed: #serviceCharge type: GlorpServiceCharge.
 ]
 
+{ #category : #'descriptors/city graph' }
+GlorpDemoDescriptorSystem >> classModelForGlorpCitiesGraph: aClassModel [
+	aClassModel newAttributeNamed: #city type: GlorpCity.
+	aClassModel newAttributeNamed: #nextCity type: GlorpCity.
+	aClassModel newAttributeNamed: #distance type: Double.
+]
+
+{ #category : #'descriptors/city graph' }
+GlorpDemoDescriptorSystem >> classModelForGlorpCity: aClassModel [
+	aClassModel newAttributeNamed: #id type: Integer.
+	aClassModel newAttributeNamed: #name type: String.
+	aClassModel newAttributeNamed: #nextCities dictionaryFrom: GlorpCity to: Double.
+	aClassModel newAttributeNamed: #nextLinkedCities collectionOf: GlorpCity.
+]
+
 { #category : #'descriptors/bank' }
 GlorpDemoDescriptorSystem >> classModelForGlorpCustomer: aClassModel [
 	aClassModel newAttributeNamed: #id.
@@ -93,6 +116,24 @@ GlorpDemoDescriptorSystem >> classModelForGlorpEmailDomain: aClassModel [
 	aClassModel newAttributeNamed: #id.
 	aClassModel newAttributeNamed: #topLevelDomain.
 	aClassModel newAttributeNamed: #addresses type: GlorpEmailAddress.
+]
+
+{ #category : #'class models/other' }
+GlorpDemoDescriptorSystem >> classModelForGlorpItemRelativeLocks: aClassModel [
+	aClassModel newAttributeNamed: #id.
+	aClassModel newAttributeNamed: #name.
+	aClassModel newAttributeNamed: #qty.
+	aClassModel newAttributeNamed: #totalSales.
+	aClassModel newAttributeNamed: #lock1.
+	aClassModel newAttributeNamed: #lock2.
+]
+
+{ #category : #'class models/other' }
+GlorpDemoDescriptorSystem >> classModelForGlorpItemWithQty: aClassModel [
+	aClassModel newAttributeNamed: #id.
+	aClassModel newAttributeNamed: #name.
+	aClassModel newAttributeNamed: #qty.
+	aClassModel newAttributeNamed: #totalSales.
 ]
 
 { #category : #'class models/airline' }
@@ -140,6 +181,12 @@ GlorpDemoDescriptorSystem >> classModelForGlorpReservation: aClassModel [
 	aClassModel newAttributeNamed: #passenger type: GlorpPassenger.
 ]
 
+{ #category : #'descriptors/tree nodes' }
+GlorpDemoDescriptorSystem >> classModelForGlorpRootNode: aClassModel [
+	aClassModel newAttributeNamed: #id.
+	aClassModel newAttributeNamed: #root type: GlorpTreeNode.
+]
+
 { #category : #'standalone domain class' }
 GlorpDemoDescriptorSystem >> classModelForGlorpSalariedEmployee: aClassModel [
 	aClassModel newAttributeNamed: #id.
@@ -152,6 +199,13 @@ GlorpDemoDescriptorSystem >> classModelForGlorpServiceCharge: aClassModel [
 
 	aClassModel newAttributeNamed: #description.
 	aClassModel newAttributeNamed: #amount type: GlorpMoney.
+]
+
+{ #category : #'class models/other' }
+GlorpDemoDescriptorSystem >> classModelForGlorpStringExamples: aClassModel [
+	aClassModel newAttributeNamed: #id.
+	aClassModel newAttributeNamed: #byteString.
+	aClassModel newAttributeNamed: #encodedString.
 ]
 
 { #category : #'class models/airline' }
@@ -246,11 +300,9 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpBankAccount: aDescriptor [
 
 { #category : #'descriptors/bank' }
 GlorpDemoDescriptorSystem >> descriptorForGlorpBankAccountNumber: aDescriptor [
-
 	| table |
 	table := self tableNamed: 'BANK_ACCT'.
 	aDescriptor table: table.
-"	aDescriptor addMapping: ((DirectMapping from: #bankCode to: (table fieldNamed: 'BANK_CODE')) type: Integer)."
 	(aDescriptor newMapping: DirectMapping) from: #bankCode to: (table fieldNamed: 'BANK_CODE').
 	(aDescriptor newMapping: DirectMapping) from: #branchNumber to: (table fieldNamed: 'BRANCH_NO').
 	(aDescriptor newMapping: DirectMapping) from: #accountNumber to: (table fieldNamed: 'ACCT_NO').
@@ -265,17 +317,16 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpBankBranch: aDescriptor [
 	distinctBranchNumber := [:each | ((each getTable: table) getField: (table fieldNamed: 'BRANCH_NO')) distinct] asGlorpExpression.
 	mapping := aDescriptor newMapping: DirectMapping.
 	mapping from: #branchNumber to: distinctBranchNumber.
-	mapping readOnly: true.
+	mapping canWrite: false.
 
 	aDescriptor keyFields: (Array with: distinctBranchNumber).
 
 	(aDescriptor newMapping: ToManyMapping)
 		attributeName: #accounts;
-		readOnly: true;
-		join: 
-						(Join
-								from: distinctBranchNumber
-								to: (table fieldNamed: 'BRANCH_NO')).
+		canWrite: false;
+		join: (Join
+				from: distinctBranchNumber
+				to: (table fieldNamed: 'BRANCH_NO')).
 ]
 
 { #category : #'descriptors/bank' }
@@ -299,6 +350,91 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpBankTransaction: aDescriptor [
 				attributeName: #serviceCharge.
 ]
 
+{ #category : #'descriptors/city graph' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpCitiesGraph: aDescriptor [
+	| graphTable citiesTable |
+	graphTable := self tableNamed: 'CITIES_GRAPH'.
+	aDescriptor table: graphTable.
+	citiesTable := self tableNamed: 'CITIES'.
+	
+	(aDescriptor newMapping: DirectMapping)
+		from: #distance
+		to: (graphTable fieldNamed: 'distance').
+
+	aDescriptor oneToOneMapping
+		attributeName: #city;
+		join: (Join
+				from: (graphTable fieldNamed: 'city')
+				to: (citiesTable fieldNamed: 'id')).
+				
+	aDescriptor oneToOneMapping
+		attributeName: #nextCity;
+		referenceClass: GlorpCity;
+		join: (Join
+				from: (graphTable fieldNamed: 'nextCity')
+				to: (citiesTable fieldNamed: 'id')).
+
+	(aDescriptor newMapping: DirectMapping)
+		from: #cityId
+		to: (graphTable fieldNamed: 'city');
+		beForPseudoVariable.
+	
+	(aDescriptor newMapping: DirectMapping)
+		from: #nextcityId
+		to: (graphTable fieldNamed: 'nextcity');
+		beForPseudoVariable.
+	
+	"This mapping is used for the link-table-based recursion example. (Not the dictionary-based example)."
+	aDescriptor toManyMapping
+		attributeName: #nextCityGraphs;
+		referenceClass: GlorpCitiesGraph;
+		useLinkTable;
+		beForPseudoVariable;
+		join: (Join
+				from: (graphTable fieldNamed: 'nextCity')
+				to: (citiesTable fieldNamed: 'id'));
+		reverseJoin: (Join
+					from: (citiesTable fieldNamed: 'id')
+					to: (graphTable fieldNamed: 'city'));
+		beForPseudoVariable.
+]
+
+{ #category : #'descriptors/city graph' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpCity: aDescriptor [
+	| citiesTable graphTable|
+	citiesTable := self tableNamed: 'CITIES'.
+	aDescriptor table: citiesTable.
+	graphTable := self tableNamed: 'CITIES_GRAPH'.
+
+	aDescriptor directMappingFor:  #id.
+	aDescriptor directMappingFor:  #name.
+
+	(aDescriptor newMapping: DirectMapping)
+		from: #city
+		to: (citiesTable fieldNamed: 'id');
+		beForPseudoVariable.
+		
+	(aDescriptor newMapping: DictionaryMapping)
+		attributeName: #nextCities;
+		usesLinkTable: false;
+		keyField: (graphTable fieldNamed: 'nextCity');
+		valueField: (graphTable fieldNamed: 'distance');
+		join: (Join from: (citiesTable fieldNamed: 'id') to: (graphTable fieldNamed: 'city'));
+		reverseJoin: (Join from: (graphTable fieldNamed: 'nextCity') to: (citiesTable fieldNamed: 'id')).
+
+	"This mapping is used for the link-table-based recursion example. (Not the dictionary-based example)."
+	aDescriptor toManyMapping
+		attributeName: #nextLinkedCities;
+		beForPseudoVariable;
+		useLinkTable;
+		join: (Join
+				from: (citiesTable fieldNamed: 'id')
+				to: (graphTable fieldNamed: 'city'));
+		reverseJoin: (Join 
+					from: (graphTable fieldNamed: 'city')
+					to: (citiesTable fieldNamed: 'id')).
+]
+
 { #category : #'descriptors/other' }
 GlorpDemoDescriptorSystem >> descriptorForGlorpCompressedMoney: aDescriptor [ 
 	| table currencyField amountField |
@@ -312,8 +448,8 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpCompressedMoney: aDescriptor [
 				forAttribute: #array
 				fromDb: 
 					[:row :elementBuilder :context| 
-					Array with: (elementBuilder valueOfField: (context translateField: currencyField) in: row)
-						with: (elementBuilder valueOfField: (context translateField: amountField) in: row)]
+					Array with: (elementBuilder valueOfField: (context translateField: currencyField))
+						with: (elementBuilder valueOfField: (context translateField: amountField))]
 				toDb: 
 					[:rows :attribute :attributeRows | 
 					(rows at: table) at: currencyField put: (attribute at: 1).
@@ -340,12 +476,12 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpCustomer: aDescriptor [
 	"Two additional relationships, there to test ordering within a mapping, where the order is determined by a field in the link table"
 	(aDescriptor newMapping: ToManyMapping)
 			attributeName: #accountsSortedById;
-			readOnly: true;
+			canWrite: false;
 			useLinkTable;
 			orderBy: [:each | (each getTable: 'CUSTOMER_ACCT_LINK') getField: 'ACCT_ID'].
 	(aDescriptor newMapping: ManyToManyMapping)
 			attributeName: #accountsSortedByIdDescending;
-			readOnly: true;
+			canWrite: false;
 			useLinkTable;
 			orderBy: [:each | ((each getTable: 'CUSTOMER_ACCT_LINK') getField: 'ACCT_ID') descending].
 ]
@@ -378,6 +514,30 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpEmailDomain: aDescriptor [
 		addSource: (table fieldNamed: 'DOMAIN_NAME')
 		target: (addressJoinBlock asGlorpExpressionOn: (BaseExpression new descriptor: (self descriptorFor: GlorpEmailAddress))).
 	addresses join: addressJoin.
+]
+
+{ #category : #'descriptors/other' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpItemRelativeLocks: aDescriptor [
+	| table |
+	table := self tableNamed: 'ITEM_RELATIVE_LOCKS'.
+	aDescriptor table: table.
+	aDescriptor directMapping from: #id to: (table fieldNamed: 'ID').
+	aDescriptor directMapping from: #name to: (table fieldNamed: 'NAME').
+	aDescriptor directMapping from: #qty to: (table fieldNamed: 'QTY').
+	aDescriptor directMapping from: #totalSales to: (table fieldNamed: 'TOTAL_SALES').
+	aDescriptor directMapping from: #lock1 to: (table fieldNamed: 'LOCK1').
+	aDescriptor directMapping from: #lock2 to: (table fieldNamed: 'LOCK2').
+]
+
+{ #category : #'descriptors/other' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpItemWithQty: aDescriptor [
+	| table |
+	table := self tableNamed: 'ITEM_WITH_QTY'.
+	aDescriptor table: table.
+	aDescriptor directMapping from: #id to: (table fieldNamed: 'ID').
+	aDescriptor directMapping from: #name to: (table fieldNamed: 'NAME').
+	aDescriptor directMapping from: #qty to: (table fieldNamed: 'QTY').
+	aDescriptor directMapping from: #totalSales to: (table fieldNamed: 'TOTAL_SALES').
 ]
 
 { #category : #'descriptors/airline' }
@@ -508,6 +668,21 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpReservation: aDescriptor [
 			attributeName: #passenger.
 ]
 
+{ #category : #'descriptors/tree nodes' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpRootNode: aDescriptor [
+	| table |
+	table := self tableNamed: 'ROOT_NODE'.
+	aDescriptor table: table.
+	aDescriptor directMapping from: #id to: (table fieldNamed: 'HOLDER_ID').
+	aDescriptor oneToOneMapping
+		attributeName: #root;
+		referenceClass: GlorpTreeNode;
+		join: (Join
+				from: (table fieldNamed: 'ROOT')
+				to: ((self tableNamed: 'TREE_NODE') fieldNamed: 'ID')).
+	(aDescriptor directMapping from: #rootID to: (table fieldNamed: 'ROOT')) beForPseudoVariable.
+]
+
 { #category : #'standalone domain class' }
 GlorpDemoDescriptorSystem >> descriptorForGlorpSalariedEmployee: aDescriptor [
 	| table |
@@ -546,23 +721,40 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpSlave: aDescriptor [
 ]
 
 { #category : #'descriptors/other' }
-GlorpDemoDescriptorSystem >> descriptorForGlorpTransformedTime: aDescriptor [ 
+GlorpDemoDescriptorSystem >> descriptorForGlorpStringExamples: aDescriptor [
+	"Use a converter for both the VARCHAR and the NVARCHAR fields to trim length."
+	
+	| table |
+	table := self tableNamed: 'STRING_EXAMPLES'.
+	aDescriptor table: table.
+	aDescriptor directMapping from: #id to: (table fieldNamed: 'ID').
+	aDescriptor directMapping
+		from: #byteString to: (table fieldNamed: 'BYTESTRING');
+		converter: (self platform converterNamed: #stringToTrimmedString).
+	aDescriptor directMapping
+		from: #encodedString to: (table fieldNamed: 'ENCODEDSTRING');
+		converter: (self platform converterNamed: #stringToTrimmedString).
+]
+
+{ #category : #'descriptors/other' }
+GlorpDemoDescriptorSystem >> descriptorForGlorpTransformedTime: aDescriptor [
+	"By the time the #fromDb: block is evaluated, the elementBuilder could have been assigned another row, so we use the 'row' parameter, not 'elementBuilder row', and call #valueForField:in:, not valueForField:, in that block."
+
 	| table timeField |
 	table := self tableNamed: 'TRANSFORMED_TIME'.
-	aDescriptor 
-		addMapping: (DirectMapping from: #id to: (table fieldNamed: 'ID')).
+	aDescriptor directMapping from: #id to: (table fieldNamed: 'ID').
 	timeField := table fieldNamed: 'TIMEFIELD'.
 	aDescriptor table: table.
-	aDescriptor addMapping: (AdHocMapping 
-				forAttribute: #time
-				fromDb: 
-					[:row :elementBuilder :context| 
-					Time fromSeconds: (elementBuilder valueOfField: (context translateField: timeField) in: row) ]
-				toDb: 
-					[:rows :attribute :attributeRows | 
-					(rows at: table) at: timeField put: attribute asSeconds]
-				mappingFields: (Array with: timeField)).
-	"Note that position won't work if we have a join. We need to take the elementbuilder into account"
+	aDescriptor addMapping: (AdHocMapping
+		forAttribute: #time
+		fromDb:
+			[:row :elementBuilder :context |
+			Time fromSeconds: (elementBuilder valueOfField: (context translateField: timeField) in: row)]
+		toDb:
+			[:rows :attribute :attributeRows |
+			(rows at: table) at: timeField put: attribute asSeconds]
+		mappingFields: (Array with: timeField)).
+	"Note that position won't work if we have a join. We need to take the elementbuilder into account."
 	^aDescriptor
 ]
 
@@ -575,6 +767,14 @@ GlorpDemoDescriptorSystem >> descriptorForGlorpTravelAgency: aDescriptor [
 	aDescriptor toManyMapping
 			attributeName: #agents;
 			join: (Join from: (table fieldNamed: 'AGENCY_NAME') to: (table fieldNamed: 'AGENCY_NAME')).
+
+"Defining me as an embedded mapping from GlorpTravelAgent, and #agents as my toMany mapping from myself back to the object (GlorpTravelAgent) in which I am embedded, has limitations.  It is called EmbeddedValueOneToOneMapping for a reason:  the logic of many agents to one agency is what one would call an EmbeddedManyToOneMapping if such a thing existed.  Each GlorpTravelAgent has a GlorpTravelAgency, which should be an embedded construct of all the GlorpTravelAgents whose agency name is the same but in fact is unique to that travel agent because the agency has no key fields (AGENCY_NAME is not a primaryKey in the GR_TRAVEL_AGENT table) and so
+	session read: GlorpTravelAgency
+returns a distinct agency instance for each agent (not what the above definitions imply at first glance) because any builder of it cannot put its instance into the session cache, so reading it from a second agent whose AGENCY_NAME is the same can never be recognised as the same GlorpTravelAgency instance.  This also means that if the #agents mapping does not proxy then
+	session read: GlorpTravelAgent
+never completes:  a row read from table GR_TRAVEL_AGENT is passed to #buildObjectsForRow: which instantiates an agent and puts it in the cache (a GlorpTravelAgent has a primaryKey) and tries to populate its 'agency' instvar by reading the agency.  Even if the first agent it happens to read is the agent already in the cache, it still then tries to get that agent's agency (i.e. itself) again - the very task it is already engaged in - but because GlorpTravelAgency is an embedded object with no primary key mapping(s), the agency instance that already exists is not in the cache, so this second time round fails to see this already-existing agency instance. Thus a new duplicate agency instance is created and populated yet again with the agent (from the cache) and yet again seeks that agent's agency - which is yet again not in the cache, so the cycle continues without end.
+
+It can well be argued that a different schema, e.g. with GR_TRAVEL_AGENT.AGENCY_NAME also a primaryKey, or an imaginary table for the GlorpTravelAgency with sole field NAME a primaryKey in that table and mapped to AGENCY_NAME) should be used in any real case.  It might also be argued that, regardless, a builder called by a builder should be able to look back up the calling chain and recognise when the caller's instance should be its own instance even if not in the cache."
 ]
 
 { #category : #'descriptors/airline' }
@@ -896,6 +1096,58 @@ GlorpDemoDescriptorSystem >> exampleFrequentFlyerRow2 [
 ]
 
 { #category : #examples }
+GlorpDemoDescriptorSystem >> exampleItemRelativeLocksRow1 [
+	| itemTable row |
+	itemTable := self  tableNamed: 'ITEM_RELATIVE_LOCKS'.
+	row := DatabaseRow newForTable: itemTable.
+	row at: (itemTable fieldNamed: 'ID') put: 1.
+	row at: (itemTable fieldNamed: 'NAME') put: 'Thingamabob 1'.
+	row at: (itemTable fieldNamed: 'QTY') put: '100'.
+	row at: (itemTable fieldNamed: 'TOTAL_SALES') put: '0'.
+	row at: (itemTable fieldNamed: 'LOCK1') put: 0.
+	row at: (itemTable fieldNamed: 'LOCK2') put: 10.
+	^row
+]
+
+{ #category : #examples }
+GlorpDemoDescriptorSystem >> exampleItemRelativeLocksRow2 [
+	| itemTable row |
+	itemTable := self  tableNamed: 'ITEM_RELATIVE_LOCKS'.
+	row := DatabaseRow newForTable: itemTable.
+	row at: (itemTable fieldNamed: 'ID') put: 2.
+	row at: (itemTable fieldNamed: 'NAME') put: 'Gizmo 2'.
+	row at: (itemTable fieldNamed: 'QTY') put: '50'.
+	row at: (itemTable fieldNamed: 'TOTAL_SALES') put: '500'.
+	row at: (itemTable fieldNamed: 'LOCK1') put: 1.
+	row at: (itemTable fieldNamed: 'LOCK2') put: 20.
+	^row
+]
+
+{ #category : #examples }
+GlorpDemoDescriptorSystem >> exampleItemWithQtyRow1 [
+	| itemTable row |
+	itemTable := self  tableNamed: 'ITEM_WITH_QTY'.
+	row := DatabaseRow newForTable: itemTable.
+	row at: (itemTable fieldNamed: 'ID') put: 1.
+	row at: (itemTable fieldNamed: 'NAME') put: 'Thingamabob 1'.
+	row at: (itemTable fieldNamed: 'QTY') put: '100'.
+	row at: (itemTable fieldNamed: 'TOTAL_SALES') put: '0'.
+	^row
+]
+
+{ #category : #examples }
+GlorpDemoDescriptorSystem >> exampleItemWithQtyRow2 [
+	| itemTable row |
+	itemTable := self  tableNamed: 'ITEM_WITH_QTY'.
+	row := DatabaseRow newForTable: itemTable.
+	row at: (itemTable fieldNamed: 'ID') put: 2.
+	row at: (itemTable fieldNamed: 'NAME') put: 'Gizmo 2'.
+	row at: (itemTable fieldNamed: 'QTY') put: '50'.
+	row at: (itemTable fieldNamed: 'TOTAL_SALES') put: '500'.
+	^row
+]
+
+{ #category : #examples }
 GlorpDemoDescriptorSystem >> exampleModifiedAddressRow [
 	| addressTable row |
 	addressTable := self  tableNamed: 'GR_ADDRESS'.
@@ -924,6 +1176,18 @@ GlorpDemoDescriptorSystem >> examplePassengerRow2 [
 	row at: (passengerTable fieldNamed: 'ID') put: 2.
 	row at: (passengerTable fieldNamed: 'NAME') put: 'Another Passenger'.
 	^row.
+]
+
+{ #category : #examples }
+GlorpDemoDescriptorSystem >> examplePassengerRowInfrequent [
+	"A passenger who is not a frequent flyer."
+
+	| passengerTable row |
+	passengerTable := self tableNamed: 'PASSENGER'.
+	row := DatabaseRow newForTable: passengerTable.
+	row at: (passengerTable fieldNamed: 'ID') put: 3.
+	row at: (passengerTable fieldNamed: 'NAME') put: 'Rare Passenger'.
+	^row
 ]
 
 { #category : #examples }
@@ -986,6 +1250,16 @@ GlorpDemoDescriptorSystem >> examplePersonRowForOrdering3 [
 	^row.
 ]
 
+{ #category : #'test support' }
+GlorpDemoDescriptorSystem >> platformSupportsNVarcharColumns [
+	"Some databases allow the server to have two encodings, one for varchars in general and one for those columns designated 'nvarchar'.  (The 'n' stands for 'national', reflecting the original use of these to support distinctive character sets.  The order of checking is a guess at how common a given databases is with our user base.)"
+
+	^platform isOraclePlatform
+		or: [platform isSQLServerPlatform
+		or: [platform isDB2Platform
+		or: [platform isMySQLPlatform]]]
+]
+
 { #category : #'tables/airline' }
 GlorpDemoDescriptorSystem >> tableForAIRLINE: aTable [
 
@@ -1023,6 +1297,26 @@ GlorpDemoDescriptorSystem >> tableForBANK_TRANS: aTable [
 	aTable createFieldNamed: 'SRVC_DESC' type: (platform varChar: 30).
 	aTable createFieldNamed: 'SRVC_AMT_CURR' type: (platform varChar: 5).
 	aTable createFieldNamed: 'SRVC_AMT_AMT' type: platform int4.
+]
+
+{ #category : #tables }
+GlorpDemoDescriptorSystem >> tableForCITIES: aTable [
+	(aTable createFieldNamed: 'id' type: platform int4) bePrimaryKey.
+	aTable createFieldNamed: 'name' type: (platform varChar: 30).
+]
+
+{ #category : #tables }
+GlorpDemoDescriptorSystem >> tableForCITIES_GRAPH: aTable [
+	"This is the link table for the relationship connecting cities.  It lets us test extracting data from the link table in recursive queries."
+
+	| cityField nextCityField citiesTable|
+	cityField := (aTable createFieldNamed: 'city' type: platform int4) bePrimaryKey.
+	nextCityField := (aTable createFieldNamed: 'nextCity' type: platform int4) bePrimaryKey.
+	aTable createFieldNamed: 'distance' type: platform double.
+
+	citiesTable := self tableNamed: 'CITIES'.
+	aTable addForeignKeyFrom: cityField to: (citiesTable fieldNamed: 'id').
+	aTable addForeignKeyFrom: nextCityField to: (citiesTable fieldNamed: 'id').
 ]
 
 { #category : #tables }
@@ -1178,6 +1472,30 @@ GlorpDemoDescriptorSystem >> tableForGR_TRAVEL_AGENT: aTable [
 	aTable createFieldNamed: 'AGENCY_NAME' type: (platform varchar: 50).
 ]
 
+{ #category : #tables }
+GlorpDemoDescriptorSystem >> tableForITEM_RELATIVE_LOCKS: aTable [
+	"I have two example relative fields.  One (#beRelative sent to field) is not NULLable and has a database default value.  The other (#beRelative sent to field's type) is NULLable (and in this example no dbDefaultValue is set)."
+
+	aTable name: 'ITEM_RELATIVE_LOCKS'.
+	(aTable createFieldNamed: 'ID' type: platform int4) bePrimaryKey.
+	aTable createFieldNamed: 'NAME' type: (platform varChar: 20).
+	(aTable createFieldNamed: 'QTY' type: platform int4) beRelative.
+	aTable createFieldNamed: 'TOTAL_SALES' type: (platform number precision:10; scale: 2) beRelative.
+	(aTable createFieldNamed: 'LOCK1' type: (platform versionFieldFor: platform int4)) beLockKey.
+	(aTable createFieldNamed: 'LOCK2' type: platform int4) "beLockKey".
+]
+
+{ #category : #tables }
+GlorpDemoDescriptorSystem >> tableForITEM_WITH_QTY: aTable [
+	"I have two example relative fields.  One (#beRelative sent to field) is not NULLable and has a database default value.  The other (#beRelative sent to field's type) is NULLable (and in this example no dbDefaultValue is set)."
+
+	aTable name: 'ITEM_WITH_QTY'.
+	(aTable createFieldNamed: 'ID' type: platform int4) bePrimaryKey.
+	aTable createFieldNamed: 'NAME' type: (platform varChar: 20).
+	(aTable createFieldNamed: 'QTY' type: platform int4) beRelative.
+	aTable createFieldNamed: 'TOTAL_SALES' type: (platform number precision:10; scale: 2) beRelative.
+]
+
 { #category : #'tables/airline' }
 GlorpDemoDescriptorSystem >> tableForITINERARY: aTable [ 
 
@@ -1234,6 +1552,28 @@ GlorpDemoDescriptorSystem >> tableForRESERVATION: aTable [
 	pass := aTable createFieldNamed: 'PASS_ID' type: (platform int4).
 	aTable addForeignKeyFrom: pass
 		to: ((self tableNamed: 'PASSENGER') fieldNamed: 'ID').
+]
+
+{ #category : #'descriptors/tree nodes' }
+GlorpDemoDescriptorSystem >> tableForROOT_NODE: aTable [
+	| root |	"Avoid same field name (ID) as TREE_NODE"
+	(aTable createFieldNamed: 'HOLDER_ID' type: platform int4) bePrimaryKey.
+	root := aTable createFieldNamed: 'ROOT' type: platform int4.
+	aTable
+		addForeignKeyFrom: root
+		to: ((self tableNamed: 'TREE_NODE') fieldNamed: 'ID').
+]
+
+{ #category : #tables }
+GlorpDemoDescriptorSystem >> tableForSTRING_EXAMPLES: aTable [
+	"Use to test encoded writing, reading and trimming.  If the platform does not support nvarchars then the encodedString field will not be tested - but creating it is needful to avoid clashes with the descriptor."
+
+	(aTable createFieldNamed: 'id' type: platform int4) bePrimaryKey.
+	aTable createFieldNamed: 'byteString' type: (platform varchar: 20).
+	aTable createFieldNamed: 'encodedString' type: 
+		(self platformSupportsNVarcharColumns
+			ifTrue: [platform nvarchar: 20]
+			ifFalse: [platform varchar: 20])
 ]
 
 { #category : #tables }

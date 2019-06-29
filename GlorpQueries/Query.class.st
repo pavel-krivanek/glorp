@@ -11,7 +11,7 @@ Instance Variables:
 	collectionType	<Class>	What sort of collection should this query return its results in.
 	expectedRows	<Integer>	Roughly how many rows should we expect to get back. Doesn't have to be right, but can be used to set buffer sizes appropriately in the database.
 	ordering	<(SequenceableCollection of: (GlorpExpression | Block | Symbol))>	If we order the results, what are the ordering criteria. Either an expression, but one whose root ends up evaluating to a field, or a block or symbol that can be converted to same.
-	prepared	<Boolean>	Has this query already been prepared (at the Glorp level), this says nothing about prepared statements for the database, which will be separate objects.
+	prepared	<Boolean>	In AbstractReadQuery and subclasses, this records whether the query has already been prepared (at the Glorp level; this says nothing about prepared statements for the database, which is a wholly separate issue).  In RecursiveQuery, it records if the recursive system has been prepared.  Other subclasses do not use it.
 	session	<GlorpSession>	What session should this query execute in. Can be nil until we start to prepare the query.
 
 "
@@ -133,7 +133,8 @@ Query class >> visualWorksMetadata [
 
 { #category : #accessing }
 Query >> collectionType [
-	"Note that queries default the collection type to array, while mappings default to OrderedCollection. I think it makes sense"
+	"Note that queries default the collection type to array, while mappings default to OrderedCollection. In 2003, Alan wrote: I think it makes sense.  In 2017, Niall wrote: if the collectionType of the proxy's query is nil then #resultCollectionFor: returns an Array and registering an Array ignores its internals.  If, however, it is an OrderedCollection then its internals _are_ registered, thus are in the transaction's collectionMementos, which become the RowMapForMementos' collectionMementos.  It is therefore important for a mapping and its query to agree on this, else some operations - #delete: is the one where I saw a problem - DNU when the RowMapForMementos cannot find the collectionMemento it seeks in RelationshipMapping>>mapFromObject:intoRowsIn.  Ordinary set up should ensure this but anyone getting 'clever' with a mapping's query needs to be aware of it."
+
 	collectionType isNil ifTrue: [collectionType := Array].
 	^collectionType.
 ]
@@ -150,12 +151,24 @@ Query >> copy [
 
 { #category : #copying }
 Query >> copyAttributesTo: newQuery [
-	"We're creating a new query similar to ourselves, ut not a direct copy. Copy over the relevant attributes. Note that we don't copy over the ordering, because that's less universally appropriate. Caller beware."
+	"We're creating a new query similar to ourselves, but not a direct copy. Copy over the relevant attributes. Note that we don't copy over the ordering, because that's less universally appropriate. Caller beware."
 
 	newQuery expectedRows: self expectedRows.
 	newQuery collectionType: self collectionType.
 	newQuery readsOneObject: self readsOneObject.
 	newQuery maximumLobSizeToRetrieveDirectly: self maximumLobSizeToRetrieveDirectly.
+]
+
+{ #category : #copying }
+Query >> copyOfBuildersFor: aGlorpCursoredStream [
+	^self copyOfBuilders do: [:each | each cursor: aGlorpCursoredStream]
+]
+
+{ #category : #executing }
+Query >> execute [
+	"Users must call #setUpBaseFromSession: before calling #retrieve: or #AND:/#OR: when the block contains aggregation functions or platform-specific functions.  In that case, this convenience method lets you evaluate the configured query without explicitly setting its session a second time."
+
+	^self executeWithParameters:#() in: session
 ]
 
 { #category : #executing }
@@ -272,7 +285,10 @@ Query >> postCopy [
 
 { #category : #'sql generation' }
 Query >> printCompoundSelectAliasesOn: aStream [
-	^self.
+	"Since only a CompoundSelectCommand can call this method, it is unclear why it is defined on the superclass, as if any subclass other than CompoundQuery could call it."
+
+	self printOrderingOn: aStream.
+	self printGroupingOn: aStream.
 ]
 
 { #category : #'sql generation' }
@@ -329,10 +345,11 @@ Query >> readsOneObject: aBoolean [
 { #category : #executing }
 Query >> resultCollectionFor: aCursoredStream [
 	| results finalAnswer |
-	collectionType isNil ifTrue: [^aCursoredStream upToEnd].
+	collectionType isNil ifTrue: [results := aCursoredStream upToEnd. aCursoredStream release. ^results].
 	collectionType == aCursoredStream class ifTrue: [^aCursoredStream].
 	results := (aCursoredStream newCollectionOfSize: self expectedRows for: collectionType) writeStream.
 	results nextPutAll: aCursoredStream upToEnd.
+	aCursoredStream release.
 	finalAnswer := results contents.
 	session register: finalAnswer.
 	^finalAnswer.
@@ -382,5 +399,7 @@ Query >> setOrdering: aCollection [
 
 { #category : #testing }
 Query >> shortCircuitEmptyReturn: parameters [
-	^false.
+	"We need not go to the database if we can deduce beforehand that no results will be returned.  Suitable optimisations can be implemented in subclasses as seems beneficial."
+
+	^false
 ]

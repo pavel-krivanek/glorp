@@ -9,6 +9,8 @@ Note that although these are typically fk=pk, it's allowed to be the other way a
 
 Instance Variables:
 	base	<BaseExpression>	The base on which we are built. Mostly used if we want to convert this into a real expression.
+	outerJoin	<Boolean | nil>	If this is nil, we are an inner join.  If it is true we are a left outer join.  If it is false we are a right outer join.
+	owningMapping	<RelationalMapping | nil>	The mapping whose join we are.
 	sources	<SequenceableCollection of: (DatabaseField | ConstantExpression)> The source fields (typically the foreign keys)
 	targets	<SequenceableCollection of: DatabaseField> The target fields (typically the targets of the foreign keys)
 
@@ -111,7 +113,7 @@ Join >> , aJoin [
 	aJoin == self ifTrue: [^self].
 	newJoin := (self class fromAll: (sources, aJoin allSourceFields) toAll: (targets, aJoin targetKeys)) removeDuplicates.
 	"If either one of the contributors is an outer join, make the result be an outer join"
-	newJoin outerJoin: (self outerJoin | aJoin outerJoin).
+	newJoin privateBeOuterJoin: outerJoin merge: aJoin privateGetOuterJoin.
 	^newJoin
 ]
 
@@ -175,54 +177,53 @@ Join >> asExpressionJoiningSource: source toTarget: target [
 	"Create a general expression which represents this relationship where the values of the targets (which are normally parameters) are supplied out of the context provided by 'target' and the source fields are referencing things out of the context of source. Produces something suitable for ANDing into an expression when doing a join
    Example: If we had CUSTOMER.ADDRESS_ID = ADDRESS.ID as a parameter, and we want to AND this into an expression [:customer | customer address street = 'Main'] then we have customer as a base, and we get 
 	(customer.ADDRESS.STREET = 'Main') AND (customer.CUSTOMER.ADDRESS_ID = customer.ADDRESS.ID)
-	The primary key expression for the relationship has been translated into field references into the customer and address tables in a particular context."
+The primary key expression for the relationship has been translated into field references into the customer and address tables in a particular context."
 
 	| sourceFieldExpression targetFieldExpression completeExpression relationExpression |
 	completeExpression := EmptyExpression new base: base.
-	sources with: targets
-		do: 	[:sourceField :targetField | 
-			sourceFieldExpression := source getFieldKnownNotToBeAName: sourceField.
-			targetFieldExpression := target getFieldKnownNotToBeAName: targetField.
-			relationExpression := sourceFieldExpression equals: targetFieldExpression.
-			completeExpression := relationExpression AND: completeExpression].
-	outerJoin ifTrue: [completeExpression beOuterJoin].
+	sources with: targets do:
+		[:sourceField :targetField | 
+		sourceFieldExpression := source getFieldKnownNotToBeAName: sourceField.
+		targetFieldExpression := target getFieldKnownNotToBeAName: targetField.
+		relationExpression := sourceFieldExpression equals: targetFieldExpression.
+		completeExpression := relationExpression AND: completeExpression].
+	completeExpression privateBeOuterJoin: outerJoin.
 	^completeExpression
 ]
 
 { #category : #converting }
 Join >> asGeneralGlorpExpression [
-	"Convert this to a 'normal' expression representing the same information"
+	"Convert this to a 'normal' expression representing the same information (with source and target order reversed)."
 
 	| main clause |
 	main := EmptyExpression new base: base.
-	sources with: targets
-		do: 
-			[:eachSource :eachTarget | 
-			| srcExp targetExp |
-			srcExp := self sourceExpressionFor: eachSource.
-			targetExp := self targetExpressionFor: eachTarget.
-			"Reversing the order is important because the source is the parameter, and sql won't accept '27 = FOO' "
-			clause := targetExp equals: srcExp.
-			main := main AND: clause].
-	outerJoin ifTrue: [main beOuterJoin].
+	sources with: targets do: 
+		[:eachSource :eachTarget || srcExp targetExp |
+		srcExp := self sourceExpressionFor: eachSource.
+		targetExp := self targetExpressionFor: eachTarget.
+		"Reverse the order: the source is the parameter and some DBs won't accept 27 = t1.primaryKey"
+		clause := targetExp equals: srcExp.
+		main := main AND: clause].
+	"The far end of a left outer join is no outer join at all.  The far end of a right outer join is a left outer join."
+	self isRightOuterJoin ifTrue: [main beOuterJoin].
 	^main
+
+"I do not know which databases still reject SQL like 27 = t1.primaryKey (Postgres 9 accepts it).  However current Glorp coding assumes this order reversal.  To make Glorp work without it, you must implement ParameterExpression>>mappedFields (easy) and then work out why that still leaves some things proxied that the tests expect to have been read.  Reversing the direction of any outer join to match the join expression's reversa is easier."
 ]
 
 { #category : #converting }
 Join >> asGeneralGlorpExpressionWithFields [
-	"The normal conversion of a join is to an expression equating fields and parameters. Instead, generate one with field to field comparisons"
+	"The normal conversion of a join is to an expression equating fields and parameters. Instead, generate one with field to field comparisons.  Unlike #asGeneralGlorpExpression, this one has no need to invert the order of the source and target expressions, and so no need to invert its outer join if it has one."
 
 	| main clause |
-	main := nil.
-	sources with: targets
-		do: 
-			[:eachSource :eachTarget | 
-			| srcExp targetExp |
-			srcExp := self targetExpressionFor: eachSource.
-			targetExp := self targetExpressionFor: eachTarget.
-			clause := srcExp equals: targetExp.
-			main := main == nil ifTrue: [clause] ifFalse: [main AND: clause]].
-	outerJoin ifTrue: [main beOuterJoin].
+	main := EmptyExpression new base: base.
+	sources with: targets do:
+		[:eachSource :eachTarget || srcExp targetExp |
+		srcExp := self targetExpressionFor: eachSource.
+		targetExp := self targetExpressionFor: eachTarget.
+		clause := srcExp equals: targetExp.
+		main := main AND: clause].
+	main privateBeOuterJoin: outerJoin.
 	^main
 ]
 
@@ -243,8 +244,8 @@ Join >> asGlorpExpressionOn: aBaseExpression [
 	| copy |
 	copy := self copy.
 	copy base: aBaseExpression.
-	copy outerJoin: outerJoin.
-	^copy.
+	copy privateBeOuterJoin: outerJoin.
+	^copy
 ]
 
 { #category : #api }
@@ -269,7 +270,14 @@ Join >> base: aBaseExpression [
 Join >> beOuterJoin [
 	"If you want the table you're joining to to be optional, this must be set."
 
-	outerJoin := true.
+	self privateBeOuterJoin: true.
+]
+
+{ #category : #api }
+Join >> beRightOuterJoin [
+	"If you want the table you're joining from to be optional, this must be set.  Only call this implementor when assigning a join to a read-only mapping - writing support is not yet fully developed."
+
+	self privateBeOuterJoin: false.
 ]
 
 { #category : #iterating }
@@ -306,11 +314,9 @@ Join >> hasDescriptor [
 
 { #category : #initialize }
 Join >> initialize [
-
 	sources := OrderedCollection new: 2.
 	targets := OrderedCollection new: 2.
 	base := BaseExpression new.
-	outerJoin := false.
 ]
 
 { #category : #converting }
@@ -350,7 +356,12 @@ Join >> isJoin [
 
 { #category : #testing }
 Join >> isOuterJoin [
-	^outerJoin.
+	^outerJoin notNil
+]
+
+{ #category : #converting }
+Join >> isRightOuterJoin [
+	^self isOuterJoin and: [outerJoin not]
 ]
 
 { #category : #iterating }
@@ -379,16 +390,6 @@ Join >> onlyJoinParts [
 	^self.
 ]
 
-{ #category : #accessing }
-Join >> outerJoin [
-	^outerJoin.
-]
-
-{ #category : #accessing }
-Join >> outerJoin: aBoolean [
-	outerJoin := aBoolean.
-]
-
 { #category : #debugging }
 Join >> owningMapping [
 	"Return the mapping (if there is one) that is responsible for. Not needed for the code, but might be a useful debugging aid if trying to figure out where a @#%#@% join came from"
@@ -402,8 +403,16 @@ Join >> owningMapping: aMapping [
 
 { #category : #preparing }
 Join >> prepareIn: aQuery [
-	aQuery whereClause: (self asGeneralGlorpExpression).
+	"The whereClause is a Join.  Convert it to an expression and prepare that expression.  (The assumption is that this implementor is only ever reached by #prepareIn: being sent to a 'whereClause' that contains a join)."
+
+	aQuery whereClause: self asGeneralGlorpExpression.
 	aQuery whereClause prepareIn: aQuery.
+
+"Is it always the case that after calling the above,
+	aQuery shouldExpressionBeJoin: aQuery whereClause.
+will inevitably return true?  If so, should the above instead be
+	aQuery addJoin: self asGeneralGlorpExpression.
+so that platforms that only support ANSI outer joins will handle it correctly."
 ]
 
 { #category : #'primary keys' }
@@ -444,11 +453,34 @@ Join >> printSQLOn: aStream withParameters: aDictionary [
 ]
 
 { #category : #accessing }
+Join >> privateBeOuterJoin: anOuterJoin [
+	"NEVER use this method when defining joins in your descriptor systems;  always use paramaterless #beOuterJoin and similar API methods.  Before version 8.3.1, Glorp only supported inner joins and the setting was a boolean.  It then changed to a boolean or nil, and what false meant also changed.  It may evolve further."
+
+	outerJoin := anOuterJoin.
+]
+
+{ #category : #accessing }
+Join >> privateBeOuterJoin: anOuterJoin merge: anotherOuterJoin [
+	"At the moment we only support left and right outer joins.  If both are non-nil, they had better be equal.  (Later, I guess left + right = cross-join.)"
+
+	anotherOuterJoin isNil ifTrue: [^outerJoin := anOuterJoin].
+	anOuterJoin isNil ifTrue: [^outerJoin := anotherOuterJoin].
+	^anOuterJoin = anotherOuterJoin
+		ifTrue: [outerJoin := anOuterJoin]
+		ifFalse: [self error: 'Even if a left and right outer join should be merged as a cross-join, we do not support that yet']
+]
+
+{ #category : #private }
+Join >> privateGetOuterJoin [
+	^outerJoin
+]
+
+{ #category : #accessing }
 Join >> queryLevelBaseExpression [
 	^self ultimateBaseExpression.
 ]
 
-{ #category : #'As yet unclassified' }
+{ #category : #converting }
 Join >> rebuildOn: aGlorpMappingExpression [ 
 	^self asGlorpExpressionOn: aGlorpMappingExpression.
 ]
@@ -493,18 +525,21 @@ Join >> replaceJoinsWithInverse [
 
 { #category : #converting }
 Join >> replacing: aTable withEquivalenceFrom: aJoin [
-	"Create a new join in which references to fields in aTable have been replaced with the equivalent based on a Join (we assume that aTable references are in the sources of aJoin). If the field doesn't occur in the translation, just remove it"
+	"Create a new join by sliding my sources along the source-to-target lines of aJoin.  Each of my sources that uses fields in aTable is replaced with that source's target in aJoin (any others get discarded).  The code assumes that aTable references are in the sources of aJoin (the caller can send #inverseJoin to the parameter if polarity is reversed)."
+
 	| newSources newTargets newSource |
 	newSources := OrderedCollection new.
 	newTargets := OrderedCollection new.
-	self fieldsDo: [:eachSource :eachTarget |
-		(eachSource isGlorpExpression not and: [eachSource table = aTable])
-			ifTrue: [
-				newSource := aJoin targetForSource: eachSource.
-				newSource isNil ifFalse: [
-					newSources add: newSource.
-					newTargets add: eachTarget]]].
-	^self class fromAll: newSources toAll: newTargets.
+	self fieldsDo:	"do not guard eachSource isGlorpExpression but instead assume expression understands #table"
+		[:eachSource :eachTarget |
+		eachSource table = aTable ifTrue:
+			[newSource := aJoin targetForSource: eachSource.
+			newSource isNil ifFalse:
+				[newSources add: newSource.
+				newTargets add: eachTarget]]].
+	^self class fromAll: newSources toAll: newTargets
+
+"If not one valid source is found, this will uncomplainingly return an empty join (almost certainly indicating a mistaken call that will cause errors later)."
 ]
 
 { #category : #testing }
@@ -532,12 +567,11 @@ Join >> sourceFields: sourceFields targetFields: targetFields [
 ]
 
 { #category : #preparing }
-Join >> sourceForTarget: aField [
-
+Join >> sourceForTarget: aField ifNone: aBlock [
 	| index |
 	index := targets indexOf: aField.
-	index = 0 ifTrue: [^nil].
-	^sources at: index.
+	index = 0 ifTrue: [^aBlock value].
+	^sources at: index
 ]
 
 { #category : #converting }
@@ -558,6 +592,17 @@ Join >> targetForSource: aField [
 	^targets at: index.
 ]
 
+{ #category : #preparing }
+Join >> targetForSource: aField valueOfTargetField: aBlock [
+	"Only evaluate the block if this join includes aField as source field.  My polymorph in VariableJoin relies on the value of the block being the target value of the join's mapping."
+
+	| index |
+	index := sources indexOf: aField.
+	index = 0 ifTrue: [^nil].
+	aBlock value.
+	^targets at: index
+]
+
 { #category : #accessing }
 Join >> targetKeys [
 
@@ -568,4 +613,12 @@ Join >> targetKeys [
 Join >> ultimateBaseExpression [
 
 	^base ultimateBaseExpression.
+]
+
+{ #category : #validation }
+Join >> validate [
+	sources asSet size = sources size ifFalse:
+		[self error: 'The same field occurs twice in the join. This might be legal, but is probably a cut and paste error.'].
+	targets asSet size = targets size ifFalse:
+		[self error: 'The same field occurs twice in the join. This might be legal, but is probably a cut and paste error.'].
 ]

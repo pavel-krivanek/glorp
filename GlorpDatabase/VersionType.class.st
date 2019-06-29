@@ -2,9 +2,9 @@
 This represents the type of something used for a version field.
 
 Instance Variables:
-	underlyingType	<DatabaseType>	The underlying type of our field.
-	sequence <> The generator used to generate the next value.
-
+	underlyingType	<DatabaseType>	The type of our field, into which we will write generated values of that type.
+	generatesOverExistingValues	<Boolean>	If a field already has a value, do we generate another?
+	generator	<GlorpDatabaseValueGenerator>	The generator used to generate the next value.
 
 "
 Class {
@@ -100,12 +100,6 @@ VersionType >> initialize [
 { #category : #testing }
 VersionType >> isGenerated [
 	^true.
-]
-
-{ #category : #sequencing }
-VersionType >> postWriteAssignSequenceValueFor: aDatabaseField in: aDatabaseRow using: anAccessor [
-
-	^self.
 ]
 
 { #category : #sequencing }

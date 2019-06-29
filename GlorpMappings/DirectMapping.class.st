@@ -4,6 +4,7 @@ This is the simplest type of mapping, it maps directly between an instance varia
 Instance Variables:
 	converter	<DatabaseConverter>	The converter used to transform the data into database form and back again. This will be automatically computed based on the types defined, if possible, but for more complex conversions (e.g. booleans into strings in the database) a converter can be explicitly specified.
 	field	<DatabaseField | FunctionExpression>	The field to write to. One complication is that (for reading purposes) the field may be a function. So we might have a mapping that reads from the TO_UPPER of some field, or even an aggregate function like MAX.
+	shouldProxy	<Boolean>	Should we proxy or directly construct the referenced value (the default is false; direct mappings rarely proxy since there can be no meaningful performance benefit unless the value is a LOB or similarly expensive)
 
 
 "
@@ -66,14 +67,15 @@ DirectMapping class >> visualWorksMetadata [
 { #category : #mapping }
 DirectMapping >> buildQuery [
 	"We just want to read our main object back again. So we create a join from our primary key fields to themselves. One side will remain field references, the other side will turn into parameters when it's converted to a where clause."
-	| whereClause |
+
+	| whereClause builtQuery |
 	whereClause := Join new.
-	descriptor primaryTable primaryKeyFields do: [:each |
-		whereClause addSource: each target: each].
-	query := Query readOneOf: descriptor describedClass where: whereClause.
-	query retrieve: self attribute name.
-	query session: self session.
-	^query.
+	descriptor primaryTable primaryKeyFields do:
+		[:each | whereClause addSource: each target: each].
+	builtQuery := Query readOneOf: descriptor describedClass where: whereClause.
+	builtQuery retrieve: self attribute name.
+	builtQuery session: self session.
+	^builtQuery
 ]
 
 { #category : #testing }
@@ -83,14 +85,7 @@ DirectMapping >> controlsTables [
 	^false
 ]
 
-{ #category : #mapping }
-DirectMapping >> convertValueToDatabaseForm: aValue [
-	
-	converter isNil ifTrue: [^aValue].
-	^converter convertedDbValueOf: aValue.
-]
-
-{ #category : #private }
+{ #category : #'printing SQL' }
 DirectMapping >> convertedDbValueOf: stValue [ 
 	^converter isNil
 		ifTrue: [stValue]
@@ -99,7 +94,7 @@ DirectMapping >> convertedDbValueOf: stValue [
 
 { #category : #private }
 DirectMapping >> convertedStValueOf: dbValue [ 
-	^(converter isNil)
+	^converter isNil
 		ifTrue: [dbValue]
 		ifFalse: [converter convert: dbValue fromDatabaseRepresentationAs: self field type]
 ]
@@ -125,9 +120,9 @@ DirectMapping >> expressionFor: anObject basedOn: anExpression relation: aSymbol
 			[anObject isGlorpExpression
 				ifTrue: [anObject getMapping: self named: self attributeName]
 				ifFalse: [anObject glorpIsCollection
-					ifTrue: [anObject collect: [:each | self convertedDbValueOf: (attribute getValueFrom: each)]]
-					ifFalse: [self convertedDbValueOf: (attribute getValueFrom: anObject)]]].
-	^(anExpression get: self attribute name) get: aSymbol withArguments: (Array with: value)
+					ifTrue: [anObject collect: [:each | attribute getValueFrom: each]]
+					ifFalse: [attribute getValueFrom: anObject]]].
+	^(anExpression get: self attribute name) get: aSymbol withArguments: (Array with: value).
 ]
 
 { #category : #accessing }
@@ -230,7 +225,7 @@ DirectMapping >> mapObject: anObject inElementBuilder: anElementBuilder [
 						parameters: (self parametersIn: anElementBuilder);
 						glorpOwner: anObject)].
 	value := self valueInBuilder: anElementBuilder.
-	self setValueIn: anObject to: value.
+	^self setValueIn: anObject to: value
 ]
 
 { #category : #testing }
@@ -260,9 +255,8 @@ DirectMapping >> printSQLOn: aStream withParameters: aDictionary [
 
 { #category : #mapping }
 DirectMapping >> query [
-
-	query isNil ifTrue: [self buildQuery].
-	^query.
+	query isNil ifTrue: [query := self buildQuery].
+	^query
 ]
 
 { #category : #mapping }
@@ -272,9 +266,11 @@ DirectMapping >> queryFor: anObjectBuilder [
 ]
 
 { #category : #mapping }
-DirectMapping >> readBackNewRowInformationFor: anObject fromRowsIn: aRowMap [ 
+DirectMapping >> readBackNewRowInformationFor: anObject fromRowsIn: aRowMap [
+	"If the database server assigned the value (i.e. the field is an identity column, or has a default value) or is relative, we need to write the value back into the image objects."
+
 	| value row |
-	field isGenerated ifFalse: [^self].
+	(field isGenerated or: [field type isRelativeType]) ifFalse: [^self].
 	self canWrite ifFalse: [^false].
 	row := aRowMap findOrAddRowForTable: self field table withKey: anObject.
 	value := self convertedStValueOf: (row at: field ifAbsent: [^self]).
@@ -290,9 +286,9 @@ DirectMapping >> referencedIndependentObjectsFrom: anObject [
 { #category : #'initialize-release' }
 DirectMapping >> setConverterBetween: aClass and: aDbField [ 
 	aClass isNil ifTrue: [^self].
-	converter := descriptor ifNotNil: 
-					[descriptor system converterBetweenStType: aClass andField: aDbField]
-				ifNil: [aDbField converterForStType: aClass]
+	converter := descriptor isNil
+		ifTrue: [aDbField converterForStType: aClass]
+		ifFalse: [descriptor system converterBetweenStType: aClass andField: aDbField].
 ]
 
 { #category : #accessing }
@@ -322,7 +318,8 @@ DirectMapping >> type: aClass [
 { #category : #validation }
 DirectMapping >> validate [
 	super validate.
-	(field isGlorpExpression and: [self readOnly not]) ifTrue: [self error: 'Mappings to functions cannot be written'].
+	(field isGlorpExpression and: [self canWrite]) ifTrue:
+		[self error: 'Mappings to functions cannot be written'].
 ]
 
 { #category : #mapping }

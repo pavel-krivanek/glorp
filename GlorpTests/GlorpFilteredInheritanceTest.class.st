@@ -135,9 +135,9 @@ GlorpFilteredInheritanceTest >> testDirectQuery [
 
 { #category : #tests }
 GlorpFilteredInheritanceTest >> testDirectQuery2 [
-	"Ask for all Employees, see if we get subclasses too"
+	"Ask for all Employees, see if we get subclasses too."
 
-	| employees |
+	| employees contractors |
 	session beginTransaction.
 	
 	[session beginUnitOfWork.
@@ -145,17 +145,16 @@ GlorpFilteredInheritanceTest >> testDirectQuery2 [
 	session commitUnitOfWork.
 	session initializeCache.
 	employees := session read: GlorpEmployee.
-	self assert: employees size = 12.
-	self 
-		assert: (employees select: [:emp | emp isMemberOf: GlorpEmployee]) size = 2.
+	self assert: employees size = 13.
+	self assert: (employees select: [:emp | emp isMemberOf: GlorpEmployee]) size = 2.
 	self assert: (employees select: [:emp | emp isMemberOf: GlorpManager]) size = 3.
-	self 
-		assert: (employees select: [:emp | emp isMemberOf: GlorpLineWorker]) size = 5.
-	self 
-		assert: (employees select: [:emp | emp isMemberOf: GlorpRegionalManager]) size 
-				= 2.
-] 
-			ensure: [session rollbackTransaction]
+	self assert: (employees select: [:emp | emp isMemberOf: GlorpLineWorker]) size = 5.
+	self assert: (employees select: [:emp | emp isMemberOf: GlorpRegionalManager]) size = 2.
+	self assert: (contractors := employees select: [:emp | emp isMemberOf: GlorpContractor]) size = 1.
+	self assert: contractors first hourlyRate class == GlorpMoney.
+	self assert: contractors first hourlyRate amount = 100.
+	]
+		ensure: [session rollbackTransaction]
 ]
 
 { #category : #tests }
@@ -171,6 +170,24 @@ GlorpFilteredInheritanceTest >> testDirectQueryWithAbstractClass [
 	self assert: (fromdb select: [:emp | emp isMemberOf: GlorpBasicTax]) size = 1.
 	self assert: (fromdb select: [:emp | emp isMemberOf: GlorpSurcharge]) size = 1] 
 			ensure: [session rollbackTransaction]
+]
+
+{ #category : #tests }
+GlorpFilteredInheritanceTest >> testEmbeddedMapping [
+	"Check that when we only read contractors, the embedded mapping works OK."
+
+	| employees |
+	session beginTransaction.
+	
+	[session beginUnitOfWork.
+	self writeTestHarness.
+	session commitUnitOfWork.
+	session initializeCache.
+	employees := session read: GlorpContractor.
+	self assert: employees size = 1.
+	self assert: employees first hourlyRate amount = 100.
+	]
+		ensure: [session rollbackTransaction]
 ]
 
 { #category : #tests }
@@ -247,7 +264,7 @@ GlorpFilteredInheritanceTest >> testTaxInsertOrdering [
 
 { #category : #support }
 GlorpFilteredInheritanceTest >> writeTestHarness [
-	| office1 office2  eom1 eom2 jim bob |
+	| office1 office2  eom1 eom2 jim bob jenny |
 	session register: (office1 := GlorpOffice new id: 1; yourself).
 	session register: (office2 := GlorpOffice new id: 2; yourself).
 	office1 addEmployee: (eom1 := GlorpEmployee new id: 1; name: 'Bob'; yourself).
@@ -266,7 +283,9 @@ GlorpFilteredInheritanceTest >> writeTestHarness [
 	office2 employeeOfMonth: eom2.
 
 	session register: (jim := GlorpWorkingStiff new id: 13; name: 'Jim'; yourself).
-	session register: (bob := GlorpWorkingStiff new id: 14; name: 'Bob'; yourself).
+	session register: (bob := GlorpWorkingStiff new id: 14; name: 'Bob'; yourself). 
+	session register: (jenny := GlorpContractor new id: 15; name: 'Jenny'; yourself).
+	jenny hourlyRate: (GlorpMoney forAmount: 100).	"embedded mapping."
 
-	allEmployees := (Array with: jim with: bob), office1 employees, office2 employees.
+	allEmployees := (Array with: jim with: bob with: jenny), office1 employees, office2 employees.
 ]
