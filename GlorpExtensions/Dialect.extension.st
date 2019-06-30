@@ -60,6 +60,12 @@ Dialect class >> basicIsObjectStudio [
 ]
 
 { #category : #'*GlorpExtensions-private' }
+Dialect class >> basicIsPharo [
+
+	^ (Smalltalk respondsTo: #version) and: [Smalltalk version beginsWith: 'Pharo'.]
+]
+
+{ #category : #'*GlorpExtensions-private' }
 Dialect class >> basicIsSqueak [
 
 	^ (Smalltalk respondsTo: #vmVersion) and: [(Smalltalk vmVersion copyFrom: 1 to: 6) = 'Squeak'.]
@@ -110,6 +116,7 @@ Dialect class >> determineDialect [
 	self basicIsSqueak ifTrue: [^ dialectName := #Squeak].
 	self basicIsObjectStudio ifTrue: [^dialectName := #ObjectStudio].
 	self basicIsVisualWorksWithoutNamespaces ifTrue: [^dialectName := #VisualWorks].
+	self basicIsPharo ifTrue: [^dialectName := #Pharo].
 	self error: 'I don''t know what dialect this is'.
 	^ self
 ]
