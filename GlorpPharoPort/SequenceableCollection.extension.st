@@ -12,6 +12,13 @@ SequenceableCollection >> isSameSequenceAs: otherCollection [
 ]
 
 { #category : #'*GlorpPharoPort' }
+SequenceableCollection >> replaceElementsFrom: start to: stop withSequenceableCollection: replacement startingAt: repStart [ 
+	
+	^ self replaceFrom: start to: stop with: replacement startingAt: repStart 
+
+]
+
+{ #category : #'*GlorpPharoPort' }
 SequenceableCollection >> tokensBasedOn: anObject [
 
 	^ self splitOn: anObject
