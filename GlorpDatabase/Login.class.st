@@ -21,7 +21,11 @@ Class {
 		'connectString',
 		'name',
 		'schema',
-		'secure'
+		'secure',
+		'databaseName',
+		'host',
+		'encodingStrategy',
+		'port'
 	],
 	#category : #'GlorpDatabase-Glorp'
 }

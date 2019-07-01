@@ -10,3 +10,9 @@ SequenceableCollection >> isSameSequenceAs: otherCollection [
 	
 	^ self hasEqualElements: otherCollection
 ]
+
+{ #category : #'*GlorpPharoPort' }
+SequenceableCollection >> tokensBasedOn: anObject [
+
+	^ self splitOn: anObject
+]

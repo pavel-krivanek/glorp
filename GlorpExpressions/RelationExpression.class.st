@@ -742,7 +742,7 @@ RelationExpression >> tableToJoinFrom: aTableCollection [
 	| possibleTables |
 	possibleTables := self tablesForANSIJoin select:
 		[:each | (aTableCollection includes: each) not].
-	^possibleTables size = 1 ifTrue: [possibleTables any]	"return nil otherwise"
+	^possibleTables size = 1 ifTrue: [possibleTables any] ifFalse: [nil].	"return nil otherwise"
 ]
 
 { #category : #joining }
