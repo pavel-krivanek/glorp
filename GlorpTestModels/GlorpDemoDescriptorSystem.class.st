@@ -5,7 +5,7 @@ Class {
 	#name : #GlorpDemoDescriptorSystem,
 	#superclass : #GlorpTestDescriptorSystem,
 	#classVars : [
-		'GlorpDemoDescriptorSystem'
+		'Default'
 	],
 	#category : #'GlorpTestModels-GlorpTest'
 }

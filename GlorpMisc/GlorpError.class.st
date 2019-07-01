@@ -67,6 +67,7 @@ GlorpError >> getMessageText [
 	Dialect isVisualWorks ifTrue: [^self getVisualWorksMessageText].
 	Dialect isVisualAge ifTrue: [^self getVisualAgeMessageText].
 	Dialect isSqueak ifTrue: [^self databaseError].
+	Dialect isPharo ifTrue: [^self databaseError].
 	^self printString.
 ]
 
