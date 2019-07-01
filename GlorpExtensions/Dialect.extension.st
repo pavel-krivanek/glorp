@@ -500,6 +500,7 @@ Dialect class >> supportsMillisecondsInTimes [
 	self isDolphin ifTrue: [^ true].
 	self isVisualAge ifTrue: [^ true].
 	self isObjectStudio ifTrue: [^true]. "Sort of. Supports hundredths of a second"
+	self isPharo ifTrue: [^true]. 
 	^ self
 ]
 
@@ -559,6 +560,7 @@ Dialect class >> tokensBasedOn: aString in: stringToTokenize [
 	self isVisualAge ifTrue: [^ (stringToTokenize subStrings: aString first)].
 	self isObjectStudio ifTrue: [^(stringToTokenize asArrayOfSubstringsDelimiter: aString first)].
 	self isGNU ifTrue: [^ stringToTokenize subStrings: aString first].
+	self isPharo ifTrue: [^ stringToTokenize findTokens: aString].
 	self error: 'not implemented yet'.
 	^ self
 ]

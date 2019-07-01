@@ -1676,7 +1676,7 @@ DatabasePlatform >> readTimeFromStream: aStream for: aType [
 				millisecondAccumulator nextPut: aStream next].
 			milliseconds := millisecondAccumulator contents asNumber]
 		ifFalse: [milliseconds := 0].
-	timeZoneOffset := aStream upToEnd asNumber.
+	timeZoneOffset := aStream upToEnd ifNotEmpty: [ :aString | aString asNumber ] ifEmpty: [ 0 ].
 	^Dialect newTimeWithHours: hours minutes: minutes seconds: seconds milliseconds: milliseconds.
 	"^Dialect addSeconds: (timeZoneOffset * -1* 60 * 60) to: aTime."
 ]
