@@ -747,11 +747,16 @@ RelationExpression >> tableToJoinFrom: aTableCollection [
 
 { #category : #joining }
 RelationExpression >> tablesForANSIJoin [
-	"Which tables will we join. Assumes this is a single-level join.  (More often than not, tableForANSIJoin will return nil, but adding nil to a set is a noop so we need not check for nil before adding; it is more efficient to let Set>>add: do that.)"
+	"Which tables will we join. Assumes this is a single-level join.  (More often than not, tableForANSIJoin will return nil, but adding nil to a set is a noop so we need not check for nil before adding; it is more efficient to let Set>>add: do that.)
+	
+	Note: the comment above does is not true in Pharo!"
 
 	^self
 		inject: Set new
-		into: [:sum :each | sum add: each tableForANSIJoin. sum]
+		into: [:sum :each | 
+			| aTable | 
+			aTable := each tableForANSIJoin.
+			aTable ifNotNil: [sum add: aTable]. sum]
 ]
 
 { #category : #accessing }
