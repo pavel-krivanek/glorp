@@ -51,13 +51,20 @@ ReturningUpdateCommand >> postWriteAssignReturnValuesUsing: answerStream [
 
 	allRows isNil
 		ifTrue:
-			[relativeFields with: answerStream upToEndOfReturningResultSet first do:
-				[:field :value | row at: field forcePut: value]]
+			[
+				| upToEnd |
+				upToEnd := answerStream upToEndOfReturningResultSet.
+				upToEnd ifNotEmpty: [ 
+					relativeFields with: answerStream upToEndOfReturningResultSet first do:
+						[:field :value | row at: field forcePut: value ]]]
 		ifFalse:
 			[allRows do:
 				[:aRow |	"A failed update due to a bad lock will return an empty collection, with rowCount = 0."
-				relativeFields with: answerStream upToEndOfReturningResultSet first do:
-					[:field :aValue | aRow at: field forcePut: aValue]]].
+				| upToEnd |
+				upToEnd := answerStream upToEndOfReturningResultSet.
+				upToEnd ifNotEmpty: [ 
+					relativeFields with: upToEnd first do:
+						[:field :aValue | aRow at: field forcePut: aValue ]]]].
 ]
 
 { #category : #executing }

@@ -219,3 +219,14 @@ PharoDatabaseAccessor >> rowCount [
 PharoDatabaseAccessor >> showDialog: aString [ 
 	UIManager default inform: aString
 ]
+
+{ #category : #executing }
+PharoDatabaseAccessor >> upToEndOfReturningResultSet: aGlorpCursoredStream [
+	"Ask the relative type how to assign returned value(s) to the target column(s) of my rows.  As result returns an array of arrays, we need the inner array.  If relative fields and values are not the same size, #with:do: will raise an error."
+	
+	self flag: #todo.
+	
+	"see ReturningUpdateCommand>>#postWriteAssignReturnValuesUsing:"
+	
+	^ #()
+]
