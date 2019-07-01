@@ -26,7 +26,7 @@ GlorpRelativeFieldWithLocksTest >> sessionShouldUpdateOnlyChangedFields [
 	that depend on the special handling of relative fields to fail. (Therefore, a guard clause has been added to those tests.)"
 
 	^ session system
-		shouldUpdateOnlyChangedFieldsFor: Glorp_UpdateCommand new	"VW_TRANSLATION:Glorp.UpdateCommand:Glorp_UpdateCommand"
+		shouldUpdateOnlyChangedFieldsFor: UpdateCommand new	"VW_TRANSLATION:Glorp.UpdateCommand:UpdateCommand"
 ]
 
 { #category : #running }
@@ -51,7 +51,7 @@ GlorpRelativeFieldWithLocksTest >> shouldUpdateOnlyChangedFieldsForSession: aSes
 	that depend on the special handling of relative fields to fail. (Therefore, a guard clause has been added to those tests.)"
 
 	^ aSession system
-		shouldUpdateOnlyChangedFieldsFor: Glorp_UpdateCommand new	"VW_TRANSLATION:Glorp.UpdateCommand:Glorp_UpdateCommand"
+		shouldUpdateOnlyChangedFieldsFor: UpdateCommand new	"VW_TRANSLATION:Glorp.UpdateCommand:UpdateCommand"
 ]
 
 { #category : #running }

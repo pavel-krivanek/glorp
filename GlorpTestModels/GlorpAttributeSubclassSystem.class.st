@@ -59,9 +59,9 @@ GlorpAttributeSubclassSystem >> descriptorForGlorpTravelFile: aDescriptor [
 			| name allocatedName |
 			name := object name.
 			inlineTextFieldLength < length
-				ifTrue: [ XProgramming_SUnit_TestCase basicNew
+				ifTrue: [ TestCase basicNew
 						assert: name size = inlineTextFieldLength
-						description: 'DB and image encode to different lengths?'.	"VW_TRANSLATION:XProgramming.SUnit.TestCase:XProgramming_SUnit_TestCase"	"bit clunky this"
+						description: 'DB and image encode to different lengths?'.	"VW_TRANSLATION:XProgramming.SUnit.TestCase:TestCase"	"bit clunky this"
 					allocatedName := name class new: length.
 					allocatedName
 						replaceElementsFrom: 1
