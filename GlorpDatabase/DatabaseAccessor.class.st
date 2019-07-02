@@ -615,8 +615,8 @@ DatabaseAccessor >> encoding: aSymbol [
 
 { #category : #logging }
 DatabaseAccessor >> endLogging [
-"	self logger: nil.
-"	self logging: false.
+	self logger: nil.
+	self logging: false.
 	self logOnly: false.
 ]
 

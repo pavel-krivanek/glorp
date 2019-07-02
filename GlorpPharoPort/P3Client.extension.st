@@ -1,6 +1,13 @@
 Extension { #name : #P3Client }
 
 { #category : #'*GlorpPharoPort' }
+P3Client >> answer [
+
+	message tag = $Z ifTrue: [ ^ #noAnswerStream ].
+
+]
+
+{ #category : #'*GlorpPharoPort' }
 P3Client >> suggestedDefaultTimeZone [
 
 	^ 'CET'

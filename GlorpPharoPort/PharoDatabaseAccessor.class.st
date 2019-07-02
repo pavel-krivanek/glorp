@@ -117,6 +117,12 @@ PharoDatabaseAccessor >> disconnect [
 	^ self connection disconnect
 ]
 
+{ #category : #executing }
+PharoDatabaseAccessor >> driverSession [
+
+	^ databaseDriver connection 
+]
+
 { #category : #accessing }
 PharoDatabaseAccessor >> encoding [
 	 ^self connection queryEncoding

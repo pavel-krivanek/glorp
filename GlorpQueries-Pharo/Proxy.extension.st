@@ -9,6 +9,11 @@ Proxy >> = anObject [
 ]
 
 { #category : #'*GlorpQueries-Pharo' }
+Proxy >> mustBeBoolean [
+	MustBeBoolean signal
+]
+
+{ #category : #'*GlorpQueries-Pharo' }
 Proxy >> species [
 
 	self isInstantiated ifTrue: [^value species].
