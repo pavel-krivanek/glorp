@@ -10,6 +10,9 @@ BaselineOfGlorp >> baseline: spec [
 
 	spec for: #'common' do: [
 		spec blessing: #'baseline'.
+		
+		self p3: spec.
+		
 		spec 
 			package: 'GlorpCore';
 			package: 'GlorpDatabase';
@@ -30,8 +33,30 @@ BaselineOfGlorp >> baseline: spec [
 			package: 'GlorpTestModels';
 			package: 'GlorpTests';
 
+			package: 'P3-Glorp';
+
 			yourself
 		].
+]
+
+{ #category : #baselines }
+BaselineOfGlorp >> neoJSON: spec [
+
+	spec 
+		baseline: 'NeoJSON' 
+		with: [ spec repository: 'github://svenvc/NeoJSON/repository' ]
+
+]
+
+{ #category : #baselines }
+BaselineOfGlorp >> p3: spec [
+
+	self neoJSON: spec.
+	self zTimestamp: spec.
+
+	spec package: 'P3'.
+	spec package: 'P3-Tests'.
+
 ]
 
 { #category : #baselines }
@@ -43,4 +68,13 @@ BaselineOfGlorp >> project [
 	aProject loadType: #atomic.
 	^ aProject.
 	
+]
+
+{ #category : #baselines }
+BaselineOfGlorp >> zTimestamp: spec [
+
+	spec 
+		baseline: 'ZTimestamp' 
+		with: [ spec repository: 'github://svenvc/ztimestamp/repository' ]
+
 ]
