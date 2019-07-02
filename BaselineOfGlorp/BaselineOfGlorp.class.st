@@ -32,6 +32,7 @@ BaselineOfGlorp >> baseline: spec [
 			package: 'GlorpCollectionTypeModels';
 			package: 'GlorpTests';
 			package: 'GlorpDBTypeTests';
+			package: 'Glorp-UDBCSQLite3Platform';
 
 			package: 'P3-Glorp';
 
