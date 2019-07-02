@@ -15,23 +15,23 @@ BaselineOfGlorp >> baseline: spec [
 		
 		spec 
 			package: 'GlorpMisc';
-			package: 'GlorpCore';
-			package: 'GlorpDatabase';
-			package: 'GlorpDatabaseTypes';
-			package: 'GlorpExpressions';
 			package: 'GlorpExtensions';
-			package: 'GlorpMappings';
+			package: 'GlorpExpressions';
+			package: 'GlorpDatabaseTypes';
 			package: 'GlorpQueries';
 			package: 'GlorpQueries-Pharo';
+			package: 'GlorpDatabase';
+			package: 'GlorpCore';
+			package: 'GlorpMappings';
 			package: 'GlorpUnitOfWork';
 
 			package: 'GlorpPharoPort';
 
-			package: 'GlorpCollectionTypeModels';
-			package: 'GlorpDBTests';
-			package: 'GlorpDBTypeTests';
 			package: 'GlorpTestModels';
+			package: 'GlorpDBTests';
+			package: 'GlorpCollectionTypeModels';
 			package: 'GlorpTests';
+			package: 'GlorpDBTypeTests';
 
 			package: 'P3-Glorp';
 
