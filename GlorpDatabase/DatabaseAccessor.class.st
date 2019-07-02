@@ -639,7 +639,11 @@ DatabaseAccessor >> execute: aBlock ifError: errorBlock [
 
 { #category : #executing }
 DatabaseAccessor >> executeCommand: command [
-	^self executeCommand: command returnCursor: false.
+| res |
+	res := self executeCommand: command returnCursor: false.
+	command sqlString logCr. '----' logCr.
+
+	^ res
 ]
 
 { #category : #executing }

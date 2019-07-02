@@ -104,6 +104,7 @@ Dialect class >> coerceToDoublePrecisionFloat: aNumber [
 	self isVisualAge ifTrue: [^ aNumber asFloat].
 	self isSqueak ifTrue: [^aNumber asFloat].
 	self isGNU ifTrue: [^ aNumber asFloatD].
+	self isPharo ifTrue: [^aNumber asFloat].
 	^ aNumber
 ]
 
@@ -170,6 +171,7 @@ Dialect class >> fitHashIntoSmallInteger: aNumber [
 { #category : #'*GlorpExtensions-numbers' }
 Dialect class >> fixedPointClass [
 	Dialect isVisualWorks ifTrue: [^self smalltalkAt: #FixedPoint].
+	Dialect isPharo ifTrue: [^self smalltalkAt: #ScaledDecimal].
 ]
 
 { #category : #'*GlorpExtensions-general portability' }
@@ -287,6 +289,7 @@ Dialect class >> lookupClassNamed: aString inContextOf: aClass ifAbsent: aBlock 
 	"Look up the class by name, but use the namespace of the class. Mostly useful if we're trying to guess from unqualified names in dialects with namespaces."
 
 	self isVisualWorks ifFalse: [^self smalltalkAt: aString ifAbsent: aBlock].
+	self isPharo ifFalse: [^self smalltalkAt: aString ifAbsent: aBlock].
 	^aClass environment at: aString ifAbsent:
 		[aClass namesAndBindingsDo:
 			[:varName :variable | aString asSymbol == varName ifTrue: [^variable value]].
@@ -383,6 +386,7 @@ Dialect class >> quitTheImage [
 	self isVisualAge ifTrue: [^  self error: 'Not implemented yet'.].
 	self isObjectStudio ifTrue: [^ self error: 'Not implemented yet'.].
 	self isGNU ifTrue: [^ self error: 'Not implemented yet'.].
+	self isPharo ifTrue: [^ (self smalltalkAt: #SmalltalkImage) current snapshot: false andQuit: true.].
 	self error: 'not implemented yet'.
 	^ self
 ]
@@ -487,6 +491,7 @@ Dialect class >> supportsMillisecondsInTimeStamps [
 	self isDolphin ifTrue: [^ true].
 	self isVisualAge ifTrue: [^ true].
 	self isObjectStudio ifTrue: [^true].
+	self isPharo ifTrue: [^true].
 	self error: 'not yet implemented'.
 	^ self
 ]
@@ -547,6 +552,7 @@ Dialect class >> timestampNowUTC [
 	Dialect isVisualWorks ifTrue: [^ (self smalltalkAt: #Timestamp) fromSeconds: Time secondClock].
 	Dialect isDolphin ifTrue: [self error: 'not supported'].
 	Dialect isGNU ifTrue: [^ self timestampClass utcDateAndTimeNow].
+	Dialect isPharo ifTrue: [^ self timestampClass now asUTC].
 	self error: 'Not yet implemented'.
 	^ self
 ]

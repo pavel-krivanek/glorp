@@ -25,7 +25,11 @@ Dialect class >> contentsOfFileNamed: aString [
 		stream := (Dialect smalltalkAt: #CrLfFileStream) oldFileNamed: aString.
 		[contents := stream contents] ensure: [stream close].
 		^contents].
-
+	Dialect isPharo ifTrue: [
+		stream := (Dialect smalltalkAt: #MultiByteFileStream) oldFileNamed: aString.
+		[ contents := stream contents ]
+		ensure: [ stream close ].
+	^ contents].
 	fileClass := Dialect isVisualAge 
 				ifTrue: [self smalltalkAt: #CfsReadFileStream]
 				ifFalse: 
@@ -45,6 +49,7 @@ Dialect class >> convert: aString toByteArrayWithEncoding: encodingName [
 { #category : #strings }
 Dialect class >> convert: aByteArray toStringWithEncoding: encodingName [
 	self isVisualWorks ifTrue: [^aByteArray asStringEncoding: encodingName].
+	self isPharo ifTrue: [^aByteArray asString convertToEncoding: encodingName].
 	self error: 'Not yet implemented'.
 ]
 
