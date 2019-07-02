@@ -14,13 +14,13 @@ BaselineOfGlorp >> baseline: spec [
 		self p3: spec.
 		
 		spec 
+			package: 'GlorpMisc';
 			package: 'GlorpCore';
 			package: 'GlorpDatabase';
 			package: 'GlorpDatabaseTypes';
 			package: 'GlorpExpressions';
 			package: 'GlorpExtensions';
 			package: 'GlorpMappings';
-			package: 'GlorpMisc';
 			package: 'GlorpQueries';
 			package: 'GlorpQueries-Pharo';
 			package: 'GlorpUnitOfWork';
