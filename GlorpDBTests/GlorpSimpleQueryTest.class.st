@@ -169,7 +169,7 @@ GlorpSimpleQueryTest >> testJoinExpressionWithMultipleTables [
 	Dialect isVisualWorks ifTrue: [sqlStream skip: self skipToString size].	"<Grumble grumble> stupid incompatibilities"
 	result := sqlStream upToEnd.
 	session platform supportsANSIJoins ifTrue: [
-		self assert: ('*frequent_flyer t2 on *t1.id = t2.id*<n> where *t1.id = 1*' expandMacros match: result)]
+		self assert: ('*frequent_flyer t2 on *t1.id = t2.id*<n> where *t1.id = 1*' expandMacros withUnixLineEndings match: result withUnixLineEndings)]
 		ifFalse: [self assert:  ('*(t1.id = 1) and ((t1.id = t2.id*' match: result)].
 ]
 

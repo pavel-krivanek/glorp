@@ -119,5 +119,5 @@ GlorpQueryTableAliasingTest >> testQueryPrintingTables [
 	stream := String new writeStream.
 	query printTablesOn: stream.
 	string := stream contents.
-	self assert: string = '<n> FROM GR_CUSTOMER t1' expandMacros.
+	self assert: string withUnixLineEndings = '<n> FROM GR_CUSTOMER t1' expandMacros withUnixLineEndings.
 ]
