@@ -51,17 +51,16 @@ TimedProxyReaper class >> visualWorksMetadata [
 
 { #category : #caching }
 TimedProxyReaper >> add: aTimedProxy [
-	[mutex wait.
-	self noWaitAdd: aTimedProxy] ensure: [mutex signal].
+	mutex critical: [
+	self noWaitAdd: aTimedProxy].
 	self restartIfNecessary.
 ]
 
 { #category : #caching }
 TimedProxyReaper >> at: id ifAbsent: errorBlock [
 	| result |
-	[mutex wait.
-	result := weakValueDictionary at: id ifAbsent: [^errorBlock value]]
-		ensure: [mutex signal].
+	mutex critical: [
+	result := weakValueDictionary at: id ifAbsent: [^errorBlock value]].
 	^result.
 ]
 
@@ -117,7 +116,7 @@ TimedProxyReaper >> initialize [
 	keysSortedByExpiryTime := SortedCollection sortBlock: [:associationA :associationB | associationA value "timeToDie" <= associationB value].
 
 	indexOffset := 0.
-	mutex := Semaphore forMutualExclusion.
+	mutex := Mutex new.
 	self forkReaperThread
 ]
 
@@ -197,12 +196,13 @@ TimedProxyReaper >> privateReapObjects [
 { #category : #reaping }
 TimedProxyReaper >> reapExpiredObjects [
 	| numberReaped |
-	[mutex wait.
+	#reapExpiredObjects logCr.
+	mutex critical: [
 	keysSortedByExpiryTime isEmpty ifTrue: [self finish].
 	done ifTrue: [^self].
 	numberReaped := self privateReapObjects.	"If the cache is empty, shut down"
 	numberReaped timesRepeat: [keysSortedByExpiryTime removeFirst].
-	indexOffset := indexOffset + numberReaped] ensure: [mutex signal].
+	indexOffset := indexOffset + numberReaped]
 ]
 
 { #category : #initializing }
@@ -228,20 +228,19 @@ TimedProxyReaper >> removeKey: key ifAbsent: errorBlock [
 	up the indexing of objects that are registered later. Don't do it."
 
 	| result |
-	[mutex wait.
-	result := weakValueDictionary removeKey: key ifAbsent: [^errorBlock value]]
-		ensure: [mutex signal].
+	mutex critical: [
+	result := weakValueDictionary removeKey: key ifAbsent: [^errorBlock value]].
 	^result.
 ]
 
 { #category : #reaping }
 TimedProxyReaper >> restartIfNecessary [
-	[mutex wait.
+	mutex critical: [
 	done
 		ifTrue:
 			["Transcript cr; show: 'Restarting', (Time millisecondClockValue // 1000) printString."
 			done := false.
-			self forkReaperThread]] ensure: [mutex signal].
+			self forkReaperThread]]
 ]
 
 { #category : #reaping }
@@ -258,10 +257,9 @@ TimedProxyReaper >> shouldReap: anAssociation [
 
 { #category : #caching }
 TimedProxyReaper >> touch: aTimedProxy [
-	[| association |
-	mutex wait.
+	mutex critical: [| association |
 	association := aTimedProxy glorpAssociation.
 	association isNil ifTrue: [^self].
 	association key: nil.	"This indicates that the key should not be reaped at this time."
-	self noWaitAdd: aTimedProxy] ensure: [mutex signal].
+	self noWaitAdd: aTimedProxy]
 ]

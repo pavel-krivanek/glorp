@@ -11,6 +11,13 @@ AbstractProxy >> doesNotUnderstand: aMessage [
 ]
 
 { #category : #'*GlorpQueries-Pharo' }
+AbstractProxy >> enclosedSetElement [
+
+	
+
+]
+
+{ #category : #'*GlorpQueries-Pharo' }
 AbstractProxy >> instVarAt: index [ 
 	"Primitive. Answer a fixed variable in an object. The numbering of the 
 	variables corresponds to the named instance variables. Fail if the index 

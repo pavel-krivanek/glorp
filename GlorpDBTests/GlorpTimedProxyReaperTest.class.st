@@ -103,6 +103,9 @@ GlorpTimedProxyReaperTest >> testTouchAndExpireObjectsWhileOtherObjectsAreBeingR
 GlorpTimedProxyReaperTest >> testTouchObjects [
 
 	| proxy |
+	
+	self timeLimit: 60 seconds.
+	
 	Dialect isVisualAge ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testTouchObjects for VisualAge'. ^self].
 	Dialect isObjectStudio ifTrue: [Transcript cr; show: 'Avoiding ', self class name, '>>testTouchObjects for ObjectStudio'. ^self].
 
