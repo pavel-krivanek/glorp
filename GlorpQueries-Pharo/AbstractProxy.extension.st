@@ -1,6 +1,10 @@
 Extension { #name : #AbstractProxy }
 
 { #category : #'*GlorpQueries-Pharo' }
+AbstractProxy >> asSetElement [
+]
+
+{ #category : #'*GlorpQueries-Pharo' }
 AbstractProxy >> doesNotUnderstand: aMessage [
 
 	^self getValue perform: aMessage selector withArguments: aMessage arguments.

@@ -514,7 +514,9 @@ GlorpUnitOfWorkTest >> testRollbackImmutableNonImmediateLiteral [
 	namedSalaries := session execute: query.
 	session rollbackUnitOfWork.
 	self assert: (namedSalaries collect: #first) = #('float' 'fixed' 'double').
-	self assert: (namedSalaries collect: #last) = #(25.5 12345.6789s 98765.4321d)]
+	"self assert: (namedSalaries collect: #last) = #(25.5 12345.6789s 98765.4321d)."
+	"in Pharo, scaled decimals are used for all real numbers"
+	self assert: (namedSalaries collect: #last) = #(25.5s 12345.6789s 98765.4321s)]
 		ensure: [session inUnitOfWorkDo: [:sess | sess deleteAll: salariedEmployees]].
 ]
 
