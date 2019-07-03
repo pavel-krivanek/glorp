@@ -153,7 +153,7 @@ UnitOfWork >> computeCollectionDeletesFor: aMapping inObject: anObject [
 	currentObjects isNil ifFalse:
 		[currentObjects do:
 			[:each |
-			(each isGlorpProxy not or: [each isInstantiated]) ifTrue:
+			((each isGlorpProxy not or: [each isInstantiated]) and: [ each notNil ]) ifTrue:
 				[currentObjectSet add: each yourSelf]]].
 	mementoObjects do:
 		[:each |
