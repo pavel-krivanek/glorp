@@ -48,6 +48,10 @@ P3FormattedStatement >> client: aP3Client [
 ]
 
 { #category : #public }
+P3FormattedStatement >> close [
+]
+
+{ #category : #public }
 P3FormattedStatement >> execute: arguments [
 	"Bind the arguments given to the placeholders in my SQL template and
 	execute this statement using my client, returning the result"
@@ -84,6 +88,24 @@ P3FormattedStatement >> printByteArray: byteArray on: stream [
 			nextPut: (hex at: (byte bitShift: -4) + 1);
 			nextPut: (hex at: (byte bitAnd: 15) + 1) ].
 	stream nextPut: $'
+]
+
+{ #category : #'printing-dispatched' }
+P3FormattedStatement >> printDate: date on: stream [
+	"Use ISO 8601 YYYY-MM-DD"
+	
+	stream nextPut: $'.
+	date printOn: stream format: #(3 2 1 $- 1 1 2).
+	stream nextPut: $'
+]
+
+{ #category : #'printing-dispatched' }
+P3FormattedStatement >> printDateAndTime: dateAndTime on: stream [
+	"Use ISO 8601 YYYY-MM-DDThh:mm:ss.s+ZZ:zz"
+	
+	stream nextPut: $'.
+	dateAndTime printOn: stream.
+	stream nextPut: $' 
 ]
 
 { #category : #'printing-dispatched' }
@@ -138,6 +160,27 @@ P3FormattedStatement >> printString: string on: stream [
 		each = $' ifTrue: [ stream nextPut: $' ].
 		stream nextPut: each ].
 	stream nextPut: $'
+]
+
+{ #category : #'printing-dispatched' }
+P3FormattedStatement >> printTime: time on: stream [
+	"Use ISO 8601 hh:mm:ss"
+	
+	stream nextPut: $'.
+	time print24: true on: stream.
+	stream nextPut: $'
+]
+
+{ #category : #'printing-dispatched' }
+P3FormattedStatement >> printValuesArray: valuesArray on: stream [
+	| first |
+	first := true.
+	stream nextPutAll: #array.
+	stream nextPut: $[.
+	valuesArray do: [ :each |
+		first ifTrue: [ first := false ] ifFalse: [ stream nextPut: $, ].
+		each p3PrintUsing: self on: stream ].
+	stream nextPut: $]
 ]
 
 { #category : #public }
