@@ -30,11 +30,6 @@ Class {
 	#category : #'GlorpDatabase-Glorp'
 }
 
-{ #category : #'instance creation' }
-Login class >> new [
-	^super new initialize.
-]
-
 { #category : #'VisualWorks metadata' }
 Login class >> visualWorksMetadata [
 
@@ -109,7 +104,7 @@ Login >> password [
 	"Return the password for this login. If we are in a secure mode, then erase the password as soon as it is accessed."
 	| returnValue |
 	returnValue := password.
-	secure ifTrue: [password := nil].
+	secure ifTrue: [ self discardPassword ].
 	^returnValue.
 ]
 
