@@ -114,7 +114,7 @@ P3Client >> clearSession [
 
 { #category : #'private messages' }
 P3Client >> clearTextPasswordMessage [
-	self password ifNil: [ self error: 'Password required' ].
+	self password ifNil: [ P3Error passwordRequired signal ].
 	^ self asCString: self password
 ]
 
@@ -176,7 +176,7 @@ P3Client >> converter [
 	^ converter ifNil: [ converter := P3Converter new ]
 ]
 
-{ #category : #accessing }
+{ #category : #private }
 P3Client >> converter: anObject [
 	converter := anObject
 ]
@@ -222,11 +222,6 @@ P3Client >> ensureConnected [
 { #category : #private }
 P3Client >> ensureOpen [
 	connection ifNil: [ self open ]
-]
-
-{ #category : #'error handling' }
-P3Client >> error: string [
-	self signal: P3Error using: { $M -> string } asDictionary  
 ]
 
 { #category : #'error handling' }
@@ -386,7 +381,7 @@ P3Client >> md5PasswordMessage: salt [
 	Keep in mind the md5() function returns its result as a hex string."
 	
 	| credential salted |
-	self password ifNil: [ self error: 'Password required' ].
+	self password ifNil: [ P3Error passwordRequired signal ].
 	credential := (MD5 hashMessage: self password , self user) hex.
 	salted := (MD5 hashMessage: credential , salt) hex.
 	^ self asCString: 'md5' , salted
@@ -477,7 +472,7 @@ P3Client >> prepare: query named: queryName [
 		writeSyncMessage.
 
 	self readMessage tag = $1
-		ifFalse: [ ^ self error: 'ParseComplete message expected' ].
+		ifFalse: [ ^ P3Error parseCompleteExpected signal ].
 
 	self readMessage.
 	message tag = $t
@@ -485,7 +480,7 @@ P3Client >> prepare: query named: queryName [
 		ifFalse: [ 
 			parameterDescriptions := #().
 			message tag = $n 
-				ifFalse: [ self error: 'NoData message expected' ] ].
+				ifFalse: [ P3Error noDataExpected signal ] ].
 
 	self readMessage.
 	message tag = $T
@@ -493,10 +488,10 @@ P3Client >> prepare: query named: queryName [
 		ifFalse: [ 
 			rowDescriptions := #().
 			message tag = $n
-				ifFalse: [ self error: 'NoData message expected' ] ].
+				ifFalse: [ P3Error noDataExpected signal ] ].
 
 	self readMessage tag = $Z
-		ifFalse: [ ^ self error: 'ReadyForQuery message expected' ].
+		ifFalse: [ ^ P3Error readyForQueryExpected signal ].
 
 	^ self 
 		createPreparedStatementNamed: queryName 
@@ -602,13 +597,6 @@ P3Client >> query: query [
 		runQueryResult
 ]
 
-{ #category : #accessing }
-P3Client >> queryEncoding [
-	"Return the name of the encoder used"
-	
-	^ self converter encoder identifier
-]
-
 { #category : #'input/output' }
 P3Client >> readMessage [
 	"During normal operations, an error is reported followed by a ready for query so that we can continue to use the connection"
@@ -662,7 +650,7 @@ P3Client >> runAuthentication [
 					salt := message readStream next: 4.
 					self writeMessage: (self md5PasswordMessage: salt) tag: $p ] ]
 		ifFalse: [ 
-			^ self error: 'Unexpected message during authentication' ] ] repeat
+			^ P3Error unexpectedMessageDuringAuthentication signal ] ] repeat
 ]
 
 { #category : #protocol }
@@ -671,9 +659,9 @@ P3Client >> runExtendedQueryResult: descriptions [
 
 	| rows |
 
-			"Check for BindComplete message"
+	"Check for BindComplete message"
 	message tag = $2
-		ifFalse: [ ^ self error: 'BindComplete message expected' ].
+		ifFalse: [ ^ P3Error bindCompleteExpected signal ].
 	self readMessage.
 
 	rows := Array streamContents: [ :out |
@@ -729,7 +717,29 @@ P3Client >> runStartup [
 		ifFalse: [  
 			message tag = $K
 				ifTrue: [ self processBackendKeyData: message readStream ]
-				ifFalse: [ ^ self error: 'Unexpected message during startup' ] ] ] repeat
+				ifFalse: [ ^ P3Error unexpectedMessageDuringStartup signal ] ] ] repeat
+]
+
+{ #category : #accessing }
+P3Client >> serverEncoding [
+	"Return the name of the encoder/decoder used by the server for this session/connection.
+	This is determined automatically from the client_encoding property of the server.
+	One way to set the default at the database level is with the SQL command
+	ALTER DATABASE <mydb> SET client_encoding TO 'UTF8' "
+	
+	self ensureConnected.
+	^ self converter encoder identifier
+]
+
+{ #category : #accessing }
+P3Client >> serverTimezone [
+	"Return the name of the timezone used by the server for this session/connection.
+	This is determined automatically from the TimeZone property of the server.
+	One way to set the default at the database level is with the SQL command
+	ALTER DATABASE <mydb> SET timezone TO 'UTC' "
+	
+	self ensureConnected.
+	^ self converter timezone id
 ]
 
 { #category : #accessing }
@@ -767,7 +777,6 @@ P3Client >> setSSL [
 P3Client >> signal: exceptionClass using: info [
 	exceptionClass new 
 		info: info; 
-		messageText: (info at: $M);
 		signal
 ]
 
@@ -810,7 +819,7 @@ P3Client >> upgradeToSSL [
 			connection := ZdcSecureSocketStream on: connection socket.
 			connection connect ]
 		ifFalse: [ 
-			self error: 'PostgreSQL server did not honor SSL connection request' ]
+			P3Error postgreSQLServerDidNotHonorSSLConnectionRequest signal ]
 
 ]
 

@@ -103,7 +103,7 @@ P3Converter >> convert: bytes length: length description: description [
 	 		lambda isSymbol 
 				ifTrue: [ self perform: lambda with: bytes with: length with: description ]
 				ifFalse: [ lambda value: bytes value: length value: description ] ]
-		ifAbsent: [ self error: 'P3 cannot convert typeOid ', description typeOid asString ]
+		ifAbsent: [ (P3Error cannotConvertTypeOid: description typeOid) signal ]
 ]
 
 { #category : #converting }
@@ -343,7 +343,7 @@ P3Converter >> encoder: anObject [
 	encoder := anObject
 ]
 
-{ #category : #initalize }
+{ #category : #initialize }
 P3Converter >> initialize [
 	super initialize.
 	asciiReadStream := String new readStream.
@@ -352,18 +352,22 @@ P3Converter >> initialize [
 	self initializeTypeMap
 ]
 
-{ #category : #initalize }
+{ #category : #initialize }
 P3Converter >> initializeFrom: properties [
 	| serverTimezone serverEncoder |
+	"Try to resolve the session/connection timezone"
 	serverTimezone := properties at: 'TimeZone' ifAbsent: [ 'GMT' ].
-	serverTimezone := ZTimezone id: serverTimezone.
+	"The fallback for unknown timezones is normally GMT but can be overwritten with ZCurrentTimezone."
+	serverTimezone := [ ZTimezone id: serverTimezone ] on: Error do: [ ZCurrentTimezone value ].
 	self timezone: serverTimezone.
+	"Try to resolve the session/connection character encoder/decoder"
 	serverEncoder := properties at: 'client_encoding' ifAbsent: [ 'UTF8' ].
+	"The fallback for unknown encodings is normally UTF8 but can be overwritten ZnDefaultCharacterEncoder."
 	serverEncoder := ZnCharacterEncoder newForEncoding: serverEncoder.
 	self encoder: serverEncoder
 ]
 
-{ #category : #initalize }
+{ #category : #initialize }
 P3Converter >> initializeTypeMap [
 	map := self class typeMap
 ]
