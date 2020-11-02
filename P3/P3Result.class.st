@@ -150,19 +150,31 @@ P3Result >> numberOfRecords [
 ]
 
 { #category : #printing }
+P3Result >> printInfoOn: stream [
+	self hasResults
+		ifTrue: [ 
+			results isString
+				ifTrue: [ stream nextPutAll: results ]
+				ifFalse: [ 
+					results 
+						do: [ :each | stream nextPutAll: each ]
+						separatedBy: [ stream << ', ' ] ] ].
+	(self hasData and: [ self data notEmpty ])
+		ifTrue: [ 
+			stream
+				<< ', ';
+				print: self numberOfRecords;
+				<< (' record' asPluralBasedOn: self numberOfRecords);
+				<< ', ';
+				print: self numberOfColumns;
+				<< (' colum' asPluralBasedOn: self numberOfColumns) ]
+]
+
+{ #category : #printing }
 P3Result >> printOn: stream [
 	super printOn: stream.
 	stream nextPut: $(.
-	self hasResults
-		ifTrue: [ stream print: results ].
-	self hasData
-		ifTrue: [ stream
-				space;
-				print: self numberOfRecords;
-				<< (' record' asPluralBasedOn: self numberOfRecords);
-				space;
-				print: self numberOfColumns;
-				<< (' colum' asPluralBasedOn: self numberOfColumns) ].
+	self printInfoOn: stream.
 	stream nextPut: $)
 ]
 
