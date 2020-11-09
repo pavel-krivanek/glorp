@@ -87,8 +87,9 @@ P3Path >> isOpen [
 
 { #category : #printing }
 P3Path >> printOn: stream [
-	stream nextPut: (self isOpen ifTrue: [ $[ ] ifFalse: [ $( ]).
+	"characters access is a workaround to make the method loadable in a broken Pharo 9 build 817"
+	stream nextPut: (self isOpen ifTrue: [ '[' first ] ifFalse: [ '(' first ]).
 	self printPointsOn: stream.
-	stream nextPut: (self isOpen ifTrue: [ $] ] ifFalse: [ $) ])	
+	stream nextPut: (self isOpen ifTrue: [ ']' first ] ifFalse: [ ')' first ])
 	
 ]
